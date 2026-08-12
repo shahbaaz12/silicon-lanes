@@ -16,6 +16,5 @@ RUN mkdir -p /data && chown node:node /data
 USER node
 EXPOSE 6212
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
-  CMD ["node", "-e", "fetch('http://127.0.0.1:' + process.env.PORT + '/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+  CMD ["node", "-e", "fetch('http://127.0.0.1:' + process.env.PORT + '/health', { headers: { 'x-silicon-lanes-probe': 'docker' } }).then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
 CMD ["npm", "start"]
-

@@ -7,7 +7,9 @@ export function createApp({ controller, serviceName }) {
   app.disable("x-powered-by");
   app.use(express.json());
   app.use((request, _response, next) => {
-    console.log(`[request] ${new Date().toISOString()} ${request.method} ${request.originalUrl}`);
+    if (request.get("x-silicon-lanes-probe") !== "docker") {
+      console.log(`[request] ${new Date().toISOString()} ${request.method} ${request.originalUrl}`);
+    }
     next();
   });
   app.get("/health", (_request, response) => response.json({
