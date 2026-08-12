@@ -13,14 +13,9 @@ that receives, routes, and balances requests.
 
 ## E-commerce application
 
-The `Application` workspace contains independent Express services backed by
-service-owned SQLite databases in the root-level `Database` directory.
+The `Application` directory contains independent, container-ready Express
+services. Each service owns its runtime, API, business logic, and SQLite
+database. Container instances and host-port mappings are controlled externally.
 
-```bash
-npm install
-npm start
-```
-
-The services listen on ports `6112` through `6117`. See
-[`Application/README.md`](Application/README.md) for the service map and API
-paths.
+See [`Application/README.md`](Application/README.md) for service ports, Docker
+commands, and API paths.

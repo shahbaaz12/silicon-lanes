@@ -1,2 +1,1 @@
-export const config = { name: "order-service", port: Number(process.env.PORT ?? 6116) };
-
+export const config = { name: "order-service", port: Number(process.env.PORT ?? 6512) };
