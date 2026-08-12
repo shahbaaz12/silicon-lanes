@@ -20,6 +20,7 @@ service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances
 are started. Docker reuses cached layers when the source has not changed.
 
-Each instance receives its own SQLite filename in the repository's `Database`
-directory. The detail page shows a sample health-check curl, the JSON response,
-and the last 100 container log lines.
+Each instance receives a readable name such as `userService1`, which is also
+returned as `requestServer`. The detail page automatically shows its sample
+health-check curl, latest JSON response, and a compact live request log containing
+only timestamp, HTTP method, and URL.

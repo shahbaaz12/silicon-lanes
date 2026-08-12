@@ -6,18 +6,14 @@ export function createApp({ controller, serviceName }) {
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json());
-  app.use((request, response, next) => {
-    const startedAt = Date.now();
-    console.log(`[${serviceName}] request received ${request.method} ${request.path} server=${os.hostname()}`);
-    response.on("finish", () => {
-      console.log(`[${serviceName}] response sent ${response.statusCode} durationMs=${Date.now() - startedAt}`);
-    });
+  app.use((request, _response, next) => {
+    console.log(`[request] ${new Date().toISOString()} ${request.method} ${request.originalUrl}`);
     next();
   });
   app.get("/health", (_request, response) => response.json({
     status: "ok",
     serviceName,
-    requestServer: os.hostname()
+    requestServer: process.env.INSTANCE_NAME ?? os.hostname()
   }));
   app.use("/api/users", createUserRouter(controller));
   app.use((_request, response) => response.status(404).json({ error: "Route not found" }));

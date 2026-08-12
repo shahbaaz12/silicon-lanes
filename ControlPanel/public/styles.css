@@ -462,14 +462,27 @@ h1 {
   word-break: break-word;
 }
 
+.curl-block {
+  min-height: 49px;
+  max-height: 49px;
+  overflow: auto;
+}
+
+.response-block,
+.logs-block {
+  height: 104px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+
+.logs-block {
+  color: #a9d5dc;
+}
+
 .request-output {
   margin-top: 18px;
   border-top: 1px solid var(--line);
   padding-top: 1px;
-}
-
-.request-output[hidden] {
-  display: none;
 }
 
 .instance-actions {
@@ -539,4 +552,3 @@ h1 {
   .card-actions { flex-wrap: wrap; }
   .button { flex: 1; }
 }
-

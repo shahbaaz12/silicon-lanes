@@ -37,12 +37,14 @@ function inspectToInstance(container) {
   if (!service) return null;
 
   const binding = container.NetworkSettings.Ports?.[`${service.containerPort}/tcp`]?.[0];
+  const sequence = Number(labels["com.silicon-lanes.sequence"]);
+  const instanceName = labels["com.silicon-lanes.instance-name"] ?? `${service.key}Service${sequence}`;
   return {
     id: container.Id,
     shortId: container.Id.slice(0, 12),
-    name: container.Name.replace(/^\//, ""),
+    name: instanceName,
     serviceKey,
-    sequence: Number(labels["com.silicon-lanes.sequence"]),
+    sequence,
     state: container.State.Running ? "running" : container.State.Status,
     running: container.State.Running,
     hostPort: binding ? Number(binding.HostPort) : null,
@@ -134,12 +136,14 @@ export async function startInstances(service, count) {
 
     for (let index = 0; index < count; index += 1) {
       const { sequence, hostPort } = await nextSlot(service, existing);
-      const name = `silicon-lanes-${service.key}-${sequence}`;
+      const name = `${service.key}Service${sequence}`;
       await removeStoppedContainer(name);
       const id = await docker([
         "run",
         "--detach",
         "--name",
+        name,
+        "--hostname",
         name,
         "--label",
         managedLabel,
@@ -147,12 +151,16 @@ export async function startInstances(service, count) {
         `com.silicon-lanes.service=${service.key}`,
         "--label",
         `com.silicon-lanes.sequence=${sequence}`,
+        "--label",
+        `com.silicon-lanes.instance-name=${name}`,
         "--publish",
         `127.0.0.1:${hostPort}:${service.containerPort}`,
         "--mount",
         `type=bind,source=${databaseDirectory},target=/data`,
         "--env",
         `DATABASE_PATH=/data/${service.database}-${sequence}.db`,
+        "--env",
+        `INSTANCE_NAME=${name}`,
         service.image
       ]);
       const instance = {
@@ -198,7 +206,13 @@ export async function stopInstance(id) {
 export async function getInstanceLogs(id) {
   const instance = await requireManagedContainer(id);
   try {
-    return await docker(["logs", "--tail", "100", instance.id]);
+    const output = await docker(["logs", "--tail", "200", instance.id]);
+    const requestLines = output
+      .split(/\r?\n/)
+      .map((line) => line.match(/^\[request\]\s+(\S+)\s+([A-Z]+)\s+(\S+)$/))
+      .filter(Boolean)
+      .map((match) => `${match[1]}  ${match[2]}  ${match[3]}`);
+    return requestLines.length ? requestLines.slice(-30).join("\n") : "No requests received yet.";
   } catch (error) {
     throw friendlyDockerError(error);
   }

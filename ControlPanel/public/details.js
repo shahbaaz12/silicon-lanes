@@ -6,6 +6,7 @@ const refreshButton = document.querySelector("#refresh-button");
 const countInput = document.querySelector("#instance-count");
 const outputs = new Map();
 let currentService;
+let logRefreshInProgress = false;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (character) => ({
@@ -31,6 +32,18 @@ async function api(url, options) {
   return body;
 }
 
+function updateCardOutput(id, output) {
+  const card = grid.querySelector(`[data-instance="${CSS.escape(id)}"]`);
+  if (!card) return;
+  const responseBlock = card.querySelector("[data-response]");
+  const logsBlock = card.querySelector("[data-logs]");
+  if (output.body) responseBlock.textContent = JSON.stringify(output.body, null, 2);
+  if (output.logs !== undefined) {
+    logsBlock.textContent = output.logs;
+    logsBlock.scrollTop = logsBlock.scrollHeight;
+  }
+}
+
 function renderInstances(instances) {
   document.querySelector("#instance-summary").textContent = `${instances.length} ${instances.length === 1 ? "container is" : "containers are"} answering this lane.`;
   if (!instances.length) {
@@ -48,24 +61,52 @@ function renderInstances(instances) {
             <div class="instance-state"><span class="status-dot"></span>running</div>
             <h3>${escapeHtml(instance.name)}</h3>
           </div>
-          <span class="port-route">:${instance.hostPort} → :${instance.containerPort}</span>
+          <span class="port-route">:${instance.hostPort} -&gt; :${instance.containerPort}</span>
         </div>
         <div class="code-label">Sample GET</div>
-        <pre class="code-block">${escapeHtml(curl)}</pre>
+        <pre class="code-block curl-block">${escapeHtml(curl)}</pre>
         <div class="instance-actions">
-          <button class="button primary" type="button" data-hit>Hit GET</button>
           <button class="button" type="button" data-copy data-curl="${escapeHtml(curl)}">Copy curl</button>
           <button class="button danger" type="button" data-stop>Stop</button>
         </div>
-        <div class="request-output"${output ? "" : " hidden"}>
-          <div class="code-label">Response</div>
-          <pre class="code-block" data-response>${escapeHtml(output ? JSON.stringify(output.body, null, 2) : "")}</pre>
-          <div class="code-label">Container logs</div>
-          <pre class="code-block" data-logs>${escapeHtml(output?.logs ?? "")}</pre>
+        <div class="request-output">
+          <div class="code-label">Latest response</div>
+          <pre class="code-block response-block" data-response>${escapeHtml(output?.body ? JSON.stringify(output.body, null, 2) : "Loading response...")}</pre>
+          <div class="code-label">Request log · time / method / URL</div>
+          <pre class="code-block logs-block" data-logs>${escapeHtml(output?.logs ?? "Waiting for requests...")}</pre>
         </div>
       </article>
     `;
   }).join("");
+}
+
+async function hydrateInstance(instance) {
+  try {
+    const output = await api(`/api/instances/${instance.id}/request`, { method: "POST" });
+    outputs.set(instance.id, output);
+    updateCardOutput(instance.id, output);
+  } catch (error) {
+    updateCardOutput(instance.id, { logs: error.message });
+  }
+}
+
+async function refreshLogs() {
+  if (logRefreshInProgress || !currentService) return;
+  logRefreshInProgress = true;
+  try {
+    await Promise.all(currentService.instances.map(async (instance) => {
+      try {
+        const result = await api(`/api/instances/${instance.id}/logs`);
+        const output = { ...(outputs.get(instance.id) ?? {}), logs: result.logs };
+        outputs.set(instance.id, output);
+        updateCardOutput(instance.id, output);
+      } catch {
+        // A container may have stopped between list and log refresh.
+      }
+    }));
+  } finally {
+    logRefreshInProgress = false;
+  }
 }
 
 async function loadService() {
@@ -74,13 +115,17 @@ async function loadService() {
     const services = await api("/api/services");
     currentService = services.find((service) => service.key === serviceKey);
     if (!currentService) throw new Error("Service not found.");
-    document.title = `${currentService.name} · Silicon Lanes`;
+    document.title = `${currentService.name} - Silicon Lanes`;
     document.querySelector("#breadcrumb-service").textContent = currentService.name;
     document.querySelector("#service-name").textContent = currentService.name;
     document.querySelector("#service-description").textContent = currentService.description;
     document.querySelector("#service-port").textContent = `Lane ${currentService.basePort}+`;
     renderInstances(currentService.instances);
     errorNotice.hidden = true;
+
+    const instancesWithoutResponses = currentService.instances.filter((instance) => !outputs.has(instance.id));
+    await Promise.all(instancesWithoutResponses.map(hydrateInstance));
+    await refreshLogs();
   } catch (error) {
     errorNotice.textContent = error.message;
     errorNotice.hidden = false;
@@ -92,7 +137,7 @@ async function loadService() {
 
 async function startInstances() {
   startButton.disabled = true;
-  startButton.textContent = "Starting…";
+  startButton.textContent = "Starting...";
   try {
     const count = Math.max(1, Math.min(10, Number(countInput.value)));
     await api(`/api/services/${serviceKey}/instances`, {
@@ -120,30 +165,10 @@ grid.addEventListener("click", async (event) => {
     return;
   }
 
-  if (event.target.closest("[data-hit]")) {
-    const button = event.target.closest("[data-hit]");
-    button.disabled = true;
-    button.textContent = "Sending…";
-    try {
-      const result = await api(`/api/instances/${id}/request`, { method: "POST" });
-      outputs.set(id, result);
-      card.querySelector(".request-output").hidden = false;
-      card.querySelector("[data-response]").textContent = JSON.stringify(result.body, null, 2);
-      card.querySelector("[data-logs]").textContent = result.logs;
-      showToast(`Response received from ${result.body.requestServer}.`);
-    } catch (error) {
-      showToast(error.message, true);
-    } finally {
-      button.disabled = false;
-      button.textContent = "Hit GET";
-    }
-    return;
-  }
-
   if (event.target.closest("[data-stop]")) {
     const button = event.target.closest("[data-stop]");
     button.disabled = true;
-    button.textContent = "Stopping…";
+    button.textContent = "Stopping...";
     try {
       await api(`/api/instances/${id}`, { method: "DELETE" });
       outputs.delete(id);
@@ -165,5 +190,6 @@ document.querySelector("#increase-count").addEventListener("click", () => {
 });
 startButton.addEventListener("click", startInstances);
 refreshButton.addEventListener("click", loadService);
+setInterval(refreshLogs, 2000);
 loadService();
 
