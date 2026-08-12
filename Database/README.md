@@ -1,14 +1,24 @@
 # Database
 
-Runtime SQLite files are created here when the services start. Each service
-owns a separate database and must communicate with other services through APIs,
-never by opening another service's database.
+Silicon Lanes uses one PostgreSQL server with a separate logical database owned
+by each service:
 
-For multiple Docker instances, give each instance its own database filename.
-SQLite files must not be shared by multiple writing containers. A later shared
-database server is required when horizontally scaled instances need consistent
-state.
+- `silicon_lanes_users`
+- `silicon_lanes_catalog`
+- `silicon_lanes_inventory`
+- `silicon_lanes_carts`
+- `silicon_lanes_orders`
+- `silicon_lanes_payments`
 
-Database files are intentionally ignored by Git. Schema creation lives in each
-service's `src/database/connection.js` module. Set `DATABASE_PATH=:memory:` when
-starting one service to use an in-memory database for tests.
+All replicas of one service connect to the same database, so state is shared
+across load-balanced instances. A service must access another service's data
+through its API rather than connecting directly to the other database.
+
+The local control panel automatically creates:
+
+- Container: `silicon-lanes-postgres`
+- Network: `silicon-lanes-network`
+- Named volume: `silicon-lanes-postgres-data`
+
+Tables are initialized by each service when it starts. Killing application
+instances does not remove PostgreSQL or its data volume.

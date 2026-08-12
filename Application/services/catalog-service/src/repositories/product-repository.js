@@ -3,19 +3,22 @@ export class ProductRepository {
     this.database = database;
   }
 
-  list() {
-    return this.database.prepare("SELECT * FROM products ORDER BY id").all();
+  async list() {
+    const result = await this.database.query("SELECT * FROM products ORDER BY id");
+    return result.rows;
   }
 
-  findById(id) {
-    return this.database.prepare("SELECT * FROM products WHERE id = ?").get(id);
+  async findById(id) {
+    const result = await this.database.query("SELECT * FROM products WHERE id = $1", [id]);
+    return result.rows[0];
   }
 
-  create({ name, description, priceCents }) {
-    const result = this.database
-      .prepare("INSERT INTO products (name, description, price_cents) VALUES (?, ?, ?)")
-      .run(name, description, priceCents);
-    return this.findById(result.lastInsertRowid);
+  async create({ name, description, priceCents }) {
+    const result = await this.database.query(
+      "INSERT INTO products (name, description, price_cents) VALUES ($1, $2, $3) RETURNING *",
+      [name, description, priceCents]
+    );
+    return result.rows[0];
   }
 }
 

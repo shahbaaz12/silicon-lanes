@@ -7,8 +7,7 @@
     "start": "node src/server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^13.0.3",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.16.3"
   }
 }
-

@@ -1,28 +1,27 @@
 export function createUserController(service) {
   return {
-    list(_request, response, next) {
+    async list(_request, response, next) {
       try {
-        response.json(service.listUsers());
+        response.json(await service.listUsers());
       } catch (error) {
         next(error);
       }
     },
 
-    get(request, response, next) {
+    async get(request, response, next) {
       try {
-        response.json(service.getUser(Number(request.params.id)));
+        response.json(await service.getUser(Number(request.params.id)));
       } catch (error) {
         next(error);
       }
     },
 
-    create(request, response, next) {
+    async create(request, response, next) {
       try {
-        response.status(201).json(service.createUser(request.body));
+        response.status(201).json(await service.createUser(request.body));
       } catch (error) {
         next(error);
       }
     }
   };
 }
-

@@ -21,6 +21,17 @@ label. Its image is built from the independent service folder when instances
 are started. Docker reuses cached layers when the source has not changed.
 
 Each instance receives a readable name such as `userService1`, which is also
-returned as `requestServer`. The detail page automatically shows its sample
-health-check curl, latest JSON response, and a compact live request log containing
-only timestamp, HTTP method, and URL.
+returned as `requestServer`. The detail page shows the host-to-container port
+mapping, selected endpoint curl, and a compact live request log containing only
+timestamp, HTTP method, and URL.
+
+Each instance card can show every endpoint exposed by its service. Selecting an
+endpoint updates the displayed curl command and copy action. Clearing logs hides
+the current request history while allowing later requests to appear normally.
+
+Starting a service automatically creates one shared `postgres:17-alpine`
+container and six logical databases. Replicas of a service connect to the same
+logical database. The detail page can stop one instance or kill all instances
+of the selected service; it does not remove PostgreSQL or its named data volume.
+For local development the database password defaults to `silicon_lanes`; set
+`SILICON_LANES_DATABASE_PASSWORD` before starting the panel to override it.

@@ -14,8 +14,9 @@ that receives, routes, and balances requests.
 ## E-commerce application
 
 The `Application` directory contains independent, container-ready Express
-services. Each service owns its runtime, API, business logic, and SQLite
-database. Container instances and host-port mappings are controlled externally.
+services. Each service owns its runtime, API, business logic, and logical
+PostgreSQL database. Replicas share their service database while container
+instances and host-port mappings remain externally controlled.
 
 See [`Application/README.md`](Application/README.md) for service ports, Docker
 commands, and API paths.

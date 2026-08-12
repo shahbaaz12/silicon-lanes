@@ -3,19 +3,22 @@ export class OrderRepository {
     this.database = database;
   }
 
-  list() {
-    return this.database.prepare("SELECT * FROM orders ORDER BY id").all();
+  async list() {
+    const result = await this.database.query("SELECT * FROM orders ORDER BY id");
+    return result.rows;
   }
 
-  findById(id) {
-    return this.database.prepare("SELECT * FROM orders WHERE id = ?").get(id);
+  async findById(id) {
+    const result = await this.database.query("SELECT * FROM orders WHERE id = $1", [id]);
+    return result.rows[0];
   }
 
-  create({ userId, totalCents }) {
-    const result = this.database
-      .prepare("INSERT INTO orders (user_id, total_cents) VALUES (?, ?)")
-      .run(userId, totalCents);
-    return this.findById(result.lastInsertRowid);
+  async create({ userId, totalCents }) {
+    const result = await this.database.query(
+      "INSERT INTO orders (user_id, total_cents) VALUES ($1, $2) RETURNING *",
+      [userId, totalCents]
+    );
+    return result.rows[0];
   }
 }
 

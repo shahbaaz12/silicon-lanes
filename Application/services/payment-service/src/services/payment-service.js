@@ -3,17 +3,17 @@ export class PaymentService {
     this.repository = repository;
   }
 
-  listPayments() {
+  async listPayments() {
     return this.repository.list();
   }
 
-  getPayment(id) {
-    const payment = this.repository.findById(id);
+  async getPayment(id) {
+    const payment = await this.repository.findById(id);
     if (!payment) throw Object.assign(new Error("Payment not found"), { statusCode: 404 });
     return payment;
   }
 
-  createPayment(input) {
+  async createPayment(input) {
     const orderId = Number(input.orderId);
     const amountCents = Number(input.amountCents);
     if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(amountCents) || amountCents < 0) {
@@ -22,4 +22,3 @@ export class PaymentService {
     return this.repository.create({ orderId, amountCents });
   }
 }
-

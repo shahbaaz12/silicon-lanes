@@ -5,7 +5,7 @@ import { createDatabase } from "./database/connection.js";
 import { UserRepository } from "./repositories/user-repository.js";
 import { UserService } from "./services/user-service.js";
 
-const database = createDatabase();
+const database = await createDatabase();
 const repository = new UserRepository(database);
 const service = new UserService(repository);
 const controller = createUserController(service);
@@ -16,12 +16,11 @@ const server = app.listen(config.port, () => {
 });
 
 function shutdown() {
-  server.close(() => {
-    database.close();
+  server.close(async () => {
+    await database.end();
     process.exit(0);
   });
 }
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-

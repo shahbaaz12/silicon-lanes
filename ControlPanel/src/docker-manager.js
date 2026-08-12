@@ -9,8 +9,12 @@ const execFileAsync = promisify(execFile);
 const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = path.resolve(controlPanelDirectory, "..");
 const applicationServicesDirectory = path.join(repositoryRoot, "Application", "services");
-const databaseDirectory = path.join(repositoryRoot, "Database");
 const managedLabel = "com.silicon-lanes.managed=true";
+const networkName = "silicon-lanes-network";
+const postgresContainerName = "silicon-lanes-postgres";
+const postgresVolumeName = "silicon-lanes-postgres-data";
+const postgresPassword = process.env.SILICON_LANES_DATABASE_PASSWORD ?? "silicon_lanes";
+const logClearTimes = new Map();
 
 async function docker(args, options = {}) {
   const result = await execFileAsync("docker", args, {
@@ -89,6 +93,83 @@ async function buildImage(service) {
   }
 }
 
+async function ensureNetwork() {
+  try {
+    await docker(["network", "inspect", networkName]);
+  } catch (error) {
+    if (!/(No such network|network .* not found)/i.test(error.stderr ?? "")) throw error;
+    await docker(["network", "create", networkName]);
+  }
+}
+
+async function waitForPostgres() {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const status = await docker([
+      "inspect",
+      "--format",
+      "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}",
+      postgresContainerName
+    ]);
+    if (status === "healthy") return;
+    if (status === "exited" || status === "dead") {
+      throw new Error("The Silicon Lanes PostgreSQL container stopped unexpectedly.");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  throw new Error("PostgreSQL did not become ready in time.");
+}
+
+async function ensurePostgres() {
+  await ensureNetwork();
+  try {
+    const state = await docker(["inspect", "--format", "{{.State.Running}}", postgresContainerName]);
+    if (state !== "true") await docker(["start", postgresContainerName]);
+  } catch (error) {
+    if (!/No such (object|container)/i.test(error.stderr ?? "")) throw error;
+    await docker([
+      "run",
+      "--detach",
+      "--name",
+      postgresContainerName,
+      "--network",
+      networkName,
+      "--label",
+      "com.silicon-lanes.infrastructure=postgres",
+      "--env",
+      `POSTGRES_PASSWORD=${postgresPassword}`,
+      "--volume",
+      `${postgresVolumeName}:/var/lib/postgresql/data`,
+      "--health-cmd",
+      "pg_isready -U postgres",
+      "--health-interval",
+      "2s",
+      "--health-timeout",
+      "3s",
+      "--health-retries",
+      "20",
+      "postgres:17-alpine"
+    ]);
+  }
+
+  await waitForPostgres();
+  for (const databaseName of new Set(Object.values(serviceCatalog).map(({ database }) => database))) {
+    const exists = await docker([
+      "exec",
+      postgresContainerName,
+      "psql",
+      "--username",
+      "postgres",
+      "--tuples-only",
+      "--no-align",
+      "--command",
+      `SELECT 1 FROM pg_database WHERE datname = '${databaseName}'`
+    ]);
+    if (exists !== "1") {
+      await docker(["exec", postgresContainerName, "createdb", "--username", "postgres", databaseName]);
+    }
+  }
+}
+
 function portIsAvailable(port) {
   return new Promise((resolve) => {
     const server = net.createServer();
@@ -115,6 +196,24 @@ async function nextSlot(service, existing) {
   throw Object.assign(new Error(`No available ${service.name} port was found.`), { statusCode: 409 });
 }
 
+async function waitForServiceContainer(id, name) {
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    const status = await docker([
+      "inspect",
+      "--format",
+      "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}",
+      id
+    ]);
+    if (status === "healthy") return;
+    if (status === "unhealthy" || status === "exited" || status === "dead") {
+      const logs = await docker(["logs", "--tail", "30", id]);
+      throw new Error(`${name} failed to start.\n${logs}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`${name} did not become ready in time.`);
+}
+
 async function removeStoppedContainer(name) {
   try {
     const status = await docker(["inspect", "--format", "{{.State.Running}}", name]);
@@ -130,6 +229,7 @@ async function removeStoppedContainer(name) {
 
 export async function startInstances(service, count) {
   try {
+    await ensurePostgres();
     await buildImage(service);
     const started = [];
     let existing = await listManagedInstances({ includeStopped: true });
@@ -145,6 +245,8 @@ export async function startInstances(service, count) {
         name,
         "--hostname",
         name,
+        "--network",
+        networkName,
         "--label",
         managedLabel,
         "--label",
@@ -155,14 +257,21 @@ export async function startInstances(service, count) {
         `com.silicon-lanes.instance-name=${name}`,
         "--publish",
         `127.0.0.1:${hostPort}:${service.containerPort}`,
-        "--mount",
-        `type=bind,source=${databaseDirectory},target=/data`,
         "--env",
-        `DATABASE_PATH=/data/${service.database}-${sequence}.db`,
+        `DATABASE_HOST=${postgresContainerName}`,
+        "--env",
+        "DATABASE_PORT=5432",
+        "--env",
+        "DATABASE_USER=postgres",
+        "--env",
+        `DATABASE_PASSWORD=${postgresPassword}`,
+        "--env",
+        `DATABASE_NAME=${service.database}`,
         "--env",
         `INSTANCE_NAME=${name}`,
         service.image
       ]);
+      await waitForServiceContainer(id, name);
       const instance = {
         id,
         shortId: id.slice(0, 12),
@@ -197,7 +306,22 @@ export async function stopInstance(id) {
   const instance = await requireManagedContainer(id);
   try {
     await docker(["rm", "--force", instance.id]);
+    logClearTimes.delete(instance.id);
     return instance;
+  } catch (error) {
+    throw friendlyDockerError(error);
+  }
+}
+
+export async function stopServiceInstances(serviceKey) {
+  const instances = (await listManagedInstances({ includeStopped: true }))
+    .filter((instance) => instance.serviceKey === serviceKey);
+  if (!instances.length) return [];
+
+  try {
+    await docker(["rm", "--force", ...instances.map(({ id }) => id)]);
+    for (const instance of instances) logClearTimes.delete(instance.id);
+    return instances;
   } catch (error) {
     throw friendlyDockerError(error);
   }
@@ -211,6 +335,10 @@ export async function getInstanceLogs(id) {
       .split(/\r?\n/)
       .map((line) => line.match(/^\[request\]\s+(\S+)\s+([A-Z]+)\s+(\S+)$/))
       .filter(Boolean)
+      .filter((match) => {
+        const clearTime = logClearTimes.get(instance.id);
+        return !clearTime || Date.parse(match[1]) > clearTime;
+      })
       .map((match) => `${match[1]}  ${match[2]}  ${match[3]}`);
     return requestLines.length ? requestLines.slice(-30).join("\n") : "No requests received yet.";
   } catch (error) {
@@ -218,33 +346,8 @@ export async function getInstanceLogs(id) {
   }
 }
 
-export async function requestInstance(id) {
+export async function clearInstanceLogs(id) {
   const instance = await requireManagedContainer(id);
-  if (!instance.running || !instance.hostPort) {
-    throw Object.assign(new Error("The service instance is not running."), { statusCode: 409 });
-  }
-
-  let response;
-  let lastError;
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    try {
-      response = await fetch(`http://127.0.0.1:${instance.hostPort}/health`);
-      break;
-    } catch (error) {
-      lastError = error;
-      await new Promise((resolve) => setTimeout(resolve, 250));
-    }
-  }
-  if (!response) {
-    throw Object.assign(new Error(`The instance is still starting: ${lastError?.message}`), { statusCode: 503 });
-  }
-
-  const body = await response.json();
-  const logs = await getInstanceLogs(instance.id);
-  return {
-    statusCode: response.status,
-    requestUrl: `http://localhost:${instance.hostPort}/health`,
-    body,
-    logs
-  };
+  logClearTimes.set(instance.id, Date.now());
+  return instance;
 }

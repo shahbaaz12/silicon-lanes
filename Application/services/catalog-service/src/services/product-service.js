@@ -3,17 +3,17 @@ export class ProductService {
     this.repository = repository;
   }
 
-  listProducts() {
+  async listProducts() {
     return this.repository.list();
   }
 
-  getProduct(id) {
-    const product = this.repository.findById(id);
+  async getProduct(id) {
+    const product = await this.repository.findById(id);
     if (!product) throw Object.assign(new Error("Product not found"), { statusCode: 404 });
     return product;
   }
 
-  createProduct(input) {
+  async createProduct(input) {
     const name = input.name?.trim();
     const description = input.description?.trim() ?? "";
     const priceCents = Number(input.priceCents);
@@ -23,4 +23,3 @@ export class ProductService {
     return this.repository.create({ name, description, priceCents });
   }
 }
-

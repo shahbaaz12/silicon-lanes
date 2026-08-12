@@ -259,6 +259,11 @@ h1 {
   gap: 9px;
 }
 
+.detail-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .count-control {
   display: inline-flex;
   align-items: center;
@@ -449,6 +454,74 @@ h1 {
   text-transform: uppercase;
 }
 
+.endpoint-heading,
+.log-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.endpoint-toggle,
+.clear-logs {
+  min-height: 30px;
+  padding-inline: 10px;
+  font-size: 11px;
+}
+
+.endpoint-list {
+  max-height: 180px;
+  display: grid;
+  gap: 6px;
+  overflow-y: auto;
+  margin-bottom: 9px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #090b0d;
+}
+
+.endpoint-list[hidden] {
+  display: none;
+}
+
+.endpoint-option {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.endpoint-option:hover,
+.endpoint-option.selected {
+  border-color: var(--line);
+  background: var(--panel-raised);
+}
+
+.endpoint-option span {
+  color: var(--lime);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.endpoint-option code {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+.endpoint-option small {
+  color: var(--muted);
+}
+
 .code-block {
   overflow-x: auto;
   margin: 0;
@@ -468,7 +541,6 @@ h1 {
   overflow: auto;
 }
 
-.response-block,
 .logs-block {
   height: 104px;
   overflow: auto;

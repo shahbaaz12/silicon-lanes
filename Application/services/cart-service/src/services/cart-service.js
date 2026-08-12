@@ -11,11 +11,12 @@ export class CartService {
     this.repository = repository;
   }
 
-  getCart(userId) {
-    return { userId: positiveInteger(userId, "userId"), items: this.repository.listItems(Number(userId)) };
+  async getCart(userId) {
+    const parsedUserId = positiveInteger(userId, "userId");
+    return { userId: parsedUserId, items: await this.repository.listItems(parsedUserId) };
   }
 
-  addItem(userId, input) {
+  async addItem(userId, input) {
     return this.repository.addItem({
       userId: positiveInteger(userId, "userId"),
       productId: positiveInteger(input.productId, "productId"),
@@ -23,12 +24,11 @@ export class CartService {
     });
   }
 
-  removeItem(userId, productId) {
-    const changes = this.repository.removeItem(
+  async removeItem(userId, productId) {
+    const changes = await this.repository.removeItem(
       positiveInteger(userId, "userId"),
       positiveInteger(productId, "productId")
     );
     if (!changes) throw Object.assign(new Error("Cart item not found"), { statusCode: 404 });
   }
 }
-

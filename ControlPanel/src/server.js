@@ -2,11 +2,12 @@ import express from "express";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import {
+  clearInstanceLogs,
   getInstanceLogs,
   listManagedInstances,
-  requestInstance,
   startInstances,
-  stopInstance
+  stopInstance,
+  stopServiceInstances
 } from "./docker-manager.js";
 import { getService, serviceCatalog } from "./service-catalog.js";
 
@@ -45,6 +46,16 @@ app.post("/api/services/:key/instances", async (request, response, next) => {
   }
 });
 
+app.delete("/api/services/:key/instances", async (request, response, next) => {
+  try {
+    const service = getService(request.params.key);
+    if (!service) return response.status(404).json({ error: "Service not found." });
+    response.json({ stopped: await stopServiceInstances(service.key) });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.delete("/api/instances/:id", async (request, response, next) => {
   try {
     await stopInstance(request.params.id);
@@ -62,9 +73,10 @@ app.get("/api/instances/:id/logs", async (request, response, next) => {
   }
 });
 
-app.post("/api/instances/:id/request", async (request, response, next) => {
+app.delete("/api/instances/:id/logs", async (request, response, next) => {
   try {
-    response.json(await requestInstance(request.params.id));
+    await clearInstanceLogs(request.params.id);
+    response.status(204).end();
   } catch (error) {
     next(error);
   }
@@ -85,4 +97,3 @@ app.use((error, _request, response, _next) => {
 app.listen(port, "127.0.0.1", () => {
   console.log(`[control-panel] Open http://localhost:${port}`);
 });
-

@@ -3,19 +3,22 @@ export class PaymentRepository {
     this.database = database;
   }
 
-  list() {
-    return this.database.prepare("SELECT * FROM payments ORDER BY id").all();
+  async list() {
+    const result = await this.database.query("SELECT * FROM payments ORDER BY id");
+    return result.rows;
   }
 
-  findById(id) {
-    return this.database.prepare("SELECT * FROM payments WHERE id = ?").get(id);
+  async findById(id) {
+    const result = await this.database.query("SELECT * FROM payments WHERE id = $1", [id]);
+    return result.rows[0];
   }
 
-  create({ orderId, amountCents }) {
-    const result = this.database
-      .prepare("INSERT INTO payments (order_id, amount_cents) VALUES (?, ?)")
-      .run(orderId, amountCents);
-    return this.findById(result.lastInsertRowid);
+  async create({ orderId, amountCents }) {
+    const result = await this.database.query(
+      "INSERT INTO payments (order_id, amount_cents) VALUES ($1, $2) RETURNING *",
+      [orderId, amountCents]
+    );
+    return result.rows[0];
   }
 }
 

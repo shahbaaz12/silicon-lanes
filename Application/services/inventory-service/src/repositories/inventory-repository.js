@@ -3,22 +3,25 @@ export class InventoryRepository {
     this.database = database;
   }
 
-  list() {
-    return this.database.prepare("SELECT * FROM inventory ORDER BY product_id").all();
+  async list() {
+    const result = await this.database.query("SELECT * FROM inventory ORDER BY product_id");
+    return result.rows;
   }
 
-  findByProductId(productId) {
-    return this.database.prepare("SELECT * FROM inventory WHERE product_id = ?").get(productId);
+  async findByProductId(productId) {
+    const result = await this.database.query("SELECT * FROM inventory WHERE product_id = $1", [productId]);
+    return result.rows[0];
   }
 
-  set({ productId, quantity }) {
-    this.database.prepare(`
-      INSERT INTO inventory (product_id, quantity) VALUES (?, ?)
+  async set({ productId, quantity }) {
+    const result = await this.database.query(`
+      INSERT INTO inventory (product_id, quantity) VALUES ($1, $2)
       ON CONFLICT(product_id) DO UPDATE SET
-        quantity = excluded.quantity,
+        quantity = EXCLUDED.quantity,
         updated_at = CURRENT_TIMESTAMP
-    `).run(productId, quantity);
-    return this.findByProductId(productId);
+      RETURNING *
+    `, [productId, quantity]);
+    return result.rows[0];
   }
 }
 

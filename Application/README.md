@@ -4,14 +4,14 @@ The application is split into independently runnable and containerized Express
 services. There is no root launcher or shared Node.js workspace. Each service
 owns its dependencies, API, business logic, repository, and database settings.
 
-| Service | Container port | Base endpoint | Default database |
+| Service | Container port | Base endpoint | PostgreSQL database |
 | --- | ---: | --- | --- |
-| User | 6112 | `/api/users` | `Database/users.db` |
-| Catalog | 6212 | `/api/products` | `Database/catalog.db` |
-| Inventory | 6312 | `/api/inventory` | `Database/inventory.db` |
-| Cart | 6412 | `/api/carts` | `Database/carts.db` |
-| Order | 6512 | `/api/orders` | `Database/orders.db` |
-| Payment | 6612 | `/api/payments` | `Database/payments.db` |
+| User | 6112 | `/api/users` | `silicon_lanes_users` |
+| Catalog | 6212 | `/api/products` | `silicon_lanes_catalog` |
+| Inventory | 6312 | `/api/inventory` | `silicon_lanes_inventory` |
+| Cart | 6412 | `/api/carts` | `silicon_lanes_carts` |
+| Order | 6512 | `/api/orders` | `silicon_lanes_orders` |
+| Payment | 6612 | `/api/payments` | `silicon_lanes_payments` |
 
 Every service exposes `GET /health`.
 
@@ -31,28 +31,25 @@ host port to each instance. For example, three User instances use host ports
 `6112`, `6113`, and `6114`, all mapped to container port `6112`:
 
 ```powershell
-$databasePath = (Resolve-Path .\Database).Path
+docker run -d --name userService1 --network silicon-lanes-network `
+  -p 6112:6112 -e INSTANCE_NAME=userService1 silicon-lanes-user
 
-docker run -d --name user-1 -p 6112:6112 `
-  --mount "type=bind,source=$databasePath,target=/data" `
-  -e DATABASE_PATH=/data/users-1.db silicon-lanes-user
+docker run -d --name userService2 --network silicon-lanes-network `
+  -p 6113:6112 -e INSTANCE_NAME=userService2 silicon-lanes-user
 
-docker run -d --name user-2 -p 6113:6112 `
-  --mount "type=bind,source=$databasePath,target=/data" `
-  -e DATABASE_PATH=/data/users-2.db silicon-lanes-user
-
-docker run -d --name user-3 -p 6114:6112 `
-  --mount "type=bind,source=$databasePath,target=/data" `
-  -e DATABASE_PATH=/data/users-3.db silicon-lanes-user
+docker run -d --name userService3 --network silicon-lanes-network `
+  -p 6114:6112 -e INSTANCE_NAME=userService3 silicon-lanes-user
 ```
+
+These commands assume `silicon-lanes-postgres` is running on the named network
+with the documented credentials and logical databases. The local control panel
+creates that infrastructure automatically and is the recommended launcher.
 
 The equivalent Catalog mappings are `6212:6212`, `6213:6212`, and
 `6214:6212`.
 
-Each SQLite-writing container should use a separate database file. Separate
-files are suitable for infrastructure experiments but do not share application
-state. When replicas must share consistent data, replace SQLite with a database
-server such as PostgreSQL.
+All instances of the same service connect to the same logical PostgreSQL
+database. Different services retain separate database ownership.
 
 ## Service structure
 
@@ -62,7 +59,7 @@ src/
 ├── config.js       # Environment-backed configuration
 ├── server.js       # Dependency wiring and HTTP listener
 ├── controllers/    # HTTP translation
-├── database/       # SQLite connection and schema
+├── database/       # PostgreSQL connection and schema
 ├── repositories/   # Data access
 ├── routes/         # Endpoint definitions
 └── services/       # Business rules
@@ -71,5 +68,7 @@ src/
 ## Runtime configuration
 
 - `PORT` changes the service's internal listening port.
-- `DATABASE_DIR` changes the directory containing its default database file.
-- `DATABASE_PATH` selects an explicit file, or `:memory:` for temporary data.
+- `DATABASE_HOST` and `DATABASE_PORT` select the PostgreSQL server.
+- `DATABASE_USER` and `DATABASE_PASSWORD` configure authentication.
+- `DATABASE_NAME` selects the logical database owned by the service.
+- `DATABASE_POOL_SIZE` controls the maximum connections per instance.

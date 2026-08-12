@@ -1,25 +1,23 @@
-import Database from "better-sqlite3";
-import { mkdirSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import pg from "pg";
 
-const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../../");
+const { Pool } = pg;
 
-export function createDatabase() {
-  const databaseDirectory = path.resolve(process.env.DATABASE_DIR ?? path.join(repositoryRoot, "Database"));
-  mkdirSync(databaseDirectory, { recursive: true });
-  const databasePath = process.env.DATABASE_PATH === ":memory:"
-    ? ":memory:"
-    : path.resolve(process.env.DATABASE_PATH ?? path.join(databaseDirectory, "catalog.db"));
-  const database = new Database(databasePath);
-  database.pragma("journal_mode = WAL");
-  database.exec(`
+export async function createDatabase() {
+  const database = new Pool({
+    host: process.env.DATABASE_HOST ?? "127.0.0.1",
+    port: Number(process.env.DATABASE_PORT ?? 5432),
+    user: process.env.DATABASE_USER ?? "postgres",
+    password: process.env.DATABASE_PASSWORD ?? "silicon_lanes",
+    database: process.env.DATABASE_NAME ?? "silicon_lanes_catalog",
+    max: Number(process.env.DATABASE_POOL_SIZE ?? 10)
+  });
+  await database.query(`
     CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id BIGSERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT NOT NULL DEFAULT '',
       price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     )
   `);
   return database;

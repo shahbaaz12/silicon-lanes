@@ -3,19 +3,22 @@ export class UserRepository {
     this.database = database;
   }
 
-  list() {
-    return this.database.prepare("SELECT * FROM users ORDER BY id").all();
+  async list() {
+    const result = await this.database.query("SELECT * FROM users ORDER BY id");
+    return result.rows;
   }
 
-  findById(id) {
-    return this.database.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  async findById(id) {
+    const result = await this.database.query("SELECT * FROM users WHERE id = $1", [id]);
+    return result.rows[0];
   }
 
-  create({ name, email }) {
-    const result = this.database
-      .prepare("INSERT INTO users (name, email) VALUES (?, ?)")
-      .run(name, email);
-    return this.findById(result.lastInsertRowid);
+  async create({ name, email }) {
+    const result = await this.database.query(
+      "INSERT INTO users (name, email) VALUES ($1, $2) RETURNING *",
+      [name, email]
+    );
+    return result.rows[0];
   }
 }
 

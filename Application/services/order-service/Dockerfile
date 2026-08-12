@@ -1,18 +1,14 @@
 FROM node:24-bookworm-slim AS dependencies
 WORKDIR /app
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 make g++ \
-    && rm -rf /var/lib/apt/lists/*
 COPY package*.json ./
 RUN npm ci --omit=dev
 
 FROM node:24-bookworm-slim
 WORKDIR /app
-ENV NODE_ENV=production PORT=6512 DATABASE_DIR=/data
+ENV NODE_ENV=production PORT=6512 DATABASE_HOST=silicon-lanes-postgres DATABASE_PORT=5432 DATABASE_USER=postgres DATABASE_NAME=silicon_lanes_orders
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY package*.json ./
 COPY src ./src
-RUN mkdir -p /data && chown node:node /data
 USER node
 EXPOSE 6512
 HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \

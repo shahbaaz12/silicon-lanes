@@ -7,29 +7,28 @@ export class UserService {
     this.repository = repository;
   }
 
-  listUsers() {
+  async listUsers() {
     return this.repository.list();
   }
 
-  getUser(id) {
-    const user = this.repository.findById(id);
+  async getUser(id) {
+    const user = await this.repository.findById(id);
     if (!user) throw Object.assign(new Error("User not found"), { statusCode: 404 });
     return user;
   }
 
-  createUser(input) {
+  async createUser(input) {
     const name = input.name?.trim();
     const email = input.email?.trim().toLowerCase();
     if (!name || !email) throw badRequest("name and email are required");
 
     try {
-      return this.repository.create({ name, email });
+      return await this.repository.create({ name, email });
     } catch (error) {
-      if (error.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      if (error.code === "23505") {
         throw Object.assign(new Error("Email already exists"), { statusCode: 409 });
       }
       throw error;
     }
   }
 }
-
