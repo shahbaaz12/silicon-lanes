@@ -19,3 +19,17 @@ database. Container instances and host-port mappings are controlled externally.
 
 See [`Application/README.md`](Application/README.md) for service ports, Docker
 commands, and API paths.
+
+## Control panel
+
+`ControlPanel` is a local dashboard for starting one or more Docker instances,
+opening a service detail page, sending sample GET requests, and viewing the
+response and container logs.
+
+```powershell
+cd ControlPanel
+npm install
+npm start
+```
+
+Open `http://localhost:7012` while Docker Desktop is running.

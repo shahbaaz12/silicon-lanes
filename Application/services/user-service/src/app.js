@@ -1,13 +1,24 @@
 import express from "express";
+import os from "node:os";
 import { createUserRouter } from "./routes/user-routes.js";
 
 export function createApp({ controller, serviceName }) {
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json());
-  app.get("/health", (_request, response) =>
-    response.json({ service: serviceName, status: "ok" })
-  );
+  app.use((request, response, next) => {
+    const startedAt = Date.now();
+    console.log(`[${serviceName}] request received ${request.method} ${request.path} server=${os.hostname()}`);
+    response.on("finish", () => {
+      console.log(`[${serviceName}] response sent ${response.statusCode} durationMs=${Date.now() - startedAt}`);
+    });
+    next();
+  });
+  app.get("/health", (_request, response) => response.json({
+    status: "ok",
+    serviceName,
+    requestServer: os.hostname()
+  }));
   app.use("/api/users", createUserRouter(controller));
   app.use((_request, response) => response.status(404).json({ error: "Route not found" }));
   app.use((error, _request, response, _next) => {
@@ -16,4 +27,3 @@ export function createApp({ controller, serviceName }) {
   });
   return app;
 }
-

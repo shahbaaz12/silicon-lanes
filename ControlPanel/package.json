@@ -1,0 +1,17 @@
+{
+  "name": "silicon-lanes-control-panel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local Docker control panel for Silicon Lanes services.",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
+
