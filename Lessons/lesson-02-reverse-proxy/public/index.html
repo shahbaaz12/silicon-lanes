@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn how a reverse proxy routes and caches Catalog Service requests.">
+    <title>Lesson 2 · Reverse Proxy · Silicon Lanes</title>
+    <link rel="stylesheet" href="/lessons/shared/components.css">
+    <link rel="stylesheet" href="/lessons/lesson-02-reverse-proxy/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Back to Silicon Lanes home"><span>SL</span> Silicon Lanes</a>
+      <div class="lesson-label"><b>Lesson 02</b> Reverse Proxy</div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">Add the first infrastructure layer</p>
+        <h1>One address in front of the service.</h1>
+        <p>The client now knows the Reverse Proxy address—not the Catalog Service. Nginx forwards cache misses and answers cache hits itself.</p>
+        <div class="formula"><span>Client</span><b>↓</b><span id="proxy-formula">Reverse Proxy :7212</span><b>↓</b><span>Catalog Service</span></div>
+      </section>
+
+      <section class="lab" aria-label="Reverse proxy request lab">
+        <div class="lab-controls">
+          <button class="button primary" id="start-lesson" type="button">Start Lesson 2</button>
+          <button class="button" id="stop-lesson" type="button" disabled>Stop lesson</button>
+          <button class="button" id="clear-logs" type="button" disabled>Clear logs</button>
+        </div>
+
+        <div class="architecture-flow">
+          <lesson-client-card class="layer-card client-layer" icon="C" kicker="Request origin" heading="Browser client" status="ready">
+            <div class="client-grid">
+              <div class="endpoint"><small>Only known destination</small><code id="proxy-url">http://127.0.0.1:7212/api/products</code></div>
+              <button class="request-button" id="get-products" type="button" disabled><span>GET</span> Get all products</button>
+            </div>
+            <div class="client-tooling">
+              <span>You can also run this request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+            <lesson-response-panel class="products-panel" heading="Response at client" meta-id="response-meta" time-id="response-time">
+              <div class="products" id="products" data-response-body><p>Start the lesson, then send a request through the proxy.</p></div>
+              <pre id="response-headers" data-response-headers>Send a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector horizontal"><span>client request</span><i></i><b class="packet"></b></div>
+
+          <lesson-proxy-card class="layer-card proxy-layer" icon="RP" kicker="Infrastructure layer" heading="Reverse Proxy" title-id="proxy-name" status="stopped" status-id="proxy-status">
+            <div class="proxy-actions">
+              <button class="button compact" id="clear-cache" type="button" disabled>Clear cache</button>
+              <button class="button compact" id="proxy-details-button" type="button" aria-expanded="false" aria-controls="proxy-details">Details</button>
+            </div>
+            <div class="proxy-route" aria-label="Reverse Proxy route summary">
+              <code id="proxy-published-route">127.0.0.1:7212 → reverseProxy1:80</code>
+              <span>forwards to</span>
+              <code id="proxy-upstream-route">catalogService1:6212</code>
+            </div>
+            <div class="proxy-details" id="proxy-details" hidden>
+              <div><span>Published address</span><code id="detail-published-address">127.0.0.1:7212</code></div>
+              <div><span>Nginx listens inside container</span><code id="detail-listen-port">reverseProxy1:80</code></div>
+              <div><span>Forwards cache misses to</span><code id="detail-upstream-address">catalogService1:6212</code></div>
+              <div><span>Cache expiry</span><code>200 responses · 15 seconds</code></div>
+              <pre id="proxy-config-snippet">listen 80;
+proxy_pass http://catalogService1:6212;
+proxy_cache_valid 200 15s;</pre>
+            </div>
+            <div class="proxy-layout">
+              <div class="cache-box" id="cache-box">
+                <small>Response cache</small>
+                <strong id="cache-status">EMPTY</strong>
+                <span id="cache-message">No response stored</span>
+                <div class="ttl"><i id="ttl-bar"></i></div>
+                <code id="ttl-label">TTL 15s</code>
+              </div>
+              <div class="request-log">
+                <div class="panel-heading"><span>Reverse Proxy log</span><b>URL / cache</b></div>
+                <pre id="proxy-logs">Start the lesson to see Reverse Proxy requests.</pre>
+              </div>
+            </div>
+          </lesson-proxy-card>
+
+          <div class="connector upstream"><span id="upstream-label">forward only on cache miss</span><i></i><b class="packet"></b></div>
+
+          <lesson-service-card class="layer-card service-layer" icon="CS" kicker="Application layer" heading="Catalog Service" title-id="service-name" status="stopped" status-id="service-status">
+            <div class="service-layout">
+              <div class="service-address"><code id="service-route">catalogService1:6212</code><span>The client never calls this address.</span></div>
+              <div class="request-log">
+                <div class="panel-heading"><span>Catalog Service log</span></div>
+                <pre id="service-logs">Start the lesson to see Catalog Service requests.</pre>
+              </div>
+            </div>
+          </lesson-service-card>
+        </div>
+      </section>
+
+      <section class="explanation">
+        <div><p class="eyebrow">What changed?</p><h2>The proxy absorbs repeat reads.</h2></div>
+        <p>The first request is a <b>MISS</b>, so Nginx forwards it to the Catalog Service and stores the response for 15 seconds. A repeat request is a <b>HIT</b>: the proxy responds without waking the application server. After the TTL, Nginx reports <b>EXPIRED</b> and refreshes upstream; after Clear cache, the next request is a fresh <b>MISS</b>.</p>
+        <ul><li><b>Stable public address</b><span>Clients are decoupled from the service location.</span></li><li><b>Shared caching</b><span>Repeat reads avoid application and database work.</span></li><li><b>Central policy</b><span>Routing, caching, and later TLS can live here.</span></li></ul>
+      </section>
+    </main>
+
+    <div id="toast-region" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="/lessons/lesson-02-reverse-proxy/app.js"></script>
+  </body>
+</html>

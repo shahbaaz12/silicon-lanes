@@ -10,15 +10,36 @@ import {
   stopServiceInstances
 } from "./docker-manager.js";
 import { getService, serviceCatalog } from "./service-catalog.js";
+import {
+  clearDirectServiceLessonLogs,
+  getDirectServiceLessonLogs,
+  getDirectServiceLessonState,
+  startDirectServiceLesson,
+  stopDirectServiceLesson
+} from "./lesson-manager.js";
+import {
+  clearReverseProxyLessonCache,
+  clearReverseProxyLessonLogs,
+  getReverseProxyLessonLogs,
+  getReverseProxyLessonState,
+  startReverseProxyLesson,
+  stopReverseProxyLesson
+} from "./reverse-proxy-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
+const sharedLessonsDirectory = path.resolve(directory, "..", "Lessons", "shared");
+const directServiceLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-01-direct-service", "public");
+const reverseProxyLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-02-reverse-proxy", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
 app.disable("x-powered-by");
 app.use(express.json());
 app.use(express.static(publicDirectory));
+app.use("/lessons/shared", express.static(sharedLessonsDirectory));
+app.use("/lessons/lesson-01-direct-service", express.static(directServiceLessonDirectory));
+app.use("/lessons/lesson-02-reverse-proxy", express.static(reverseProxyLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -77,6 +98,98 @@ app.delete("/api/instances/:id/logs", async (request, response, next) => {
   try {
     await clearInstanceLogs(request.params.id);
     response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-01-direct-service/state", async (_request, response, next) => {
+  try {
+    response.json(await getDirectServiceLessonState());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/lessons/lesson-01-direct-service/catalog/start", async (_request, response, next) => {
+  try {
+    response.status(201).json(await startDirectServiceLesson());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-01-direct-service/catalog/stop", async (_request, response, next) => {
+  try {
+    await stopDirectServiceLesson();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-01-direct-service/catalog/logs", async (_request, response, next) => {
+  try {
+    response.json({ logs: await getDirectServiceLessonLogs() });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-01-direct-service/catalog/logs", async (_request, response, next) => {
+  try {
+    await clearDirectServiceLessonLogs();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-02-reverse-proxy/state", async (_request, response, next) => {
+  try {
+    response.json(await getReverseProxyLessonState());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/lessons/lesson-02-reverse-proxy/start", async (_request, response, next) => {
+  try {
+    response.status(201).json(await startReverseProxyLesson());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-02-reverse-proxy/stop", async (_request, response, next) => {
+  try {
+    await stopReverseProxyLesson();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-02-reverse-proxy/logs", async (_request, response, next) => {
+  try {
+    response.json(await getReverseProxyLessonLogs());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-02-reverse-proxy/logs", async (_request, response, next) => {
+  try {
+    await clearReverseProxyLessonLogs();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-02-reverse-proxy/cache", async (_request, response, next) => {
+  try {
+    response.json(await clearReverseProxyLessonCache());
   } catch (error) {
     next(error);
   }

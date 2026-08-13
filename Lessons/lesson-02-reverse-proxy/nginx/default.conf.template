@@ -1,0 +1,51 @@
+proxy_cache_path /var/cache/nginx/catalog
+  levels=1:2
+  keys_zone=catalog_cache:10m
+  max_size=50m
+  inactive=2m
+  use_temp_path=off;
+
+map $http_origin $lesson_cors_origin {
+  default "";
+  "http://localhost:7012" $http_origin;
+  "http://127.0.0.1:7012" $http_origin;
+}
+
+log_format lesson '[proxy] $time_iso8601 $request_method $uri $status cache=$upstream_cache_status upstream=$upstream_addr';
+
+server {
+  listen 80;
+  server_name _;
+
+  access_log /dev/stdout lesson;
+  error_log /dev/stderr warn;
+
+  location = /proxy-health {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 'ok';
+  }
+
+  location /api/products {
+    proxy_pass http://${CATALOG_UPSTREAM};
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+
+    proxy_cache catalog_cache;
+    proxy_cache_methods GET HEAD;
+    proxy_cache_valid 200 15s;
+    proxy_cache_lock on;
+
+    add_header X-Cache-Status $upstream_cache_status always;
+    add_header X-Proxy-Server reverseProxy1 always;
+    add_header Cache-Control "no-store" always;
+    add_header Access-Control-Allow-Origin $lesson_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-Cache-Status, X-Proxy-Server, X-Request-Server" always;
+    add_header Vary Origin always;
+  }
+}

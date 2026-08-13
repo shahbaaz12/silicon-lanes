@@ -46,6 +46,34 @@
           <div class="skeleton"></div>
         </div>
       </section>
+
+      <section class="lessons-section" aria-labelledby="lessons-heading">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Sequential learning path</div>
+            <h2 id="lessons-heading">Lessons</h2>
+            <p>Build the request path one infrastructure layer at a time.</p>
+          </div>
+        </div>
+        <div class="lessons-list">
+          <a class="lesson-card" href="/lessons/lesson-01-direct-service">
+            <span class="lesson-number">01</span>
+            <span class="lesson-copy">
+              <strong>Hitting the service directly</strong>
+              <span>Client → Catalog Service · no intermediary</span>
+            </span>
+            <span class="lesson-open">Open lesson →</span>
+          </a>
+          <a class="lesson-card" href="/lessons/lesson-02-reverse-proxy">
+            <span class="lesson-number">02</span>
+            <span class="lesson-copy">
+              <strong>Reverse Proxy and response caching</strong>
+              <span>Client → Nginx cache → Catalog Service</span>
+            </span>
+            <span class="lesson-open">Open lesson →</span>
+          </a>
+        </div>
+      </section>
     </main>
 
     <footer class="page-footer">
@@ -55,4 +83,3 @@
     <script type="module" src="/index.js"></script>
   </body>
 </html>
-

@@ -557,6 +557,69 @@ h1 {
   padding-top: 1px;
 }
 
+.lessons-section {
+  margin-top: 68px;
+  padding-top: 38px;
+  border-top: 1px solid var(--line);
+}
+
+.lesson-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+  background: linear-gradient(120deg, rgb(105 217 236 / 8%), var(--panel));
+  text-decoration: none;
+  transition: border-color .2s, transform .2s;
+}
+
+.lessons-list {
+  display: grid;
+  gap: 12px;
+}
+
+.lesson-card:hover {
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+
+.lesson-number {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #071416;
+  background: var(--cyan);
+  font-weight: 900;
+}
+
+.lesson-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lesson-copy strong {
+  font-size: 15px;
+}
+
+.lesson-copy span,
+.lesson-open {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lesson-open {
+  color: var(--cyan);
+  font-weight: 800;
+}
+
 .instance-actions {
   margin-top: 14px;
 }
@@ -623,4 +686,6 @@ h1 {
   .detail-actions { justify-content: space-between; }
   .card-actions { flex-wrap: wrap; }
   .button { flex: 1; }
+  .lesson-card { grid-template-columns: auto minmax(0, 1fr); }
+  .lesson-open { grid-column: 2; }
 }

@@ -34,3 +34,15 @@ npm start
 ```
 
 Open `http://localhost:7012` while Docker Desktop is running.
+
+## Sequential lessons
+
+`Lessons` introduces the architecture one layer at a time as pages inside the
+Control Panel website. Lesson 1 begins with a browser client calling one Catalog
+Service address directly, before a load balancer, reverse proxy, or API gateway
+is added.
+
+Lesson 2 then inserts an Nginx reverse proxy with a short response-cache TTL so
+cache misses, hits, expiry, and reduced Catalog Service work are visible.
+
+See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.

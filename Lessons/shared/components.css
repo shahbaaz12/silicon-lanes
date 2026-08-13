@@ -1,0 +1,27 @@
+lesson-client-card,
+lesson-service-card,
+lesson-proxy-card,
+lesson-response-panel { display: block; }
+
+.lesson-node-heading { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.lesson-node-identity { min-width: 0; flex: 1; }
+.lesson-node-identity h2 { margin: 0; overflow: hidden; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.lesson-node-kicker { display: block; margin-bottom: 4px; color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.lesson-node-icon { width: 42px; height: 42px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 11px; color: #071416; font-size: 11px; font-weight: 900; }
+.lesson-node-icon-client { background: var(--lime); }
+.lesson-node-icon-service { background: var(--amber, var(--cyan)); }
+.lesson-node-icon-proxy { background: var(--cyan); }
+.lesson-node-status { flex: 0 0 auto; padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 9px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.lesson-node-status.ready,
+.lesson-node-status.running { color: var(--lime); border-color: rgb(183 237 98 / 35%); background: rgb(183 237 98 / 8%); }
+
+.lesson-response-panel { min-height: 0; }
+.lesson-response-heading { min-height: 23px; display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.lesson-response-summary { display: flex; align-items: center; gap: 8px; }
+.lesson-response-summary b { color: #c3cdd4; }
+.lesson-response-summary small { padding: 3px 6px; border: 1px solid #34434a; border-radius: 5px; color: var(--cyan); background: #0b1013; font: 800 8px ui-monospace, Consolas, monospace; letter-spacing: 0; text-transform: none; }
+.lesson-response-tabs { display: flex; gap: 4px; margin: 7px 0; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+.lesson-response-tab { min-height: 27px; padding: 0 10px; border: 1px solid transparent; border-radius: 7px; color: var(--muted); background: transparent; font-size: 9px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.lesson-response-tab[aria-selected="true"] { border-color: #3a5962; color: var(--cyan); background: rgb(85 217 232 / 8%); }
+.lesson-response-view[hidden] { display: none !important; }
+.lesson-response-headers { height: 132px; margin: 0; overflow: auto; padding: 11px; border: 1px solid var(--line); border-radius: 10px; color: #acd5dc; background: #080b0d; font: 10px/1.55 ui-monospace, Consolas, monospace; white-space: pre-wrap; }

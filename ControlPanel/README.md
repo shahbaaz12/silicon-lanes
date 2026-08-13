@@ -15,6 +15,16 @@ npm start
 
 Open `http://localhost:7012`.
 
+The home page also contains the sequential learning path. Lesson 1 is served by
+this same Control Panel at
+`http://localhost:7012/lessons/lesson-01-direct-service`; there is no separate
+lesson website or lesson server process.
+
+Lesson 2 runs at `http://localhost:7012/lessons/lesson-02-reverse-proxy`. It
+starts a local `nginx:1.27-alpine` reverse proxy on port `7212`, demonstrates a
+15-second product-response cache, and keeps proxy and Catalog Service logs
+separate.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances
