@@ -32,7 +32,6 @@ const elements = {
 
 let currentState = null;
 let logTimer = null;
-const requestCounts = new Map();
 
 function escapeHtml(value) {
   return String(value)
@@ -72,34 +71,23 @@ function setBusy(isBusy) {
 function placeholderReplica(index) {
   const name = `catalogService${index}`;
   return `
-    <lesson-service-card class="replica-card placeholder" data-service-name="${name}"
-      icon="CS" kicker="Catalog replica" heading="${name}" status="stopped">
-      <div class="replica-summary">
-        <code>Waiting for Lesson 3</code>
-        <span class="request-count"><strong>0</strong> answered</span>
-      </div>
-      <div class="replica-actions"><button class="kill-button" type="button" disabled>Kill replica</button></div>
-      <div class="replica-log-heading"><span>Request log</span><span>No process</span></div>
-      <div class="replica-log"><pre>Start the lesson to create this replica.</pre></div>
-    </lesson-service-card>`;
+    <lesson-service-compact class="replica-card placeholder" data-service-name="${name}"
+      heading="${name}" port=":${6211 + index}">
+      <pre class="compact-service-log">Stopped</pre>
+    </lesson-service-compact>`;
 }
 
 function runningReplica(service) {
   const name = escapeHtml(service.name);
-  const count = requestCounts.get(service.name) || 0;
   return `
-    <lesson-service-card class="replica-card" data-service-name="${name}"
-      icon="CS" kicker="Catalog replica" heading="${name}" status="running">
-      <div class="replica-summary">
-        <code>:${service.hostPort} &rarr; :${service.containerPort}</code>
-        <span class="request-count"><strong data-count-for="${name}">${count}</strong> answered</span>
+    <lesson-service-compact class="replica-card" data-service-name="${name}"
+      heading="${name}" port=":${service.hostPort}">
+      <div class="compact-service-controls">
+        <span>Request log</span>
+        <button type="button" class="kill-button" data-kill-id="${escapeHtml(service.id)}">Kill</button>
       </div>
-      <div class="replica-actions">
-        <button type="button" class="kill-button" data-kill-id="${escapeHtml(service.id)}">Kill replica</button>
-      </div>
-      <div class="replica-log-heading"><span>Request log</span><span>${name}</span></div>
-      <div class="replica-log"><pre data-log-for="${name}">No requests yet.</pre></div>
-    </lesson-service-card>`;
+      <pre class="compact-service-log" data-log-for="${name}">No requests yet.</pre>
+    </lesson-service-compact>`;
 }
 
 function renderReplicas(services) {
@@ -165,12 +153,6 @@ function signalNodeActivity(element) {
   element?.signalActivity?.();
 }
 
-function updateCount(serverName) {
-  requestCounts.set(serverName, (requestCounts.get(serverName) || 0) + 1);
-  const countElement = document.querySelector(`[data-count-for="${CSS.escape(serverName)}"]`);
-  if (countElement) countElement.textContent = requestCounts.get(serverName);
-}
-
 function renderProducts(products) {
   if (!Array.isArray(products) || products.length === 0) {
     return '<p class="empty-response">The response contained no products.</p>';
@@ -210,7 +192,6 @@ async function makeRequest() {
 
   animateConnector(elements.serviceConnector);
   signalNodeActivity(document.querySelector(`[data-service-name="${CSS.escape(serverName)}"]`));
-  updateCount(serverName);
   elements.responseStatus.textContent = `${response.status} ${response.statusText || "OK"}`;
   elements.responseStatus.dataset.tone = response.ok ? "success" : "warning";
   elements.responseTime.textContent = `${elapsed.toFixed(1)} ms`;
@@ -297,7 +278,6 @@ async function stopLesson() {
   setBusy(true);
   try {
     await api("/stop", { method: "DELETE" });
-    requestCounts.clear();
     await refreshState();
     resetResponse();
     elements.loadBalancerLog.textContent = "Start the lesson to see load balancer requests.";
@@ -343,7 +323,6 @@ elements.sendSix.addEventListener("click", () => sendRequests(6));
 elements.clear.addEventListener("click", async () => {
   try {
     await api("/logs", { method: "DELETE" });
-    requestCounts.clear();
     renderState(currentState);
     elements.loadBalancerLog.textContent = "Logs cleared. Send another request.";
     document.querySelectorAll("[data-log-for]").forEach((log) => {

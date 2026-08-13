@@ -33,6 +33,13 @@ import {
   startL7LoadBalancerLesson,
   stopL7LoadBalancerLesson
 } from "./l7-load-balancer-lesson-manager.js";
+import {
+  clearApiGatewayLessonLogs,
+  getApiGatewayLessonLogs,
+  getApiGatewayLessonState,
+  startApiGatewayLesson,
+  stopApiGatewayLesson
+} from "./api-gateway-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
@@ -40,6 +47,7 @@ const sharedLessonsDirectory = path.resolve(directory, "..", "Lessons", "shared"
 const directServiceLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-01-direct-service", "public");
 const reverseProxyLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-02-reverse-proxy", "public");
 const l7LoadBalancerLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-03-l7-load-balancer", "public");
+const apiGatewayLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-04-api-gateway", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
@@ -50,6 +58,7 @@ app.use("/lessons/shared", express.static(sharedLessonsDirectory));
 app.use("/lessons/lesson-01-direct-service", express.static(directServiceLessonDirectory));
 app.use("/lessons/lesson-02-reverse-proxy", express.static(reverseProxyLessonDirectory));
 app.use("/lessons/lesson-03-l7-load-balancer", express.static(l7LoadBalancerLessonDirectory));
+app.use("/lessons/lesson-04-api-gateway", express.static(apiGatewayLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -249,6 +258,48 @@ app.get("/api/lessons/lesson-03-l7-load-balancer/logs", async (_request, respons
 app.delete("/api/lessons/lesson-03-l7-load-balancer/logs", async (_request, response, next) => {
   try {
     await clearL7LoadBalancerLessonLogs();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-04-api-gateway/state", async (_request, response, next) => {
+  try {
+    response.json(await getApiGatewayLessonState());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/lessons/lesson-04-api-gateway/start", async (_request, response, next) => {
+  try {
+    response.status(201).json(await startApiGatewayLesson());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-04-api-gateway/stop", async (_request, response, next) => {
+  try {
+    await stopApiGatewayLesson();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-04-api-gateway/logs", async (_request, response, next) => {
+  try {
+    response.json(await getApiGatewayLessonLogs());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-04-api-gateway/logs", async (_request, response, next) => {
+  try {
+    await clearApiGatewayLessonLogs();
     response.status(204).end();
   } catch (error) {
     next(error);

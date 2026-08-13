@@ -1,6 +1,22 @@
 let responsePanelSequence = 0;
 
-class LessonNodeCard extends HTMLElement {
+class LessonActivityElement extends HTMLElement {
+  signalActivity(duration = 850) {
+    window.clearTimeout(this.activityTimer);
+    this.classList.remove("lesson-node-active");
+    void this.offsetWidth;
+    this.classList.add("lesson-node-active");
+    this.activityTimer = window.setTimeout(() => {
+      this.classList.remove("lesson-node-active");
+    }, duration);
+  }
+
+  disconnectedCallback() {
+    window.clearTimeout(this.activityTimer);
+  }
+}
+
+class LessonNodeCard extends LessonActivityElement {
   connectedCallback() {
     if (this.dataset.componentReady === "true") return;
     this.dataset.componentReady = "true";
@@ -35,18 +51,22 @@ class LessonNodeCard extends HTMLElement {
     this.prepend(heading);
   }
 
-  signalActivity(duration = 850) {
-    window.clearTimeout(this.activityTimer);
-    this.classList.remove("lesson-node-active");
-    void this.offsetWidth;
-    this.classList.add("lesson-node-active");
-    this.activityTimer = window.setTimeout(() => {
-      this.classList.remove("lesson-node-active");
-    }, duration);
-  }
+}
 
-  disconnectedCallback() {
-    window.clearTimeout(this.activityTimer);
+class LessonServiceCompact extends LessonActivityElement {
+  connectedCallback() {
+    if (this.dataset.componentReady === "true") return;
+    this.dataset.componentReady = "true";
+    this.setAttribute("role", "article");
+
+    const heading = document.createElement("div");
+    heading.className = "lesson-service-compact-heading";
+    const name = document.createElement("strong");
+    name.textContent = this.getAttribute("heading") ?? "Service";
+    const port = document.createElement("code");
+    port.textContent = this.getAttribute("port") ?? ":—";
+    heading.append(name, port);
+    this.prepend(heading);
   }
 }
 
@@ -157,9 +177,10 @@ class LessonResponsePanel extends HTMLElement {
   }
 }
 
-for (const tagName of ["lesson-client-card", "lesson-service-card", "lesson-proxy-card", "lesson-load-balancer-card"]) {
+for (const tagName of ["lesson-client-card", "lesson-service-card", "lesson-proxy-card", "lesson-load-balancer-card", "lesson-api-gateway-card"]) {
   if (!customElements.get(tagName)) customElements.define(tagName, class extends LessonNodeCard {});
 }
+if (!customElements.get("lesson-service-compact")) customElements.define("lesson-service-compact", LessonServiceCompact);
 if (!customElements.get("lesson-response-panel")) customElements.define("lesson-response-panel", LessonResponsePanel);
 
 export function formatResponseHeaders(response) {

@@ -30,6 +30,11 @@ It starts Nginx on port `7312` and three Catalog Service replicas, then shows
 round-robin request distribution and continued routing after one replica is
 stopped.
 
+Lesson 4 runs at `http://localhost:7012/lessons/lesson-04-api-gateway`. It
+starts Nginx on port `7412` and routes `/api/users`, `/api/products`,
+`/api/inventory`, `/api/carts`, `/api/orders`, and `/api/payments` to the six
+independent application services.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances

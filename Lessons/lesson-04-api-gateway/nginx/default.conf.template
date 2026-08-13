@@ -1,0 +1,35 @@
+map $http_origin $lesson_cors_origin {
+  default "";
+  "http://localhost:7012" $http_origin;
+  "http://127.0.0.1:7012" $http_origin;
+}
+
+log_format lesson_gateway '[gateway] $time_iso8601 $request_method $uri $status service=$upstream_http_x_service_name server=$upstream_http_x_request_server';
+
+upstream user_service { server ${USER_UPSTREAM}; }
+upstream catalog_service { server ${CATALOG_UPSTREAM}; }
+upstream inventory_service { server ${INVENTORY_UPSTREAM}; }
+upstream cart_service { server ${CART_UPSTREAM}; }
+upstream order_service { server ${ORDER_UPSTREAM}; }
+upstream payment_service { server ${PAYMENT_UPSTREAM}; }
+
+server {
+  listen 80;
+  server_name _;
+
+  access_log /dev/stdout lesson_gateway;
+  error_log /dev/stderr warn;
+
+  location = /gateway-health {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 'ok';
+  }
+
+  location /api/users { proxy_pass http://user_service; include /etc/nginx/proxy_params; }
+  location /api/products { proxy_pass http://catalog_service; include /etc/nginx/proxy_params; }
+  location /api/inventory { proxy_pass http://inventory_service; include /etc/nginx/proxy_params; }
+  location /api/carts { proxy_pass http://cart_service; include /etc/nginx/proxy_params; }
+  location /api/orders { proxy_pass http://order_service; include /etc/nginx/proxy_params; }
+  location /api/payments { proxy_pass http://payment_service; include /etc/nginx/proxy_params; }
+}

@@ -11,11 +11,17 @@ inside its own folder.
 3. [`lesson-03-l7-load-balancer`](lesson-03-l7-load-balancer/README.md) — an
    Nginx Layer 7 load balancer distributes product requests across three
    Catalog Service replicas using its default round-robin algorithm.
+4. [`lesson-04-api-gateway`](lesson-04-api-gateway/README.md) — one Nginx API
+   Gateway maps six public request paths to their owning e-commerce services.
 
 ## Shared UI components
 
 Reusable client, service, Reverse Proxy, Load Balancer, and response-tab
 components live in `Lessons/shared`. New lessons compose these components and
 provide only their lesson-specific controls and content. The response component
-includes Pretty, JSON, and Headers tabs populated from the real request, plus the responding
-server name.
+includes Pretty, JSON, and Headers tabs populated from the real request, plus
+the responding server name.
+
+Lessons 3 and 4 use the minimal `<lesson-service-compact>` component for
+service instances. It contains only the instance name, published port, compact
+request log, and reusable activity glow.
