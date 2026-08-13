@@ -25,12 +25,21 @@ import {
   startReverseProxyLesson,
   stopReverseProxyLesson
 } from "./reverse-proxy-lesson-manager.js";
+import {
+  clearL7LoadBalancerLessonLogs,
+  getL7LoadBalancerLessonLogs,
+  getL7LoadBalancerLessonState,
+  killL7LoadBalancerBackend,
+  startL7LoadBalancerLesson,
+  stopL7LoadBalancerLesson
+} from "./l7-load-balancer-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
 const sharedLessonsDirectory = path.resolve(directory, "..", "Lessons", "shared");
 const directServiceLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-01-direct-service", "public");
 const reverseProxyLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-02-reverse-proxy", "public");
+const l7LoadBalancerLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-03-l7-load-balancer", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
@@ -40,6 +49,7 @@ app.use(express.static(publicDirectory));
 app.use("/lessons/shared", express.static(sharedLessonsDirectory));
 app.use("/lessons/lesson-01-direct-service", express.static(directServiceLessonDirectory));
 app.use("/lessons/lesson-02-reverse-proxy", express.static(reverseProxyLessonDirectory));
+app.use("/lessons/lesson-03-l7-load-balancer", express.static(l7LoadBalancerLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -190,6 +200,56 @@ app.delete("/api/lessons/lesson-02-reverse-proxy/logs", async (_request, respons
 app.delete("/api/lessons/lesson-02-reverse-proxy/cache", async (_request, response, next) => {
   try {
     response.json(await clearReverseProxyLessonCache());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-03-l7-load-balancer/state", async (_request, response, next) => {
+  try {
+    response.json(await getL7LoadBalancerLessonState());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.post("/api/lessons/lesson-03-l7-load-balancer/start", async (_request, response, next) => {
+  try {
+    response.status(201).json(await startL7LoadBalancerLesson());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-03-l7-load-balancer/stop", async (_request, response, next) => {
+  try {
+    await stopL7LoadBalancerLesson();
+    response.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-03-l7-load-balancer/services/:id", async (request, response, next) => {
+  try {
+    response.json(await killL7LoadBalancerBackend(request.params.id));
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/api/lessons/lesson-03-l7-load-balancer/logs", async (_request, response, next) => {
+  try {
+    response.json(await getL7LoadBalancerLessonLogs());
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete("/api/lessons/lesson-03-l7-load-balancer/logs", async (_request, response, next) => {
+  try {
+    await clearL7LoadBalancerLessonLogs();
+    response.status(204).end();
   } catch (error) {
     next(error);
   }

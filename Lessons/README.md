@@ -8,13 +8,14 @@ inside its own folder.
    client calls one Catalog Service instance at its published IP and port.
 2. [`lesson-02-reverse-proxy`](lesson-02-reverse-proxy/README.md) — an Nginx
    reverse proxy gives the client one stable address and caches product reads.
-3. **L7 Load Balancer** — next, one Layer 7 load balancer will distribute HTTP
-   requests across multiple Catalog Service replicas.
+3. [`lesson-03-l7-load-balancer`](lesson-03-l7-load-balancer/README.md) — an
+   Nginx Layer 7 load balancer distributes product requests across three
+   Catalog Service replicas using its default round-robin algorithm.
 
 ## Shared UI components
 
-Reusable client, service, Reverse Proxy, and response-tab components live in
-`Lessons/shared`. New lessons compose these components and provide only their
-lesson-specific controls and content. The response component includes Pretty,
-JSON, and Headers tabs populated from the real request, plus the responding
+Reusable client, service, Reverse Proxy, Load Balancer, and response-tab
+components live in `Lessons/shared`. New lessons compose these components and
+provide only their lesson-specific controls and content. The response component
+includes Pretty, JSON, and Headers tabs populated from the real request, plus the responding
 server name.

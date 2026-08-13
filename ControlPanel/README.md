@@ -25,6 +25,11 @@ starts a local `nginx:1.27-alpine` reverse proxy on port `7212`, demonstrates a
 15-second product-response cache, and keeps proxy and Catalog Service logs
 separate.
 
+Lesson 3 runs at `http://localhost:7012/lessons/lesson-03-l7-load-balancer`.
+It starts Nginx on port `7312` and three Catalog Service replicas, then shows
+round-robin request distribution and continued routing after one replica is
+stopped.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances

@@ -45,4 +45,7 @@ is added.
 Lesson 2 then inserts an Nginx reverse proxy with a short response-cache TTL so
 cache misses, hits, expiry, and reduced Catalog Service work are visible.
 
+Lesson 3 turns Nginx into a Layer 7 load balancer and distributes the same HTTP
+request across three Catalog Service replicas with simple round-robin routing.
+
 See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.

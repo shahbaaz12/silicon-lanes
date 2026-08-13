@@ -34,6 +34,20 @@ class LessonNodeCard extends HTMLElement {
     heading.append(icon, identity, status);
     this.prepend(heading);
   }
+
+  signalActivity(duration = 850) {
+    window.clearTimeout(this.activityTimer);
+    this.classList.remove("lesson-node-active");
+    void this.offsetWidth;
+    this.classList.add("lesson-node-active");
+    this.activityTimer = window.setTimeout(() => {
+      this.classList.remove("lesson-node-active");
+    }, duration);
+  }
+
+  disconnectedCallback() {
+    window.clearTimeout(this.activityTimer);
+  }
 }
 
 class LessonResponsePanel extends HTMLElement {
@@ -143,7 +157,7 @@ class LessonResponsePanel extends HTMLElement {
   }
 }
 
-for (const tagName of ["lesson-client-card", "lesson-service-card", "lesson-proxy-card"]) {
+for (const tagName of ["lesson-client-card", "lesson-service-card", "lesson-proxy-card", "lesson-load-balancer-card"]) {
   if (!customElements.get(tagName)) customElements.define(tagName, class extends LessonNodeCard {});
 }
 if (!customElements.get("lesson-response-panel")) customElements.define("lesson-response-panel", LessonResponsePanel);

@@ -23,6 +23,9 @@ const cacheStatus = document.querySelector("#cache-status");
 const cacheMessage = document.querySelector("#cache-message");
 const ttlLabel = document.querySelector("#ttl-label");
 const ttlBar = document.querySelector("#ttl-bar");
+const clientCard = document.querySelector("lesson-client-card");
+const proxyCard = document.querySelector("lesson-proxy-card");
+const serviceCard = document.querySelector("lesson-service-card");
 let state;
 let cacheExpiresAt;
 let logsRefreshing = false;
@@ -186,6 +189,8 @@ requestButton.addEventListener("click", async () => {
   responseMeta.textContent = "request in flight";
   responseTime.textContent = "measuring";
   const startedAt = performance.now();
+  clientCard.signalActivity();
+  window.setTimeout(() => proxyCard.signalActivity(), 120);
   try {
     const response = await fetch(state.proxy.directUrl);
     if (!response.ok) throw new Error(`Reverse Proxy returned HTTP ${response.status}.`);
@@ -194,6 +199,7 @@ requestButton.addEventListener("click", async () => {
     const payload = await response.json();
     responseJson.textContent = JSON.stringify(payload, null, 2);
     const answeredBy = payload.servedBy?.server ?? response.headers.get("x-request-server") ?? "unknown server";
+    if (cacheResult !== "HIT") serviceCard.signalActivity();
     responseServer.textContent = answeredBy;
     renderProducts(payload.data ?? []);
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;

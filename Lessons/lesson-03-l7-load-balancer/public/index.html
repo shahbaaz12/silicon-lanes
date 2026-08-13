@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn Layer 7 round-robin load balancing across Catalog Service replicas.">
+    <title>Lesson 3 · L7 Load Balancer · Silicon Lanes</title>
+    <link rel="stylesheet" href="/lessons/shared/components.css">
+    <link rel="stylesheet" href="/lessons/lesson-03-l7-load-balancer/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Back to Silicon Lanes home"><span>SL</span> Silicon Lanes</a>
+      <div class="lesson-label"><b>Lesson 03</b> L7 Load Balancer</div>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <p class="eyebrow">Scale one service horizontally</p>
+          <h1>One address. Three replicas.</h1>
+          <p>The client sends HTTP requests to one Layer 7 Load Balancer. Nginx reads the URL and distributes each request across three interchangeable Catalog Service instances.</p>
+        </div>
+        <div class="formula"><span>Client</span><b>→</b><span>L7 LB :7312</span><b>→</b><span>3 Catalog replicas</span></div>
+      </section>
+
+      <section class="lab" aria-label="Layer 7 load-balancing lab">
+        <div class="lab-controls">
+          <button class="button primary" id="start-lesson" type="button">Start Lesson 3</button>
+          <button class="button" id="repair-pool" type="button" hidden>Restore 3 replicas</button>
+          <button class="button" id="stop-lesson" type="button" disabled>Stop lesson</button>
+          <button class="button" id="clear-logs" type="button" disabled>Clear logs</button>
+        </div>
+
+        <div class="architecture-flow">
+          <lesson-client-card class="layer-card client-layer" icon="C" kicker="Request origin" heading="Browser client" status="ready">
+            <div class="client-route"><small>Only known destination</small><code id="load-balancer-url">http://127.0.0.1:7312/api/products</code></div>
+            <div class="request-actions">
+              <button class="request-button" id="send-one" type="button" disabled><span>GET</span> Send 1 request</button>
+              <button class="request-button secondary" id="send-six" type="button" disabled>Send 6 requests</button>
+            </div>
+            <div class="client-tooling"><span>You can also run this request in Postman.</span><button id="copy-curl" type="button">Copy cURL</button></div>
+            <lesson-response-panel class="response-panel" heading="Latest response" meta-id="response-meta" time-id="response-time" server-id="response-server">
+              <div class="products" id="products" data-response-body><p>Start the lesson, then send requests through the load balancer.</p></div>
+              <pre id="response-json" data-response-json>Send a request to inspect the JSON response.</pre>
+              <pre id="response-headers" data-response-headers>Send a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector horizontal"><span>one public address</span><b class="packet"></b></div>
+
+          <lesson-load-balancer-card class="layer-card load-balancer-layer" icon="LB" kicker="Layer 7 infrastructure" heading="L7 Load Balancer" title-id="load-balancer-name" status="stopped" status-id="load-balancer-status">
+            <div class="lb-actions"><button class="button compact" id="details-button" type="button" aria-expanded="false" aria-controls="lb-details">Details</button></div>
+            <div class="lb-route"><code id="published-route">127.0.0.1:7312 → loadBalancer1:80</code><span>round robin</span><code>catalog_pool</code></div>
+            <div class="lb-details" id="lb-details" hidden>
+              <div><span>Published address</span><code>127.0.0.1:7312</code></div>
+              <div><span>Listens inside container</span><code>loadBalancer1:80</code></div>
+              <div><span>Algorithm</span><code>Round robin · Nginx default</code></div>
+              <div><span>Forwards by</span><code>HTTP path /api/products</code></div>
+              <pre id="config-snippet">upstream catalog_pool {
+  server catalogService1:6212;
+  server catalogService2:6212;
+  server catalogService3:6212;
+}
+
+server {
+  listen 80;
+  location /api/products {
+    proxy_pass http://catalog_pool;
+  }
+}</pre>
+            </div>
+            <div class="lb-log">
+              <div class="panel-heading"><span>Load Balancer log</span><b>request → server</b></div>
+              <pre id="load-balancer-logs">Start the lesson to see distributed requests.</pre>
+            </div>
+          </lesson-load-balancer-card>
+
+          <div class="connector downstream"><span>round robin</span><b class="packet"></b></div>
+
+          <section class="replica-pool" aria-labelledby="replica-pool-title">
+            <div class="pool-heading"><div><small>Upstream pool</small><h2 id="replica-pool-title">Catalog Service replicas</h2></div><strong id="pool-status">0 / 3 running</strong></div>
+            <div class="replica-grid" id="replica-grid"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="explanation">
+        <div><p class="eyebrow">What this teaches</p><h2>The client no longer chooses a server.</h2></div>
+        <p>Nginx is acting as both a reverse proxy and a Layer 7 load balancer. It receives an HTTP request, selects the next healthy upstream in round-robin order, and returns that server's response through one stable client-facing address.</p>
+        <ul><li><b>Horizontal scaling</b><span>More replicas can share the same workload.</span></li><li><b>One client address</b><span>Replica addresses stay behind the load balancer.</span></li><li><b>Failure isolation</b><span>If one replica disappears, requests can continue through the others.</span></li></ul>
+      </section>
+    </main>
+
+    <div id="toast-region" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="/lessons/lesson-03-l7-load-balancer/app.js"></script>
+  </body>
+</html>

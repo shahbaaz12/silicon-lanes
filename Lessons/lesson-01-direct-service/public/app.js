@@ -17,6 +17,8 @@ const responseServer = document.querySelector("#response-server");
 const responseJson = document.querySelector("#response-json");
 const responseHeaders = document.querySelector("#response-headers");
 const logs = document.querySelector("#logs");
+const clientCard = document.querySelector("lesson-client-card");
+const serviceCard = document.querySelector("lesson-service-card");
 let state;
 let logRefreshInProgress = false;
 const lessonApi = "/api/lessons/lesson-01-direct-service";
@@ -147,6 +149,7 @@ requestButton.addEventListener("click", async () => {
   responseMeta.textContent = "request in flight";
   responseTime.textContent = "measuring";
   const startedAt = performance.now();
+  clientCard.signalActivity();
   animateRequest();
   try {
     const response = await fetch(state.instance.directUrl);
@@ -155,6 +158,7 @@ requestButton.addEventListener("click", async () => {
     const payload = await response.json();
     responseJson.textContent = JSON.stringify(payload, null, 2);
     const answeredBy = payload.servedBy?.server ?? response.headers.get("x-request-server") ?? state.instance.name;
+    serviceCard.signalActivity();
     responseServer.textContent = answeredBy;
     renderProducts(payload.data ?? []);
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;

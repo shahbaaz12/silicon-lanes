@@ -1,0 +1,44 @@
+map $http_origin $lesson_cors_origin {
+  default "";
+  "http://localhost:7012" $http_origin;
+  "http://127.0.0.1:7012" $http_origin;
+}
+
+log_format lesson_lb '[lb] $time_iso8601 $request_method $uri $status server=$upstream_http_x_request_server';
+
+upstream catalog_pool {
+  server ${CATALOG_1};
+  server ${CATALOG_2};
+  server ${CATALOG_3};
+}
+
+server {
+  listen 80;
+  server_name _;
+
+  access_log /dev/stdout lesson_lb;
+  error_log /dev/stderr warn;
+
+  location = /lb-health {
+    access_log off;
+    add_header Content-Type text/plain;
+    return 200 'ok';
+  }
+
+  location /api/products {
+    proxy_pass http://catalog_pool;
+    proxy_connect_timeout 1s;
+    proxy_next_upstream error timeout;
+    proxy_next_upstream_timeout 3s;
+    proxy_next_upstream_tries 3;
+
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-Load-Balancer loadBalancer1 always;
+    add_header Cache-Control "no-store" always;
+    add_header Access-Control-Allow-Origin $lesson_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-Load-Balancer, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+}
