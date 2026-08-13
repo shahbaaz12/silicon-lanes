@@ -15,6 +15,25 @@ owns its dependencies, API, business logic, repository, and database settings.
 
 Every service exposes `GET /health`.
 
+## Standard response envelope
+
+Every JSON endpoint uses the same response middleware. Successful responses
+place the endpoint result in `data`; errors use `error`. Both include the
+service and exact instance that answered:
+
+```json
+{
+  "data": [],
+  "servedBy": {
+    "service": "catalog-service",
+    "server": "catalogService1"
+  }
+}
+```
+
+The same values remain available in the `x-service-name` and
+`x-request-server` response headers.
+
 ## Build one service
 
 From the repository root:
@@ -60,6 +79,7 @@ src/
 ├── server.js       # Dependency wiring and HTTP listener
 ├── controllers/    # HTTP translation
 ├── database/       # PostgreSQL connection and schema
+├── middleware/     # Standard response contract
 ├── repositories/   # Data access
 ├── routes/         # Endpoint definitions
 └── services/       # Business rules

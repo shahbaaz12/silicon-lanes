@@ -9,7 +9,7 @@ export function createCartController(service) {
     async removeItem(request, response, next) {
       try {
         await service.removeItem(request.params.userId, request.params.productId);
-        response.status(204).end();
+        response.json({ removed: true });
       } catch (error) { next(error); }
     }
   };

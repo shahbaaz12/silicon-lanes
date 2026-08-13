@@ -16,6 +16,8 @@ const serviceLogs = document.querySelector("#service-logs");
 const products = document.querySelector("#products");
 const responseMeta = document.querySelector("#response-meta");
 const responseTime = document.querySelector("#response-time");
+const responseServer = document.querySelector("#response-server");
+const responseJson = document.querySelector("#response-json");
 const responseHeaders = document.querySelector("#response-headers");
 const cacheStatus = document.querySelector("#cache-status");
 const cacheMessage = document.querySelector("#cache-message");
@@ -147,6 +149,8 @@ startButton.addEventListener("click", async () => {
     renderState(await api(`${apiRoot}/start`, { method: "POST" }));
     resetCacheDisplay();
     responseTime.textContent = "— ms";
+    responseServer.textContent = "waiting for response";
+    responseJson.textContent = "Send a request to inspect the JSON response.";
     responseHeaders.textContent = "Send a request to inspect the response headers.";
     products.innerHTML = "<p>Ready. The client will call the Reverse Proxy address.</p>";
     await refreshLogs();
@@ -168,6 +172,8 @@ stopButton.addEventListener("click", async () => {
     products.innerHTML = "<p>Start the lesson, then send a request through the proxy.</p>";
     responseMeta.textContent = "waiting";
     responseTime.textContent = "— ms";
+    responseServer.textContent = "waiting for response";
+    responseJson.textContent = "Send a request to inspect the JSON response.";
     responseHeaders.textContent = "Send a request to inspect the response headers.";
     toast("Lesson 2 stopped.");
   } catch (error) {
@@ -185,7 +191,11 @@ requestButton.addEventListener("click", async () => {
     if (!response.ok) throw new Error(`Reverse Proxy returned HTTP ${response.status}.`);
     responseHeaders.textContent = formatResponseHeaders(response);
     const cacheResult = response.headers.get("x-cache-status") ?? "UNKNOWN";
-    renderProducts(await response.json());
+    const payload = await response.json();
+    responseJson.textContent = JSON.stringify(payload, null, 2);
+    const answeredBy = payload.servedBy?.server ?? response.headers.get("x-request-server") ?? "unknown server";
+    responseServer.textContent = answeredBy;
+    renderProducts(payload.data ?? []);
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;
     showCache(cacheResult);
     animateRequest(cacheResult);
@@ -196,6 +206,8 @@ requestButton.addEventListener("click", async () => {
   } catch (error) {
     responseMeta.textContent = "request failed";
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;
+    responseServer.textContent = "request failed";
+    responseJson.textContent = "No JSON response was received.";
     responseHeaders.textContent = "No response headers were received.";
     toast(error.message, true);
   } finally {

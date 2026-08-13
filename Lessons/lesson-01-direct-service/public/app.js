@@ -13,6 +13,8 @@ const portRoute = document.querySelector("#port-route");
 const products = document.querySelector("#products");
 const responseMeta = document.querySelector("#response-meta");
 const responseTime = document.querySelector("#response-time");
+const responseServer = document.querySelector("#response-server");
+const responseJson = document.querySelector("#response-json");
 const responseHeaders = document.querySelector("#response-headers");
 const logs = document.querySelector("#logs");
 let state;
@@ -107,6 +109,8 @@ startButton.addEventListener("click", async () => {
     products.innerHTML = '<p class="empty-copy">Service ready. Send the request directly from this client.</p>';
     responseMeta.textContent = "waiting";
     responseTime.textContent = "— ms";
+    responseServer.textContent = "waiting for response";
+    responseJson.textContent = "Send a request to inspect the JSON response.";
     responseHeaders.textContent = "Send a request to inspect the response headers.";
     await refreshLogs();
     toast(`${state.instance.name} is ready on port ${state.instance.hostPort}.`);
@@ -126,6 +130,8 @@ stopButton.addEventListener("click", async () => {
     products.innerHTML = '<p class="empty-copy">Start the service, then send the direct request.</p>';
     responseMeta.textContent = "waiting";
     responseTime.textContent = "— ms";
+    responseServer.textContent = "waiting for response";
+    responseJson.textContent = "Send a request to inspect the JSON response.";
     responseHeaders.textContent = "Send a request to inspect the response headers.";
     toast("Lesson Catalog Service stopped.");
   } catch (error) {
@@ -146,15 +152,20 @@ requestButton.addEventListener("click", async () => {
     const response = await fetch(state.instance.directUrl);
     if (!response.ok) throw new Error(`Catalog Service returned HTTP ${response.status}.`);
     responseHeaders.textContent = formatResponseHeaders(response);
-    renderProducts(await response.json());
+    const payload = await response.json();
+    responseJson.textContent = JSON.stringify(payload, null, 2);
+    const answeredBy = payload.servedBy?.server ?? response.headers.get("x-request-server") ?? state.instance.name;
+    responseServer.textContent = answeredBy;
+    renderProducts(payload.data ?? []);
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;
-    const answeredBy = response.headers.get("x-request-server") ?? state.instance.name;
     responseMeta.textContent = `200 OK · ${answeredBy}`;
     await new Promise((resolve) => setTimeout(resolve, 350));
     await refreshLogs();
   } catch (error) {
     responseMeta.textContent = "request failed";
     responseTime.textContent = `${(performance.now() - startedAt).toFixed(1)} ms`;
+    responseServer.textContent = "request failed";
+    responseJson.textContent = "No JSON response was received.";
     responseHeaders.textContent = "No response headers were received.";
     toast(error.message, true);
   } finally {

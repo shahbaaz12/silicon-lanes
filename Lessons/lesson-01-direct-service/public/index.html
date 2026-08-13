@@ -40,10 +40,11 @@
             <span>GET</span> Get all products
           </button>
 
-          <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" aria-live="polite">
+          <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
             <div class="products" id="products" data-response-body>
               <p class="empty-copy">Start the service, then send the direct request.</p>
             </div>
+            <pre id="response-json" data-response-json>Send a request to inspect the JSON response.</pre>
             <pre id="response-headers" data-response-headers>Send a request to inspect the response headers.</pre>
           </lesson-response-panel>
         </lesson-client-card>

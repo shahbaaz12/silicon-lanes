@@ -43,19 +43,40 @@ class LessonResponsePanel extends HTMLElement {
     this.classList.add("lesson-response-panel");
 
     const body = this.querySelector("[data-response-body]");
+    const json = this.querySelector("[data-response-json]");
     const headers = this.querySelector("[data-response-headers]");
-    if (!body || !headers) throw new Error("lesson-response-panel requires body and headers content.");
+    if (!body || !json || !headers) {
+      throw new Error("lesson-response-panel requires pretty, JSON, and headers content.");
+    }
 
     const panelId = `lesson-response-${++responsePanelSequence}`;
-    const bodyId = `${panelId}-body`;
-    const headersId = `${panelId}-headers`;
-    body.id ||= bodyId;
-    headers.id ||= headersId;
-    body.classList.add("lesson-response-view");
-    headers.classList.add("lesson-response-view", "lesson-response-headers");
-    body.setAttribute("role", "tabpanel");
-    headers.setAttribute("role", "tabpanel");
-    headers.hidden = true;
+    const pretty = document.createElement("div");
+    pretty.id = `${panelId}-pretty`;
+    pretty.className = "lesson-response-view lesson-response-pretty";
+    const servedBy = document.createElement("div");
+    servedBy.className = "lesson-served-by";
+    const servedByLabel = document.createElement("span");
+    servedByLabel.textContent = "Served from";
+    const servedByValue = document.createElement("strong");
+    servedByValue.id = this.getAttribute("server-id") ?? `${panelId}-server`;
+    servedByValue.textContent = "waiting for response";
+    servedBy.append(servedByLabel, servedByValue);
+    pretty.append(servedBy, body);
+
+    json.id ||= `${panelId}-json`;
+    headers.id ||= `${panelId}-headers`;
+    json.classList.add("lesson-response-view", "lesson-response-code");
+    headers.classList.add("lesson-response-view", "lesson-response-code");
+
+    const panels = [
+      { label: "Pretty", element: pretty },
+      { label: "JSON", element: json },
+      { label: "Headers", element: headers }
+    ];
+    panels.forEach(({ element }, index) => {
+      element.setAttribute("role", "tabpanel");
+      element.hidden = index !== 0;
+    });
 
     const heading = document.createElement("div");
     heading.className = "lesson-response-heading";
@@ -79,31 +100,33 @@ class LessonResponsePanel extends HTMLElement {
     tabs.className = "lesson-response-tabs";
     tabs.setAttribute("role", "tablist");
     tabs.setAttribute("aria-label", "Client response view");
-    const bodyTab = this.createTab("Body", body.id, true);
-    const headersTab = this.createTab("Headers", headers.id, false);
-    body.setAttribute("aria-labelledby", bodyTab.id);
-    headers.setAttribute("aria-labelledby", headersTab.id);
-    tabs.append(bodyTab, headersTab);
+    const tabButtons = panels.map(({ label, element }, index) => {
+      const tab = this.createTab(label, element.id, index === 0);
+      element.setAttribute("aria-labelledby", tab.id);
+      tabs.append(tab);
+      return tab;
+    });
 
-    const selectTab = (selectedTab, selectedPanel, otherTab, otherPanel) => {
-      selectedTab.setAttribute("aria-selected", "true");
-      selectedTab.tabIndex = 0;
-      selectedPanel.hidden = false;
-      otherTab.setAttribute("aria-selected", "false");
-      otherTab.tabIndex = -1;
-      otherPanel.hidden = true;
+    const selectTab = (selectedIndex) => {
+      tabButtons.forEach((tab, index) => {
+        const selected = index === selectedIndex;
+        tab.setAttribute("aria-selected", String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        panels[index].element.hidden = !selected;
+      });
     };
-    bodyTab.addEventListener("click", () => selectTab(bodyTab, body, headersTab, headers));
-    headersTab.addEventListener("click", () => selectTab(headersTab, headers, bodyTab, body));
+    tabButtons.forEach((tab, index) => tab.addEventListener("click", () => selectTab(index)));
     tabs.addEventListener("keydown", (event) => {
       if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
       event.preventDefault();
-      const target = bodyTab.getAttribute("aria-selected") === "true" ? headersTab : bodyTab;
-      target.click();
-      target.focus();
+      const currentIndex = tabButtons.findIndex((tab) => tab.getAttribute("aria-selected") === "true");
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (currentIndex + direction + tabButtons.length) % tabButtons.length;
+      selectTab(nextIndex);
+      tabButtons[nextIndex].focus();
     });
 
-    this.replaceChildren(heading, tabs, body, headers);
+    this.replaceChildren(heading, tabs, ...panels.map(({ element }) => element));
   }
 
   createTab(label, controls, selected) {
