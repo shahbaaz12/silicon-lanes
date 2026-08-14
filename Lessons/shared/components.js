@@ -170,7 +170,7 @@ class LessonResponsePanel extends HTMLElement {
     servedByValue.id = this.getAttribute("server-id") ?? `${panelId}-server`;
     servedByValue.textContent = "waiting for response";
     servedBy.append(servedByLabel, servedByValue);
-    pretty.append(servedBy, body);
+    pretty.append(body);
 
     json.id ||= `${panelId}-json`;
     headers.id ||= `${panelId}-headers`;
@@ -179,12 +179,11 @@ class LessonResponsePanel extends HTMLElement {
 
     const panels = [
       { label: "Pretty", element: pretty },
-      { label: "JSON", element: json },
+      { label: "Original", element: json },
       { label: "Headers", element: headers }
     ];
     panels.forEach(({ element }, index) => {
       element.setAttribute("role", "tabpanel");
-      element.hidden = index !== 0;
     });
 
     const heading = document.createElement("div");
@@ -235,7 +234,13 @@ class LessonResponsePanel extends HTMLElement {
       tabButtons[nextIndex].focus();
     });
 
-    this.replaceChildren(heading, tabs, ...panels.map(({ element }) => element));
+    this.replaceChildren(heading, servedBy, tabs, ...panels.map(({ element }) => element));
+
+    const stableViewHeight = Math.max(...panels.map(({ element }) => element.getBoundingClientRect().height));
+    if (stableViewHeight > 0) {
+      panels.forEach(({ element }) => { element.style.height = `${Math.ceil(stableViewHeight)}px`; });
+    }
+    selectTab(0);
   }
 
   createTab(label, controls, selected) {

@@ -83,6 +83,14 @@ lesson-service-lite { --lesson-node-accent: var(--amber, #f4c95d); }
 .lesson-served-by strong { overflow: hidden; color: var(--cyan); font: 850 10px ui-monospace, Consolas, monospace; text-overflow: ellipsis; text-transform: none; white-space: nowrap; }
 .lesson-response-code { height: 164px; margin: 0; overflow: auto; padding: 11px; border: 1px solid var(--line); border-radius: 10px; color: #acd5dc; background: #080b0d; font: 10px/1.55 ui-monospace, Consolas, monospace; white-space: pre-wrap; }
 
+html[data-theme="light"] .lesson-response-summary small {
+  border-color: #9ebbc2;
+  color: #075f70;
+  background: #e6f3f5;
+}
+
+html[data-theme="light"] .lesson-response-summary b { color: #29434d; }
+
 @keyframes lesson-node-activity {
   0% { outline: 0 solid transparent; box-shadow: inherit; }
   24% { outline: 3px solid var(--lesson-activity-color); outline-offset: 3px; box-shadow: 0 0 28px color-mix(in srgb, var(--lesson-activity-color) 55%, transparent); }

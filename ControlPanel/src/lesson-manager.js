@@ -34,7 +34,7 @@ function serializeState(instance) {
       name: instance.name,
       hostPort: instance.hostPort,
       containerPort: instance.containerPort,
-      directUrl: `http://127.0.0.1:${instance.hostPort}/api/products`
+      directUrl: `http://localhost:${instance.hostPort}/api/products`
     } : null
   };
 }

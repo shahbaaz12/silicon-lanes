@@ -3,7 +3,7 @@
 This lesson shows the simplest request path:
 
 ```text
-Browser client -> http://127.0.0.1:6212/api/products -> catalogService1
+Browser client -> http://localhost:6212/api/products -> catalogService1
 ```
 
 There is no load balancer, reverse proxy, or API gateway. The client knows the
