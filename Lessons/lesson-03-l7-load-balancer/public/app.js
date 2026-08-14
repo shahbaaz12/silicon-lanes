@@ -71,8 +71,8 @@ function setBusy(isBusy) {
 function placeholderReplica(index) {
   const name = `catalogService${index}`;
   return `
-    <lesson-service-compact class="replica-card placeholder" data-service-name="${name}"
-      heading="${name}" port=":${6211 + index}">
+    <lesson-service-compact class="replica-card placeholder" data-service-name="${name}" kind="catalog"
+      heading="${name}" port=":${6211 + index}" configuration="Type: Catalog Service replica&#10;Published port: ${6211 + index}&#10;Container port: 6212&#10;Selected by: L7 Load Balancer">
       <pre class="compact-service-log">Stopped</pre>
     </lesson-service-compact>`;
 }
@@ -80,8 +80,8 @@ function placeholderReplica(index) {
 function runningReplica(service) {
   const name = escapeHtml(service.name);
   return `
-    <lesson-service-compact class="replica-card" data-service-name="${name}"
-      heading="${name}" port=":${service.hostPort}">
+    <lesson-service-compact class="replica-card" data-service-name="${name}" kind="catalog"
+      heading="${name}" port=":${service.hostPort}" configuration="Type: Catalog Service replica&#10;Published port: ${service.hostPort}&#10;Container port: 6212&#10;Selected by: L7 Load Balancer">
       <div class="compact-service-controls">
         <span>Request log</span>
         <button type="button" class="kill-button" data-kill-id="${escapeHtml(service.id)}">Kill</button>

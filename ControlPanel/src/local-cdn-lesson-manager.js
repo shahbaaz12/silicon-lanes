@@ -149,6 +149,6 @@ export async function clearLocalCdnCache() {
   try {
     const cdn = await inspectCdn();
     if (!cdn) throw Object.assign(new Error("Start Lesson 7 before clearing its cache."), { statusCode: 409 });
-    await docker(["exec", cdn.Id, "sh", "-c", "find /var/cache/nginx/products -type f -delete"]);
+    await docker(["exec", cdn.Id, "sh", "-c", "if [ -d /var/cache/nginx/products ]; then find /var/cache/nginx/products -type f -delete; fi"]);
   } catch (error) { if (error.statusCode) throw error; throw friendlyDockerError(error); }
 }

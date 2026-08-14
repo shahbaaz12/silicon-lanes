@@ -49,7 +49,7 @@
 
           <div class="connector horizontal"><span>one public address</span><b class="packet"></b></div>
 
-          <lesson-load-balancer-card class="layer-card load-balancer-layer" icon="LB" kicker="Layer 7 infrastructure" heading="L7 Load Balancer" title-id="load-balancer-name" status="stopped" status-id="load-balancer-status">
+          <lesson-load-balancer-card class="layer-card load-balancer-layer" layer="7" icon="LB" kicker="Layer 7 infrastructure" heading="L7 Load Balancer" title-id="load-balancer-name" status="stopped" status-id="load-balancer-status">
             <div class="lb-actions"><button class="button compact" id="details-button" type="button" aria-expanded="false" aria-controls="lb-details">Details</button></div>
             <div class="lb-route"><code id="published-route">127.0.0.1:7312 → loadBalancer1:80</code><span>round robin</span><code>catalog_pool</code></div>
             <div class="lb-details" id="lb-details" hidden>

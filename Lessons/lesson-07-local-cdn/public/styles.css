@@ -8,6 +8,7 @@
 .cache-result span { color:var(--muted); font-size:7px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
 .cache-result strong { color:var(--muted); font:900 9px ui-monospace,Consolas,monospace; }
 .cache-result strong.hit { color:var(--lime); }.cache-result strong.miss { color:var(--amber); }.cache-result strong.bypass { color:var(--cyan); }
+.policy-note { margin:0 0 11px; padding:10px 13px; border:1px solid rgb(251 146 60 / 35%); border-radius:9px; color:#c8d0d5; background:rgb(251 146 60 / 7%); font-size:10px; line-height:1.55; }.policy-note b { color:var(--amber); }.policy-note code { color:#ffd19a; }
 .response pre { height:210px; }
 .trace section pre { height:91px; }
 @media(max-width:1200px){.lab{grid-template-columns:340px minmax(520px,1fr)}}

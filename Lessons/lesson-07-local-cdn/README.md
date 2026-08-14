@@ -9,7 +9,8 @@ Client -> Local CDN -> L4 Edge LB -> API Gateway 1 or 2
 ```
 
 The client knows only `127.0.0.1:7712`. `GET /api/products` responses are cached
-for 15 seconds. User and Order routes bypass the cache. Every response includes
+for 15 seconds. User and Order routes bypass the cache. This is an intentionally
+changeable teaching policy. Every response includes
 `X-Cache-Status`:
 
 - `MISS`: the request reached the origin and its response was stored.

@@ -14,6 +14,52 @@ class LessonActivityElement extends HTMLElement {
   disconnectedCallback() {
     window.clearTimeout(this.activityTimer);
   }
+
+  setLessonKind(fallback) {
+    this.dataset.lessonKind = this.getAttribute("kind") ?? fallback;
+  }
+
+  enableConfiguration(defaultConfiguration) {
+    this.classList.add("lesson-configurable");
+    this.setAttribute("role", "button");
+    if (this.tabIndex < 0) this.tabIndex = 0;
+    this.setAttribute("aria-label", `${this.getAttribute("heading") ?? "Component"}: show configuration`);
+    const open = () => showLessonConfiguration(
+      this.getAttribute("heading") ?? "Component configuration",
+      this.getAttribute("configuration") ?? defaultConfiguration
+    );
+    this.addEventListener("click", (event) => {
+      if (event.target.closest("button, a, input, select, textarea, summary")) return;
+      open();
+    });
+    this.addEventListener("keydown", (event) => {
+      if (!["Enter", " "].includes(event.key) || event.target !== this) return;
+      event.preventDefault();
+      open();
+    });
+  }
+}
+
+function showLessonConfiguration(title, configuration) {
+  let dialog = document.querySelector("#lesson-configuration-dialog");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.id = "lesson-configuration-dialog";
+    dialog.className = "lesson-configuration-dialog";
+    const heading = document.createElement("h2");
+    const copy = document.createElement("pre");
+    const close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "Close";
+    close.addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+    dialog.append(heading, copy, close);
+    document.body.append(dialog);
+  }
+  dialog.querySelector("h2").textContent = title;
+  dialog.querySelector("pre").textContent = configuration;
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
 }
 
 class LessonNodeCard extends LessonActivityElement {
@@ -23,6 +69,7 @@ class LessonNodeCard extends LessonActivityElement {
     this.setAttribute("role", "article");
 
     const kind = this.localName.replace("lesson-", "").replace("-card", "");
+    this.setLessonKind(kind);
     const heading = document.createElement("div");
     heading.className = "lesson-node-heading";
 
@@ -58,6 +105,7 @@ class LessonServiceCompact extends LessonActivityElement {
     if (this.dataset.componentReady === "true") return;
     this.dataset.componentReady = "true";
     this.setAttribute("role", "article");
+    this.setLessonKind(this.getAttribute("service-key") ?? "service");
 
     const heading = document.createElement("div");
     heading.className = "lesson-service-compact-heading";
@@ -67,6 +115,7 @@ class LessonServiceCompact extends LessonActivityElement {
     port.textContent = this.getAttribute("port") ?? ":—";
     heading.append(name, port);
     this.prepend(heading);
+    this.enableConfiguration(`Type: ${this.dataset.lessonKind}\nPort: ${this.getAttribute("port") ?? "managed by the lesson"}\nRole: application service instance`);
   }
 }
 
@@ -75,9 +124,11 @@ class LessonNodeLite extends LessonActivityElement {
     if (this.dataset.componentReady === "true") return;
     this.dataset.componentReady = "true";
     this.setAttribute("role", "article");
+    this.setLessonKind("infrastructure");
     const name = document.createElement("strong");
     name.textContent = this.getAttribute("heading") ?? "Infrastructure";
     this.replaceChildren(name);
+    this.enableConfiguration(`Type: ${this.dataset.lessonKind}\nRole: infrastructure node`);
   }
 }
 
@@ -86,9 +137,11 @@ class LessonServiceLite extends LessonActivityElement {
     if (this.dataset.componentReady === "true") return;
     this.dataset.componentReady = "true";
     this.setAttribute("role", "article");
+    this.setLessonKind(this.getAttribute("service-key") ?? "service");
     const name = document.createElement("strong");
     name.textContent = this.getAttribute("heading") ?? "Service";
     this.replaceChildren(name);
+    this.enableConfiguration(`Type: ${this.dataset.lessonKind}\nRole: application service instance`);
   }
 }
 

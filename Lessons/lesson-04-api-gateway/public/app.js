@@ -82,8 +82,9 @@ function serviceCard(route) {
   const heading = instance?.name ?? route.serviceName;
   const port = instance?.hostPort ?? portByService[route.serviceKey];
   return `
-    <lesson-service-compact class="service-card" data-service-key="${route.serviceKey}"
-      data-instance-name="${escapeHtml(instance?.name ?? "")}" heading="${escapeHtml(heading)}" port=":${port}">
+    <lesson-service-compact class="service-card" data-service-key="${route.serviceKey}" kind="${route.serviceKey}"
+      data-instance-name="${escapeHtml(instance?.name ?? "")}" heading="${escapeHtml(heading)}" port=":${port}"
+      configuration="Type: ${escapeHtml(route.serviceName)}&#10;Published port: ${port}&#10;Route: ${route.path}&#10;Selected by: API Gateway path routing">
       <pre class="service-log" data-log-for="${route.serviceKey}">${instance ? "No requests yet." : "Stopped"}</pre>
     </lesson-service-compact>`;
 }

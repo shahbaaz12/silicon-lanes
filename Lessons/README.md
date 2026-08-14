@@ -42,3 +42,8 @@ name-only infrastructure and service squares. Both retain the shared activity
 glow without embedding logs in the topology.
 
 Lesson 6 reuses those lite components for every infrastructure and service node.
+
+The shared component layer assigns consistent colors by role: client, proxy,
+API Gateway, CDN, L4/L7 Load Balancer, and individual service type. Compact and
+lite nodes are keyboard accessible; clicking or pressing Enter opens their
+lesson-specific configuration.

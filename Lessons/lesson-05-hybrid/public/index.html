@@ -25,25 +25,25 @@
         </lesson-client-card>
 
         <div class="flow">
-          <lesson-node-lite id="gateway-node" heading="API Gateway"></lesson-node-lite>
+          <lesson-node-lite id="gateway-node" kind="api-gateway" heading="API Gateway" configuration="Layer: L7&#10;Published: 127.0.0.1:7512&#10;Routes Users and Orders directly&#10;Routes Products to the Catalog Load Balancer"></lesson-node-lite>
           <div class="gateway-split" aria-hidden="true"></div>
           <div class="branches">
             <div class="direct-branch">
               <span class="route-label">Users</span><div class="route-arrow" aria-hidden="true"></div>
-              <lesson-service-lite data-key="user" heading="User Service"></lesson-service-lite>
+              <lesson-service-lite data-key="user" service-key="user" heading="User Service" configuration="Target: userService1:6112&#10;Route: GET /api/users&#10;Selected directly by the API Gateway"></lesson-service-lite>
             </div>
             <div class="catalog-branch">
               <span class="route-label">Products</span><div class="route-arrow" aria-hidden="true"></div>
-              <lesson-node-lite id="lb-node" heading="Load Balancer"></lesson-node-lite>
+              <lesson-node-lite id="lb-node" kind="load-balancer" layer="7" heading="Load Balancer" configuration="Layer: L7&#10;Private port: 80&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2"></lesson-node-lite>
               <div class="catalog-split" aria-hidden="true"></div>
               <div class="catalogs">
-                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" heading="Catalog Service 1"></lesson-service-lite></div>
-                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-2" heading="Catalog Service 2"></lesson-service-lite></div>
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Route: GET /api/products&#10;Member of the Catalog replica pool"></lesson-service-lite></div>
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-2" service-key="catalog" heading="Catalog Service 2" configuration="Target: catalogService2:6212&#10;Route: GET /api/products&#10;Member of the Catalog replica pool"></lesson-service-lite></div>
               </div>
             </div>
             <div class="direct-branch">
               <span class="route-label">Orders</span><div class="route-arrow" aria-hidden="true"></div>
-              <lesson-service-lite data-key="order" heading="Order Service"></lesson-service-lite>
+              <lesson-service-lite data-key="order" service-key="order" heading="Order Service" configuration="Target: orderService1:6512&#10;Route: GET /api/orders&#10;Selected directly by the API Gateway"></lesson-service-lite>
             </div>
           </div>
         </div>
