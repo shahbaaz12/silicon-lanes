@@ -1,3 +1,5 @@
+import { api, clamp, copyText, escapeHtml, showToast } from "./shared/ui.js";
+
 const serviceKey = decodeURIComponent(location.pathname.split("/").filter(Boolean).at(-1));
 const grid = document.querySelector("#instances-grid");
 const errorNotice = document.querySelector("#error-notice");
@@ -10,30 +12,6 @@ const selectedEndpointIndexes = new Map();
 const expandedEndpointIds = new Set();
 let currentService;
 let logRefreshInProgress = false;
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-  })[character]);
-}
-
-function showToast(message, isError = false) {
-  const toast = document.createElement("div");
-  toast.className = `toast${isError ? " error" : ""}`;
-  toast.textContent = message;
-  document.querySelector("#toast-region").append(toast);
-  setTimeout(() => toast.remove(), 3600);
-}
-
-async function api(url, options) {
-  const response = await fetch(url, {
-    ...options,
-    headers: { "content-type": "application/json", ...options?.headers }
-  });
-  const body = response.status === 204 ? null : await response.json();
-  if (!response.ok) throw new Error(body?.error ?? `Request failed (${response.status})`);
-  return body;
-}
 
 function updateCardOutput(id, output) {
   const card = grid.querySelector(`[data-instance="${CSS.escape(id)}"]`);
@@ -160,7 +138,7 @@ async function startInstances() {
   startButton.disabled = true;
   startButton.textContent = "Starting...";
   try {
-    const count = Math.max(1, Math.min(10, Number(countInput.value)));
+    const count = clamp(countInput.value, 1, 10);
     await api(`/api/services/${serviceKey}/instances`, {
       method: "POST",
       body: JSON.stringify({ count })
@@ -203,7 +181,7 @@ grid.addEventListener("click", async (event) => {
   const id = card.dataset.instance;
 
   if (event.target.closest("[data-copy]")) {
-    await navigator.clipboard.writeText(event.target.closest("[data-copy]").dataset.curl);
+    await copyText(event.target.closest("[data-copy]").dataset.curl);
     showToast("curl command copied.");
     return;
   }
@@ -260,10 +238,10 @@ grid.addEventListener("click", async (event) => {
 });
 
 document.querySelector("#decrease-count").addEventListener("click", () => {
-  countInput.value = Math.max(1, Number(countInput.value) - 1);
+  countInput.value = clamp(Number(countInput.value) - 1, 1, 10);
 });
 document.querySelector("#increase-count").addEventListener("click", () => {
-  countInput.value = Math.min(10, Number(countInput.value) + 1);
+  countInput.value = clamp(Number(countInput.value) + 1, 1, 10);
 });
 startButton.addEventListener("click", startInstances);
 refreshButton.addEventListener("click", loadService);

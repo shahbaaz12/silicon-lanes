@@ -1,3 +1,5 @@
+import { api, clamp, escapeHtml, showToast } from "./shared/ui.js";
+
 const grid = document.querySelector("#services-grid");
 const errorNotice = document.querySelector("#error-notice");
 const systemStatus = document.querySelector("#system-status");
@@ -13,32 +15,8 @@ const accents = {
   rose: "#f0809c"
 };
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (character) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
-  })[character]);
-}
-
 function glyph(name) {
   return name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase();
-}
-
-function showToast(message, isError = false) {
-  const toast = document.createElement("div");
-  toast.className = `toast${isError ? " error" : ""}`;
-  toast.textContent = message;
-  document.querySelector("#toast-region").append(toast);
-  setTimeout(() => toast.remove(), 3600);
-}
-
-async function api(url, options) {
-  const response = await fetch(url, {
-    ...options,
-    headers: { "content-type": "application/json", ...options?.headers }
-  });
-  const body = response.status === 204 ? null : await response.json();
-  if (!response.ok) throw new Error(body?.error ?? `Request failed (${response.status})`);
-  return body;
 }
 
 function renderServices(services) {
@@ -96,7 +74,7 @@ grid.addEventListener("click", async (event) => {
   const countAction = event.target.closest("[data-count-action]");
   if (countAction) {
     const change = countAction.dataset.countAction === "increase" ? 1 : -1;
-    countInput.value = Math.max(1, Math.min(10, Number(countInput.value) + change));
+    countInput.value = clamp(Number(countInput.value) + change, 1, 10);
     return;
   }
 
@@ -105,7 +83,7 @@ grid.addEventListener("click", async (event) => {
     startButton.disabled = true;
     startButton.textContent = "Starting…";
     try {
-      const count = Math.max(1, Math.min(10, Number(countInput.value)));
+      const count = clamp(countInput.value, 1, 10);
       await api(`/api/services/${selectedService}/instances`, {
         method: "POST",
         body: JSON.stringify({ count })
@@ -129,4 +107,3 @@ grid.addEventListener("keydown", (event) => {
 
 refreshButton.addEventListener("click", loadServices);
 loadServices();
-

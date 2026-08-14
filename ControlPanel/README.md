@@ -15,6 +15,24 @@ npm start
 
 Open `http://localhost:7012`.
 
+## Code map
+
+The Control Panel is arranged by responsibility:
+
+- `src/server.js` starts the HTTP listener only.
+- `src/app.js` assembles middleware, static pages, routers, and error handling.
+- `src/routes/` contains the service API and the generated lesson API routes.
+- `src/lessons/registry.js` is the single list of lesson IDs and lifecycle actions.
+- `src/infrastructure/` contains shared Docker, health, port, label, and service-pool helpers.
+- `*-lesson-manager.js` files contain only lesson-specific orchestration.
+- `public/shared/` contains browser utilities reused by the Control Panel pages.
+- `test/` verifies the route contract and infrastructure helpers with Node's built-in test runner.
+
+When adding a lesson, implement its manager and add one entry to the lesson registry; the app
+will mount its public folder and API routes from that declaration.
+
+Run the automated checks with `npm test` from this folder.
+
 The home page also contains the sequential learning path. Lesson 1 is served by
 this same Control Panel at
 `http://localhost:7012/lessons/lesson-01-direct-service`; there is no separate

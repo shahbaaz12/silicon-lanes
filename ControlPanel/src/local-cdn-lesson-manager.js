@@ -1,8 +1,4 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
-import net from "node:net";
 import {
   clearAdvancedLessonLogs,
   getAdvancedLessonLogs,
@@ -10,10 +6,7 @@ import {
   startAdvancedLesson,
   stopAdvancedLesson
 } from "./advanced-lesson-manager.js";
-
-const execFileAsync = promisify(execFile);
-const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = path.resolve(controlPanelDirectory, "..");
+import { docker, friendlyDockerError, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy as waitForContainer } from "./infrastructure/docker-client.js";
 const cdnTemplate = path.join(repositoryRoot, "Lessons", "lesson-07-local-cdn", "nginx", "cdn.conf.template");
 const lessonLabel = "lesson-07-local-cdn";
 const cdnName = "localCdn1";
@@ -21,48 +14,12 @@ const cdnPort = 7712;
 const networkName = "silicon-lanes-network";
 let logClearTime = 0;
 
-async function docker(args, options = {}) {
-  const result = await execFileAsync("docker", args, { cwd: repositoryRoot, windowsHide: true, maxBuffer: 10 * 1024 * 1024, ...options });
-  return result.stdout.trim();
-}
-
-function friendlyDockerError(error) {
-  const message = error.stderr?.trim() || error.message;
-  if (/cannot connect|pipe\/docker|daemon is not running/i.test(message)) {
-    return Object.assign(new Error("Docker Desktop is not running."), { statusCode: 503 });
-  }
-  return Object.assign(new Error(message), { statusCode: 500 });
-}
-
 async function inspectCdn({ includeStopped = false } = {}) {
-  try {
-    const [container] = JSON.parse(await docker(["inspect", cdnName]));
-    if (container.Config.Labels?.["com.silicon-lanes.lesson"] !== lessonLabel) {
-      throw Object.assign(new Error(`Container name ${cdnName} is already in use.`), { statusCode: 409 });
-    }
-    if (!includeStopped && !container.State.Running) return null;
-    return container;
-  } catch (error) {
-    if (/No such (object|container)/i.test(error.stderr ?? "")) return null;
-    throw error;
-  }
-}
-
-function portIsAvailable(port) {
-  return new Promise((resolve) => {
-    const server = net.createServer(); server.unref(); server.once("error", () => resolve(false));
-    server.listen({ host: "127.0.0.1", port }, () => server.close(() => resolve(true)));
-  });
+  return inspectLessonContainer({ name: cdnName, lessonLabel, includeStopped });
 }
 
 async function waitForHealthy(id) {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
-    const status = await docker(["inspect", "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", id]);
-    if (status === "healthy") return;
-    if (["unhealthy", "exited", "dead"].includes(status)) throw new Error(`Local CDN failed to start.\n${await docker(["logs", "--tail", "60", id])}`);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error("Local CDN did not become ready in time.");
+  return waitForContainer(id, "Local CDN");
 }
 
 async function removeCdn(container) {

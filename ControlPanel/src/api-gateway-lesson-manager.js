@@ -1,8 +1,4 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
-import net from "node:net";
 import {
   clearInstanceLogs,
   getInstanceLogs,
@@ -11,10 +7,7 @@ import {
   stopInstance
 } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-
-const execFileAsync = promisify(execFile);
-const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = path.resolve(controlPanelDirectory, "..");
+import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 const nginxTemplate = path.join(repositoryRoot, "Lessons", "lesson-04-api-gateway", "nginx", "default.conf.template");
 const nginxProxyParams = path.join(repositoryRoot, "Lessons", "lesson-04-api-gateway", "nginx", "proxy_params");
 const services = Object.values(serviceCatalog);
@@ -33,70 +26,16 @@ const routePaths = Object.freeze({
   payment: "/api/payments"
 });
 
-async function docker(args, options = {}) {
-  const result = await execFileAsync("docker", args, {
-    cwd: repositoryRoot,
-    windowsHide: true,
-    maxBuffer: 10 * 1024 * 1024,
-    ...options
-  });
-  return result.stdout.trim();
-}
-
-function friendlyDockerError(error) {
-  const message = error.stderr?.trim() || error.message;
-  if (/cannot connect|pipe\/docker|daemon is not running/i.test(message)) {
-    return Object.assign(new Error("Docker Desktop is not running."), { statusCode: 503 });
-  }
-  return Object.assign(new Error(message), { statusCode: 500 });
-}
-
 function backendLabel(key) {
   return `com.silicon-lanes.backend-${key}-id`;
 }
 
-function idsFromLabel(container, name) {
-  return (container?.Config.Labels?.[name] ?? "").split(",").filter(Boolean);
-}
-
 async function inspectGateway({ includeStopped = false } = {}) {
-  try {
-    const [container] = JSON.parse(await docker(["inspect", gatewayName]));
-    if (container.Config.Labels?.["com.silicon-lanes.lesson"] !== lessonLabel) {
-      throw Object.assign(new Error(`Container name ${gatewayName} is already in use.`), { statusCode: 409 });
-    }
-    if (!includeStopped && !container.State.Running) return null;
-    return container;
-  } catch (error) {
-    if (/No such (object|container)/i.test(error.stderr ?? "")) return null;
-    throw error;
-  }
-}
-
-function portIsAvailable(port) {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.unref();
-    server.once("error", () => resolve(false));
-    server.listen({ host: "127.0.0.1", port }, () => server.close(() => resolve(true)));
-  });
+  return inspectLessonContainer({ name: gatewayName, lessonLabel, includeStopped });
 }
 
 async function waitForGateway(id) {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
-    const status = await docker([
-      "inspect", "--format",
-      "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}",
-      id
-    ]);
-    if (status === "healthy") return;
-    if (["unhealthy", "exited", "dead"].includes(status)) {
-      const logs = await docker(["logs", "--tail", "60", id]);
-      throw new Error(`API Gateway failed to start.\n${logs}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error("API Gateway did not become ready in time.");
+  return waitForHealthy(id, "API Gateway");
 }
 
 async function removeGateway(container) {

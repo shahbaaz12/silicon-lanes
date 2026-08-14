@@ -1,13 +1,11 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
-import net from "node:net";
 import { serviceCatalog } from "./service-catalog.js";
-
-const execFileAsync = promisify(execFile);
-const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = path.resolve(controlPanelDirectory, "..");
+import {
+  docker,
+  friendlyDockerError,
+  portIsAvailable,
+  repositoryRoot
+} from "./infrastructure/docker-client.js";
 const applicationServicesDirectory = path.join(repositoryRoot, "Application", "services");
 const managedLabel = "com.silicon-lanes.managed=true";
 const networkName = "silicon-lanes-network";
@@ -15,24 +13,6 @@ const postgresContainerName = "silicon-lanes-postgres";
 const postgresVolumeName = "silicon-lanes-postgres-data";
 const postgresPassword = process.env.SILICON_LANES_DATABASE_PASSWORD ?? "silicon_lanes";
 const logClearTimes = new Map();
-
-async function docker(args, options = {}) {
-  const result = await execFileAsync("docker", args, {
-    cwd: repositoryRoot,
-    windowsHide: true,
-    maxBuffer: 10 * 1024 * 1024,
-    ...options
-  });
-  return result.stdout.trim();
-}
-
-function friendlyDockerError(error) {
-  const message = error.stderr?.trim() || error.message;
-  if (/cannot connect|pipe\/docker|daemon is not running/i.test(message)) {
-    return Object.assign(new Error("Docker Desktop is not running."), { statusCode: 503 });
-  }
-  return Object.assign(new Error(message), { statusCode: 500 });
-}
 
 function inspectToInstance(container) {
   const labels = container.Config.Labels ?? {};
@@ -168,17 +148,6 @@ async function ensurePostgres() {
       await docker(["exec", postgresContainerName, "createdb", "--username", "postgres", databaseName]);
     }
   }
-}
-
-function portIsAvailable(port) {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.unref();
-    server.once("error", () => resolve(false));
-    server.listen({ host: "127.0.0.1", port }, () => {
-      server.close(() => resolve(true));
-    });
-  });
 }
 
 async function nextSlot(service, existing) {

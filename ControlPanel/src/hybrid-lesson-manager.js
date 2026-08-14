@@ -1,14 +1,8 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-import { fileURLToPath } from "node:url";
 import path from "node:path";
-import net from "node:net";
 import { clearInstanceLogs, getInstanceLogs, listManagedInstances, startInstances, stopInstance } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-
-const execFileAsync = promisify(execFile);
-const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = path.resolve(controlPanelDirectory, "..");
+import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { ensureServicePool } from "./infrastructure/service-pool.js";
 const lessonDirectory = path.join(repositoryRoot, "Lessons", "lesson-05-hybrid", "nginx");
 const gatewayTemplate = path.join(lessonDirectory, "api-gateway.conf.template");
 const loadBalancerTemplate = path.join(lessonDirectory, "load-balancer.conf.template");
@@ -20,62 +14,8 @@ const gatewayPort = 7512;
 const networkName = "silicon-lanes-network";
 const logClearTimes = new Map();
 
-async function docker(args, options = {}) {
-  const result = await execFileAsync("docker", args, {
-    cwd: repositoryRoot,
-    windowsHide: true,
-    maxBuffer: 10 * 1024 * 1024,
-    ...options
-  });
-  return result.stdout.trim();
-}
-
-function friendlyDockerError(error) {
-  const message = error.stderr?.trim() || error.message;
-  if (/cannot connect|pipe\/docker|daemon is not running/i.test(message)) {
-    return Object.assign(new Error("Docker Desktop is not running."), { statusCode: 503 });
-  }
-  return Object.assign(new Error(message), { statusCode: 500 });
-}
-
 async function inspectInfrastructure(name, { includeStopped = false } = {}) {
-  try {
-    const [container] = JSON.parse(await docker(["inspect", name]));
-    if (container.Config.Labels?.["com.silicon-lanes.lesson"] !== lessonLabel) {
-      throw Object.assign(new Error(`Container name ${name} is already in use.`), { statusCode: 409 });
-    }
-    if (!includeStopped && !container.State.Running) return null;
-    return container;
-  } catch (error) {
-    if (/No such (object|container)/i.test(error.stderr ?? "")) return null;
-    throw error;
-  }
-}
-
-function idsFromLabel(container, label) {
-  return (container?.Config.Labels?.[label] ?? "").split(",").filter(Boolean);
-}
-
-function portIsAvailable(port) {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.unref();
-    server.once("error", () => resolve(false));
-    server.listen({ host: "127.0.0.1", port }, () => server.close(() => resolve(true)));
-  });
-}
-
-async function waitForHealthy(id, label) {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
-    const status = await docker(["inspect", "--format", "{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}", id]);
-    if (status === "healthy") return;
-    if (["unhealthy", "exited", "dead"].includes(status)) {
-      const logs = await docker(["logs", "--tail", "60", id]);
-      throw new Error(`${label} failed to start.\n${logs}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`${label} did not become ready in time.`);
+  return inspectLessonContainer({ name, lessonLabel, includeStopped });
 }
 
 async function removeInfrastructure(container) {
@@ -85,37 +25,17 @@ async function removeInfrastructure(container) {
 }
 
 async function ensureServices(previousIds = [], previousOwnedIds = []) {
-  const available = await listManagedInstances();
-  const selected = [];
-  const ownedIds = new Set(previousOwnedIds);
-  const requirements = [
-    { service: serviceCatalog.user, count: 1 },
-    { service: serviceCatalog.order, count: 1 },
-    { service: serviceCatalog.catalog, count: 2 }
-  ];
-
-  for (const requirement of requirements) {
-    const preferred = previousIds
-      .map((id) => available.find((instance) => instance.id === id && instance.serviceKey === requirement.service.key))
-      .filter(Boolean);
-    const candidates = available.filter((instance) => instance.serviceKey === requirement.service.key);
-    const matches = [];
-    for (const instance of [...preferred, ...candidates]) {
-      if (matches.length === requirement.count) break;
-      if (!matches.some(({ id }) => id === instance.id)) matches.push(instance);
-    }
-    if (matches.length < requirement.count) {
-      const started = await startInstances(requirement.service, requirement.count - matches.length);
-      matches.push(...started);
-      started.forEach(({ id }) => ownedIds.add(id));
-    }
-    selected.push(...matches);
-  }
-
-  return {
-    services: selected,
-    ownedIds: [...ownedIds].filter((id) => selected.some((service) => service.id === id))
-  };
+  return ensureServicePool({
+    requirements: [
+      { service: serviceCatalog.user, count: 1 },
+      { service: serviceCatalog.order, count: 1 },
+      { service: serviceCatalog.catalog, count: 2 }
+    ],
+    previousIds,
+    previouslyOwnedIds: previousOwnedIds,
+    listInstances: listManagedInstances,
+    startInstances
+  });
 }
 
 async function startLoadBalancer(catalogs) {
