@@ -77,6 +77,7 @@ html[data-theme="light"] :is(.topbar, .site-header) {
 html[data-theme="light"] :is(
   .service-card, .instance-card, .lesson-card, .layer-card, .client-card, .proxy-card,
   .trace, .flow, .replica-pool, .replica-card, .response-cache, .empty-state,
+  .service-lab-card, .scale-preview,
   lesson-client-card, lesson-service-card, lesson-proxy-card, lesson-load-balancer-card,
   lesson-api-gateway-card, lesson-service-compact, lesson-node-lite, lesson-service-lite
 ) {
@@ -138,8 +139,22 @@ html[data-theme="light"] .button.danger {
 }
 
 html[data-theme="light"] .lesson-number {
-  color: #ffffff;
-  background: var(--cyan);
+  border-color: color-mix(in srgb, var(--cyan) 38%, var(--line));
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 12%, white);
+}
+
+html[data-theme="light"] .lesson-topology {
+  border-color: var(--line);
+  color: #236b78;
+  background: #f6f9fa;
+}
+
+html[data-theme="light"] .lesson-tags span,
+html[data-theme="light"] .service-pills span,
+html[data-theme="light"] :is(.preview-step, .preview-replicas span) {
+  color: var(--text);
+  background: var(--panel-raised);
 }
 
 html[data-theme="light"] .lesson-configuration-dialog {

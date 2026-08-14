@@ -27,6 +27,10 @@ export function createApp() {
   app.use("/api", createSystemRouter());
   app.use("/api/lessons", createLessonRouter());
 
+  app.get("/service-lab", (_request, response) => {
+    response.sendFile(path.join(publicDirectory, "service-lab.html"));
+  });
+
   app.get("/services/:key", (request, response, next) => {
     if (!getService(request.params.key)) return next();
     return response.sendFile(path.join(publicDirectory, "details.html"));

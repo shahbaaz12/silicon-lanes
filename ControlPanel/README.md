@@ -33,8 +33,10 @@ will mount its public folder and API routes from that declaration.
 
 Run the automated checks with `npm test` from this folder.
 
-The home page also contains the sequential learning path. Lesson 1 is served by
-this same Control Panel at
+The home page presents the lessons as one evolving request journey. Service
+orchestration lives separately at `http://localhost:7012/service-lab`, where
+application-service replicas can be started and inspected without interrupting
+the learning narrative. Lesson 1 is served by this same Control Panel at
 `http://localhost:7012/lessons/lesson-01-direct-service`; there is no separate
 lesson website or lesson server process.
 
@@ -87,7 +89,7 @@ of the selected service; it does not remove PostgreSQL or its named data volume.
 For local development the database password defaults to `silicon_lanes`; set
 `SILICON_LANES_DATABASE_PASSWORD` before starting the panel to override it.
 
-The Service map's global **Kill all** action removes every labeled lesson and
+The Service Lab's global **Kill all** action removes every labeled lesson and
 application-service container while keeping PostgreSQL and its data volume. The
 light/dark theme toggle is available on the Control Panel and every lesson, and
 the selected theme is remembered in the browser.

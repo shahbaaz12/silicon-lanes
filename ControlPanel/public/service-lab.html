@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Start, scale, and inspect the application services used by Silicon Lanes lessons.">
+    <title>Service Lab &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <a class="brand" href="/" aria-label="Silicon Lanes home">
+          <span class="brand-mark">SL</span>
+          <span>Silicon Lanes</span>
+        </a>
+        <div class="system-status" id="system-status">
+          <span class="status-dot"></span>
+          <span>Checking Docker</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell service-lab-page">
+      <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Learning journey</a><span>/</span><span>Service Lab</span></nav>
+      <section class="hero service-lab-hero">
+        <div class="eyebrow">Service Control Panel</div>
+        <h1>Start the services that power every lesson.</h1>
+        <p class="hero-copy">
+          Create independent replicas on isolated ports, inspect their endpoints,
+          and see which container answers each request.
+        </p>
+      </section>
+
+      <section aria-labelledby="services-heading">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Your application services</div>
+            <h2 id="services-heading">The application is built. Put it on the lanes.</h2>
+            <p>Select a service, choose how many instances you need, and start scaling.</p>
+          </div>
+          <div class="section-actions">
+            <button class="button ghost" id="refresh-button" type="button">Refresh</button>
+            <button class="button danger" id="global-kill-button" type="button">Kill all</button>
+          </div>
+        </div>
+        <div class="notice" id="error-notice" hidden></div>
+        <div class="services-grid" id="services-grid" aria-live="polite">
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+          <div class="skeleton"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="shell">Bound to localhost &middot; Only labeled Silicon Lanes containers are managed.</div>
+    </footer>
+    <div id="toast-region" aria-live="polite"></div>
+    <script type="module" src="/index.js"></script>
+  </body>
+</html>
