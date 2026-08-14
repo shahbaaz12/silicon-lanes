@@ -26,20 +26,34 @@
     <main class="shell service-lab-page">
       <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Learning journey</a><span>/</span><span>Service Lab</span></nav>
       <section class="hero service-lab-hero">
-        <div class="eyebrow">Service Control Panel</div>
-        <h1>Start the services that power every lesson.</h1>
+        <div class="eyebrow">Test, inspect, and scale</div>
+        <h1>Run and test your services here.</h1>
         <p class="hero-copy">
-          Create independent replicas on isolated ports, inspect their endpoints,
-          and see which container answers each request.
+          Test your services below. Every replica runs in its own Docker container,
+          while all services connect to one shared PostgreSQL server. This lab limits
+          each service to three replicas by default, but the limit can be extended as
+          you explore larger setups. Execute an API and see exactly which server
+          returns the response.
         </p>
+        <div class="lab-facts" aria-label="Service Lab architecture">
+          <span><strong>1</strong> shared PostgreSQL server</span>
+          <span><strong>1</strong> container per replica</span>
+          <span><strong>3</strong> default replica limit</span>
+        </div>
+      </section>
+
+      <section class="fleet-summary" aria-label="Service fleet summary">
+        <div><span>Service types</span><strong id="service-type-count">6</strong></div>
+        <div><span>Running replicas</span><strong id="running-replica-count">&mdash;</strong></div>
+        <div><span>Active fleets</span><strong id="active-service-count">0</strong></div>
       </section>
 
       <section aria-labelledby="services-heading">
         <div class="section-heading">
           <div>
             <div class="eyebrow">Your application services</div>
-            <h2 id="services-heading">The application is built. Put it on the lanes.</h2>
-            <p>Select a service, choose how many instances you need, and start scaling.</p>
+            <h2 id="services-heading">Choose a service to inspect and scale.</h2>
+            <p>Running fleets glow. Select any service to expand its capacity and API workbench below.</p>
           </div>
           <div class="section-actions">
             <button class="button ghost" id="refresh-button" type="button">Refresh</button>
@@ -47,11 +61,12 @@
           </div>
         </div>
         <div class="notice" id="error-notice" hidden></div>
-        <div class="services-grid" id="services-grid" aria-live="polite">
+        <div class="services-grid service-mini-grid" id="services-grid" aria-live="polite">
           <div class="skeleton"></div>
           <div class="skeleton"></div>
           <div class="skeleton"></div>
         </div>
+        <section class="service-workbench" id="service-workbench" aria-live="polite" hidden></section>
       </section>
     </main>
 

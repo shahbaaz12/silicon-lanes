@@ -77,7 +77,7 @@ html[data-theme="light"] :is(.topbar, .site-header) {
 html[data-theme="light"] :is(
   .service-card, .instance-card, .lesson-card, .layer-card, .client-card, .proxy-card,
   .trace, .flow, .replica-pool, .replica-card, .response-cache, .empty-state,
-  .service-lab-card, .scale-preview,
+  .service-lab-card, .scale-preview, .fleet-summary, .service-mini-card, .service-workbench, .workbench-capacity,
   lesson-client-card, lesson-service-card, lesson-proxy-card, lesson-load-balancer-card,
   lesson-api-gateway-card, lesson-service-compact, lesson-node-lite, lesson-service-lite
 ) {
@@ -91,7 +91,7 @@ html[data-theme="light"] :is(
   pre, .code-block, .client-route, .url, .formula, .lb-route, .lb-details,
   .replica-summary, .cache-result, .route-buttons button, .client-tooling,
   .lesson-service-compact-heading code, .lesson-response-code, .lesson-served-by,
-  .count-control, .intro code
+  .count-control, .intro code, .request-body, .instance-option
 ) {
   border-color: var(--line);
   color: #29434d;
@@ -107,6 +107,16 @@ html[data-theme="light"] .intro-copy code {
 html[data-theme="light"] .count-control :is(button, input) {
   color: var(--text);
   background: transparent;
+}
+
+html[data-theme="light"] .endpoint-list {
+  border-color: var(--line);
+  background: #f6f9fa !important;
+}
+
+html[data-theme="light"] .response-tabs {
+  border-color: var(--line);
+  background: #f6f9fa;
 }
 
 html[data-theme="light"] .skeleton {
@@ -155,6 +165,12 @@ html[data-theme="light"] .service-pills span,
 html[data-theme="light"] :is(.preview-step, .preview-replicas span) {
   color: var(--text);
   background: var(--panel-raised);
+}
+
+html[data-theme="light"] :is(.selected-endpoint, .lesson-topology) {
+  border-color: var(--line);
+  color: var(--text);
+  background: #f6f9fa;
 }
 
 html[data-theme="light"] .lesson-configuration-dialog {

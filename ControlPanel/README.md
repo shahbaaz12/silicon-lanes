@@ -74,13 +74,19 @@ label. Its image is built from the independent service folder when instances
 are started. Docker reuses cached layers when the source has not changed.
 
 Each instance receives a readable name such as `userService1`, which is also
-returned as `requestServer`. The detail page shows the host-to-container port
-mapping, selected endpoint curl, and a compact live request log containing only
-timestamp, HTTP method, and URL.
+returned as `requestServer`. The Service Lab presents every service as a compact
+card with its running replica count. Cards with active replicas use an accent
+glow. Selecting a card expands one reusable workbench below the grid; no separate
+service detail page is used.
 
-Each instance card can show every endpoint exposed by its service. Selecting an
-endpoint updates the displayed curl command and copy action. Clearing logs hides
-the current request history while allowing later requests to appear normally.
+The workbench manages replica capacity and lets the user target a running
+replica, choose one of the service's declared endpoints, edit a sample JSON body,
+copy its curl, and execute the request. The response panel reports status,
+duration, responding server name, and formatted JSON. Execution is restricted to
+managed replicas and endpoints declared in the service catalog. Each service is
+limited to three running replicas; this limit is enforced by both the interface
+and service API. Set `SILICON_LANES_MAX_REPLICAS` before starting the Control
+Panel to extend the limit for larger experiments.
 
 Starting a service automatically creates one shared `postgres:17-alpine`
 container and six logical databases. Replicas of a service connect to the same

@@ -5,7 +5,6 @@ import { lessonRegistry } from "./lessons/registry.js";
 import { createLessonRouter } from "./routes/lesson-routes.js";
 import { createServiceRouter } from "./routes/service-routes.js";
 import { createSystemRouter } from "./routes/system-routes.js";
-import { getService } from "./service-catalog.js";
 
 const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(controlPanelDirectory, "public");
@@ -29,11 +28,6 @@ export function createApp() {
 
   app.get("/service-lab", (_request, response) => {
     response.sendFile(path.join(publicDirectory, "service-lab.html"));
-  });
-
-  app.get("/services/:key", (request, response, next) => {
-    if (!getService(request.params.key)) return next();
-    return response.sendFile(path.join(publicDirectory, "details.html"));
   });
 
   app.use("/api", (_request, response) => response.status(404).json({ error: "API route not found." }));
