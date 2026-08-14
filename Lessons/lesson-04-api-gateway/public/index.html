@@ -7,6 +7,8 @@
     <title>Lesson 4 · API Gateway · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-04-api-gateway/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -81,10 +83,67 @@ location /api/payments { proxy_pass http://payment_service; }</pre>
         </div>
       </section>
 
-      <section class="explanation">
-        <div><p class="eyebrow">What changed</p><h2>The path now chooses the service.</h2></div>
-        <p>A load balancer chooses among replicas of the same service. An API Gateway first chooses which service owns the request. These responsibilities can later be combined: the gateway chooses Catalog, then a Catalog load balancer chooses a replica.</p>
-        <ul><li><b>One public API</b><span>Clients no longer track six service addresses.</span></li><li><b>Path-based routing</b><span>Each resource prefix maps to its owning service.</span></li><li><b>Central entry point</b><span>Cross-cutting policies can be added before requests reach services.</span></li></ul>
+      <section class="explanation lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Use one entry point for many services.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>The next step is understanding an <strong>API Gateway</strong>.</p>
+          <p>The flow becomes:</p>
+          <div class="request-flow-summary" aria-label="Client to API Gateway to Appropriate Service">
+            <strong>Client</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>Appropriate Service</strong>
+          </div>
+          <p>An API Gateway sits in front of your backend services and acts as a <strong>single entry point</strong> for client requests. It examines each request and routes it to the correct service.</p>
+          <div class="analogy-callout">
+            <strong>Think of it like a shopkeeper.</strong>
+            <p>You tell the shopkeeper what you need, and instead of finding the right place yourself, the shopkeeper gets it for you.</p>
+          </div>
+
+          <h3>Why is this useful?</h3>
+          <p>As an application grows, it may contain multiple services such as <strong>User Service, Order Service, Payment Service, and Notification Service</strong>.</p>
+          <p>Without an API Gateway, the client may need to know the address of every service. With a gateway, the client only needs to know one endpoint:</p>
+          <div class="request-flow-summary" aria-label="Client to API Gateway to User, Order, or Payment Service">
+            <strong>Client</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>User / Order / Payment Service</strong>
+          </div>
+          <p>An API Gateway can also handle common concerns such as:</p>
+          <ul class="responsibility-list">
+            <li>Authentication and authorization</li>
+            <li>Rate limiting</li>
+            <li>Request routing</li>
+            <li>Request and response transformation</li>
+            <li>Logging and monitoring</li>
+            <li>API versioning</li>
+          </ul>
+
+          <h3>API Gateway vs Load Balancer</h3>
+          <p>They solve different problems.</p>
+          <div class="comparison-block">
+            <h4>Load Balancer</h4>
+            <ul>
+              <li>Distributes traffic between multiple instances of the <strong>same service</strong>.</li>
+              <li>Mainly improves scalability and availability.</li>
+            </ul>
+          </div>
+          <div class="comparison-block gateway-comparison">
+            <h4>API Gateway</h4>
+            <ul>
+              <li>Routes requests between <strong>different services and APIs</strong>.</li>
+              <li>Adds API-level features such as authentication, rate limiting, and routing rules.</li>
+            </ul>
+          </div>
+          <p>They are often used <strong>together</strong>, not as replacements for each other.</p>
+          <div class="request-flow-summary" aria-label="Client to API Gateway to Load Balancer to Service Instances">
+            <strong>Client</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>Load Balancer</strong><b>→</b><strong>Service Instances</strong>
+          </div>
+          <p>The API Gateway decides <strong>which service should handle the request</strong>, while the load balancer decides <strong>which instance of that service should handle it</strong>.</p>
+
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>We use <strong>Nginx</strong> as a simple API Gateway. It reads the HTTP path and routes the request to one of six services: User, Catalog, Inventory, Cart, Order, or Payment.</p>
+            <p>The client knows only the gateway address. Rules such as <code>/api/users</code> and <code>/api/products</code> decide which private service receives the request.</p>
+          </div>
+        </div>
       </section>
     </main>
 

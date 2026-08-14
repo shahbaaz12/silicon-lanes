@@ -28,6 +28,57 @@ main { width: min(1280px, calc(100% - 36px)); margin: auto; padding: 20px 0 54px
 .compact-service-log { width: 100%; height: 62px; min-height: 62px; max-height: 62px; margin: 0; overflow: auto; padding: 7px; border: 1px solid var(--line); border-radius: 7px; color: #acd5dc; background: #080b0d; font: 8px/1.45 ui-monospace, Consolas, monospace; scrollbar-color: #3a5962 #080b0d; scrollbar-width: thin; white-space: pre; }
 .compact-service-controls .kill-button { min-height: 23px; padding: 0 7px; }
 .explanation { display: grid; grid-template-columns: .8fr 1.2fr 1fr; gap: clamp(24px, 4vw, 55px); margin-top: 48px; padding: 32px 8px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }.explanation h2 { margin: 0; font-size: 27px; letter-spacing: -.03em; }.explanation > p { margin: 0; color: #aeb9c1; font-size: 12px; line-height: 1.75; }.explanation ul { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }.explanation li { display: flex; flex-direction: column; gap: 3px; padding-left: 11px; border-left: 2px solid var(--cyan); }.explanation li b { font-size: 10px; }.explanation li span { color: var(--muted); font-size: 9px; }
+.explanation.lesson-overview {
+  grid-template-columns: 1fr;
+  gap: 22px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel) 92%, var(--cyan));
+}
+.lesson-overview h2 { max-width: none; }
+.lesson-overview-copy { display: grid; gap: 17px; max-width: 1040px; }
+.lesson-overview-copy p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.8; }
+.lesson-overview-copy ul { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.lesson-overview-copy li {
+  position: relative;
+  display: block;
+  padding-left: 18px;
+  border: 0;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.lesson-overview-copy li::before {
+  position: absolute;
+  top: .7em;
+  left: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cyan);
+  content: "";
+}
+.lesson-overview-copy .advantage-list li::before { background: var(--lime); }
+.lesson-overview-copy strong { color: var(--text); }
+.request-flow-summary {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 12px 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--text);
+  background: var(--raised);
+  font-size: 14px;
+}
+.request-flow-summary b { color: var(--cyan); }
+.setup-example { display: grid; gap: 12px; margin-top: 5px; padding: 20px; border-left: 3px solid var(--lime); background: color-mix(in srgb, var(--raised) 78%, transparent); }
+.setup-example h3 { margin: 0; font-size: 18px; }
+.setup-example code { color: var(--cyan); font-weight: 700; }
 .toast-region { position: fixed; right: 20px; bottom: 20px; z-index: 10; display: grid; gap: 8px; }.toast { max-width: 350px; padding: 12px 14px; border: 1px solid rgb(183 237 98 / 40%); border-radius: 10px; color: var(--text); background: #182111; box-shadow: 0 14px 40px #0008; font-size: 11px; }.toast.error { border-color: rgb(251 113 133 / 45%); background: #281318; }
 @keyframes flow { 0% { top: -5px; opacity: 0; } 12%, 88% { opacity: 1; } 100% { top: calc(100% - 3px); opacity: 0; } }@keyframes flow-horizontal { 0% { left: -7px; opacity: 0; } 12%, 88% { opacity: 1; } 100% { left: calc(100% - 3px); opacity: 0; } }
 @media (max-width: 1000px) { .intro { display: block; text-align: center; }.intro p:not(.eyebrow) { margin-inline: auto; }.formula { width: fit-content; margin: 12px auto 0; }.architecture-flow { display: flex; flex-direction: column; }.layer-card { width: 100%; min-height: 0; }.connector.horizontal { width: 2px; height: 52px; align-self: center; }.connector.horizontal::after { top: auto; right: -4px; bottom: 0; border: 0; border-right: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); }.connector.horizontal span { top: 50%; left: 14px; transform: translateY(-50%); }.connector.horizontal .packet { top: -5px; left: -4px; }.connector.horizontal.flowing .packet { animation: flow 850ms ease-in-out; }.connector.downstream { height: 52px; }.replica-pool { width: 100%; }.replica-grid { grid-template-columns: 1fr; } }

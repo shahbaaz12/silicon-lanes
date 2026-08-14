@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-06-advanced/styles.css">
     <link rel="stylesheet" href="/lessons/lesson-07-local-cdn/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 07</b> Local CDN</div></header>
@@ -67,7 +69,52 @@ Response header:
 X-Cache-Status: MISS | HIT | BYPASS</pre></details>
         </aside>
       </section>
-      <section class="explain"><h2>Cache changes the path</h2><p>A Product <b>MISS</b> travels through the origin and stores the response. A Product <b>HIT</b> returns it immediately, so every downstream node stays dark. User and Order routes show <b>BYPASS</b>. The cache rule is deliberately editable for experimentation.</p></section>
+      <section class="explain lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Cache responses closer to the client.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>This is a good point to introduce a <strong>CDN (Content Delivery Network)</strong> and caching.</p>
+          <p>The CDN sits closer to the client and can cache frequently requested content.</p>
+          <p>The flow becomes:</p>
+          <div class="request-flow-summary" aria-label="Client to CDN to Edge Load Balancer to API Gateway to Services">
+            <strong>Client</strong><b>→</b><strong>CDN</strong><b>→</b><strong>Edge Load Balancer</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>Services</strong>
+          </div>
+          <p>If the requested content is already cached at the CDN, it can be returned directly to the client:</p>
+          <div class="request-flow-summary cache-hit-flow" aria-label="Client to CDN Cache to Response">
+            <strong>Client</strong><b>→</b><strong>CDN Cache</strong><b>→</b><strong>Response</strong>
+          </div>
+          <p>The request never reaches the backend infrastructure.</p>
+          <p>If the content is not available in the cache—a <strong>cache miss</strong>—the CDN forwards the request to the infrastructure:</p>
+          <div class="request-flow-summary" aria-label="Client to CDN to Edge Load Balancer to API Gateway to Service">
+            <strong>Client</strong><b>→</b><strong>CDN</strong><b>→</b><strong>Edge Load Balancer</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>Service</strong>
+          </div>
+          <p>The response can then be cached by the CDN so future requests for the same content can be served directly.</p>
+          <p>This helps:</p>
+          <ul class="advantage-list">
+            <li>Reduce traffic reaching the servers.</li>
+            <li>Reduce backend load.</li>
+            <li>Improve response time.</li>
+            <li>Serve users from geographically closer locations.</li>
+          </ul>
+          <p>CDNs are especially useful for <strong>static or cacheable content</strong> such as images, videos, CSS, JavaScript files, and selected API responses.</p>
+
+          <div class="origin-routing-note" id="cdn-origin-routing">
+            <h3>Note: real systems usually have several load balancers</h3>
+            <p>A CDN does not discover the destination automatically. Its distribution is configured with an <strong>origin hostname</strong> or an <strong>origin group</strong>.</p>
+            <p>Cache behaviors can map request paths to the desired origin. DNS, Anycast, or a global traffic manager can then resolve that origin hostname to the appropriate regional or edge load balancer. From there, internal load balancers continue routing traffic to the correct gateway and service instances.</p>
+            <p>Origin groups can also define a primary and secondary origin so the CDN can fail over when the primary origin is unavailable.</p>
+            <a class="read-more-link" href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html" target="_blank" rel="noreferrer">Read more: AWS CloudFront cache behaviors and origins →</a>
+          </div>
+
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>The Local CDN has one configured origin: <code>advancedEdgeLoadBalancer1:80</code>. On a cache miss or bypass, it forwards the request to that Edge/L4 Load Balancer.</p>
+            <p>Only <code>GET /api/products</code> is cached for 15 seconds. A Product <strong>MISS</strong> reaches the origin and stores the response; a Product <strong>HIT</strong> returns immediately. User and Order requests show <strong>BYPASS</strong> and continue to the origin.</p>
+          </div>
+        </div>
+      </section>
     </main>
     <div id="toasts" aria-live="polite"></div>
     <script type="module" src="/lessons/lesson-07-local-cdn/app.js"></script>

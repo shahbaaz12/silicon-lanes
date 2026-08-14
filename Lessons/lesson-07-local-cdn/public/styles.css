@@ -11,5 +11,11 @@
 .policy-note { margin:0 0 11px; padding:10px 13px; border:1px solid rgb(251 146 60 / 35%); border-radius:9px; color:#c8d0d5; background:rgb(251 146 60 / 7%); font-size:10px; line-height:1.55; }.policy-note b { color:var(--amber); }.policy-note code { color:#ffd19a; }
 .response pre { height:210px; }
 .trace section pre { height:91px; }
-@media(max-width:1200px){.lab{grid-template-columns:340px minmax(520px,1fr)}}
+.cache-hit-flow { border-color: color-mix(in srgb, var(--lime) 55%, var(--line)); background: color-mix(in srgb, var(--panel) 82%, var(--lime)); }
+.origin-routing-note { display:grid; gap:12px; margin-top:5px; padding:20px; border-left:3px solid var(--amber); background:color-mix(in srgb,var(--panel) 82%,var(--amber)); }
+.origin-routing-note h3 { margin:0; font-size:18px; }
+.read-more-link { width:fit-content; color:var(--cyan); font-size:14px; font-weight:700; text-underline-offset:4px; }
+.read-more-link:hover { color:var(--text); }
+.setup-example code { color:var(--cyan); font-weight:700; }
+@media(max-width:1320px){.lab{grid-template-columns:340px minmax(520px,1fr)}}
 @media(max-width:900px){.lab{grid-template-columns:1fr}.client-card,.flow{min-height:0}}

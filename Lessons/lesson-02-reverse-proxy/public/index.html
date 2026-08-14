@@ -7,6 +7,8 @@
     <title>Lesson 2 · Reverse Proxy · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-02-reverse-proxy/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -96,10 +98,34 @@ proxy_cache_valid 200 15s;</pre>
         </div>
       </section>
 
-      <section class="explanation">
-        <div><p class="eyebrow">What changed?</p><h2>The proxy absorbs repeat reads.</h2></div>
-        <p>The first request is a <b>MISS</b>, so Nginx forwards it to the Catalog Service and stores the response for 15 seconds. A repeat request is a <b>HIT</b>: the proxy responds without waking the application server. After the TTL, Nginx reports <b>EXPIRED</b> and refreshes upstream; after Clear cache, the next request is a fresh <b>MISS</b>.</p>
-        <ul><li><b>Stable public address</b><span>Clients are decoupled from the service location.</span></li><li><b>Shared caching</b><span>Repeat reads avoid application and database work.</span></li><li><b>Central policy</b><span>Routing, caching, and later TLS can live here.</span></li></ul>
+      <section class="explanation lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Add a reverse proxy in front of the service.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>The next logical and meaningful improvement is to add a <strong>reverse proxy</strong>.</p>
+          <p>A reverse proxy is a server that sits <strong>in front of your application server</strong>. Clients send requests to the reverse proxy, and it forwards those requests to the appropriate backend server.</p>
+          <p>It can also take over several request-related responsibilities, such as:</p>
+          <ul class="responsibility-list">
+            <li>SSL/TLS termination</li>
+            <li>Encryption and decryption</li>
+            <li>Compression and decompression</li>
+            <li>Connection handling</li>
+          </ul>
+          <p>A reverse proxy can also be configured to <strong>cache certain responses</strong>. If the same request comes again, it can serve the cached response directly without reaching the application server.</p>
+          <p><strong>Origin shielding is another advantage:</strong> clients see only the reverse proxy address, while the original application server URL remains hidden. When direct access to the backend is blocked, this reduces its public exposure and adds a layer of anonymity and security.</p>
+          <p>This reduces the load on the backend server and allows it to focus more on <strong>business logic</strong>.</p>
+          <p>So the flow becomes:</p>
+          <div class="request-flow-summary" aria-label="Client to Reverse Proxy to Application Server">
+            <strong>Client</strong><b>→</b><strong>Reverse Proxy</strong><b>→</b><strong>Application Server</strong>
+          </div>
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>We use <strong>Nginx</strong> as the reverse proxy.</p>
+            <p>The first request is a <strong>MISS</strong>, so Nginx forwards it to the Catalog Service and stores the response for 15 seconds. A repeat request is a <strong>HIT</strong>: the proxy responds without waking the application server. After the TTL, Nginx reports <strong>EXPIRED</strong> and refreshes upstream; after Clear cache, the next request is a fresh <strong>MISS</strong>.</p>
+          </div>
+        </div>
       </section>
     </main>
 

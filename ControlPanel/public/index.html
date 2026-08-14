@@ -6,6 +6,8 @@
     <meta name="description" content="Launch and inspect Silicon Lanes service instances.">
     <title>Silicon Lanes · Control Panel</title>
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -37,7 +39,10 @@
             <h2 id="services-heading">Service map</h2>
             <p>Select a service, choose a quantity, and launch its instances.</p>
           </div>
-          <button class="button ghost" id="refresh-button" type="button">Refresh</button>
+          <div class="section-actions">
+            <button class="button ghost" id="refresh-button" type="button">Refresh</button>
+            <button class="button danger" id="global-kill-button" type="button">Kill all</button>
+          </div>
         </div>
         <div class="notice" id="error-notice" hidden></div>
         <div class="services-grid" id="services-grid" aria-live="polite">

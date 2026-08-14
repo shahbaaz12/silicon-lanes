@@ -7,6 +7,8 @@
     <title>Lesson 1 · Direct to service · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-01-direct-service/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="site-header">
@@ -80,17 +82,31 @@
         </lesson-service-card>
       </section>
 
-      <section class="lesson-note" aria-labelledby="lesson-note-title">
+      <section class="request-path-writeup lesson-overview" aria-labelledby="lesson-note-title">
         <div>
           <p class="eyebrow">What this teaches</p>
-          <h2 id="lesson-note-title">The application server carries the whole request.</h2>
+          <h2 id="lesson-note-title">Simple to start. Harder to scale.</h2>
         </div>
-        <p>Direct calls are simple, but the client is coupled to one address. The server handles connection, protocol, routing, data access, and response work itself. With HTTPS, it also handles TLS termination and decryption. If this server fails, the client has nowhere else to send the request.</p>
-        <ul>
-          <li><b>Hardcoded destination</b><span>The client must know the exact IP and port.</span></li>
-          <li><b>Single point of failure</b><span>There is no automatic failover.</span></li>
-          <li><b>Scaling leaks to clients</b><span>More replicas mean more addresses to choose from.</span></li>
-        </ul>
+        <div class="lesson-overview-copy">
+          <p>Suppose you create a simple server and host it on the internet.</p>
+          <p>A client can interact with your service using its <strong>hostname or IP address</strong>, and the incoming requests are handled directly by your server.</p>
+          <p>This is a simple and fast setup, but it puts more responsibility on the server. Along with your application’s <strong>business logic</strong>, the server may also handle tasks such as:</p>
+          <ul class="responsibility-list">
+            <li>SSL/TLS termination</li>
+            <li>Encryption and decryption</li>
+            <li>Compression and decompression</li>
+            <li>Connection handling</li>
+          </ul>
+          <p>For low traffic, this usually isn't a problem. Even a standard server can comfortably handle hundreds of requests depending on the workload.</p>
+          <p>However, this setup has a few drawbacks:</p>
+          <ul class="drawback-list">
+            <li><strong>Single Point of Failure (SPOF):</strong> If the server goes down, the entire application becomes unavailable.</li>
+            <li><strong>Limited scalability:</strong> One server can only handle a certain amount of traffic.</li>
+            <li><strong>No load distribution:</strong> All incoming requests are handled by the same machine.</li>
+            <li><strong>More server overhead:</strong> Infrastructure-related tasks consume resources that could otherwise be used for business logic.</li>
+          </ul>
+          <p>So while this setup works well for small applications, it becomes harder to scale and maintain as traffic grows.</p>
+        </div>
       </section>
     </main>
 

@@ -105,8 +105,16 @@ main {
 
 h1, h2, p { margin-top: 0; }
 h1 { max-width: 760px; margin-bottom: 17px; font-size: clamp(42px, 6vw, 78px); line-height: .98; letter-spacing: -.055em; }
-.intro-copy { max-width: 720px; margin-bottom: 0; color: #b0bbc4; font-size: 17px; line-height: 1.65; }
-.intro-copy code { color: var(--lime); }
+.intro-copy { max-width: 720px; margin-bottom: 0; color: var(--text); font-size: 17px; line-height: 1.65; }
+.intro-copy code {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--lime) 55%, transparent);
+  border-radius: 6px;
+  color: var(--lime);
+  background: color-mix(in srgb, var(--lime) 14%, transparent);
+  font-weight: 700;
+}
 
 .path-formula {
   display: flex;
@@ -210,6 +218,58 @@ h1 { max-width: 760px; margin-bottom: 17px; font-size: clamp(42px, 6vw, 78px); l
 .lesson-note li b { font-size: 12px; }
 .lesson-note li span { color: var(--muted); font-size: 11px; }
 
+.request-path-writeup {
+  display: grid;
+  grid-template-columns: minmax(260px, .65fr) minmax(0, 1.35fr);
+  gap: clamp(28px, 5vw, 80px);
+  margin-top: 28px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel) 92%, var(--cyan));
+}
+
+.request-path-writeup h2 { max-width: 390px; margin: 0; font-size: 28px; letter-spacing: -.03em; }
+.request-path-copy { display: grid; gap: 13px; }
+.request-path-copy p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.request-path-copy p code { color: var(--cyan); }
+.lesson-overview { grid-template-columns: 1fr; gap: 22px; }
+.lesson-overview h2 { max-width: none; }
+.lesson-overview-copy { display: grid; gap: 17px; max-width: 1040px; }
+.lesson-overview-copy p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.8; }
+.lesson-overview-copy ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.lesson-overview-copy li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.lesson-overview-copy li::before {
+  position: absolute;
+  top: .7em;
+  left: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cyan);
+  content: "";
+}
+.lesson-overview-copy strong { color: var(--text); }
+.lesson-overview-copy .drawback-list li::before { background: var(--amber); }
+.request-path-summary {
+  width: fit-content;
+  max-width: 100%;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--cyan);
+  background: var(--panel-raised);
+  font: 800 11px ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: nowrap;
+}
+
 .toast-region { position: fixed; right: 22px; bottom: 22px; z-index: 10; display: grid; gap: 8px; }
 .toast { max-width: 360px; padding: 12px 15px; border: 1px solid rgba(183, 237, 98, .4); border-radius: 10px; color: var(--text); background: #182111; box-shadow: 0 14px 40px #0008; font-size: 12px; }
 .toast.error { border-color: rgba(255, 107, 120, .45); background: #281318; }
@@ -227,6 +287,7 @@ h1 { max-width: 760px; margin-bottom: 17px; font-size: clamp(42px, 6vw, 78px); l
   .packet { top: -8px; left: -3px; }
   .flowing .packet { animation-name: packetFlowVertical; }
   .lesson-note { grid-template-columns: 1fr; }
+  .request-path-writeup { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
@@ -238,6 +299,7 @@ h1 { max-width: 760px; margin-bottom: 17px; font-size: clamp(42px, 6vw, 78px); l
   .path-formula { max-width: 100%; overflow: auto; }
   .client-card, .service-card { padding: 17px; }
   .lesson-note { padding: 26px 8px; }
+  .request-path-writeup { padding: 25px 20px; }
 }
 
 @keyframes packetFlowVertical { 0% { top: -8px; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { top: calc(100% - 2px); opacity: 0; } }

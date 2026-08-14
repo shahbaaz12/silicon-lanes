@@ -4,6 +4,7 @@ import path from "node:path";
 import { lessonRegistry } from "./lessons/registry.js";
 import { createLessonRouter } from "./routes/lesson-routes.js";
 import { createServiceRouter } from "./routes/service-routes.js";
+import { createSystemRouter } from "./routes/system-routes.js";
 import { getService } from "./service-catalog.js";
 
 const controlPanelDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,6 +24,7 @@ export function createApp() {
   }
 
   app.use("/api", createServiceRouter());
+  app.use("/api", createSystemRouter());
   app.use("/api/lessons", createLessonRouter());
 
   app.get("/services/:key", (request, response, next) => {

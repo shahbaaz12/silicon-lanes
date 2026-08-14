@@ -6,6 +6,8 @@
     <title>Lesson 6 · Advanced · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-06-advanced/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 06</b> Advanced</div></header>
@@ -70,7 +72,41 @@ catalogService1
 catalogService2</pre></details>
         </aside>
       </section>
-      <section class="explain"><h2>Three independent decisions</h2><p>The <b>L4 edge load balancer</b> selects a Gateway for each TCP connection without reading HTTP paths. That gateway chooses a <b>service type</b>. Product traffic then asks the <b>L7 Catalog load balancer</b> to choose a Catalog replica using the HTTP request.</p></section>
+      <section class="explain lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Remove the single gateway bottleneck.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>Once the <strong>API Gateway becomes the main entry point</strong>, it can itself become a <strong>Single Point of Failure (SPOF)</strong>.</p>
+          <p>To avoid this, we can run multiple API Gateway instances and place another load balancer in front of them.</p>
+          <p>The flow becomes:</p>
+          <div class="request-flow-summary" aria-label="Client to Edge Layer 4 Load Balancer to API Gateway Instances to Services">
+            <strong>Client</strong><b>→</b><strong>Edge / L4 Load Balancer</strong><b>→</b><strong>API Gateway Instances</strong><b>→</b><strong>Services</strong>
+          </div>
+          <p>This outer load balancer distributes incoming connections across the available API Gateway instances.</p>
+          <p>It is often a <strong>Layer 4 load balancer</strong> when its main responsibility is simply to distribute traffic using IP addresses and ports rather than inspect application-level requests.</p>
+          <p>It may also be called an <strong>edge load balancer</strong> because it sits near the outermost entry point of the infrastructure.</p>
+          <p>This gives us:</p>
+          <ul class="advantage-list">
+            <li><strong>High availability:</strong> More than one API Gateway can accept traffic.</li>
+            <li><strong>No single API Gateway SPOF:</strong> Another healthy gateway can receive new connections if one fails.</li>
+            <li><strong>Horizontal scaling:</strong> More API Gateway instances can be added as traffic grows.</li>
+            <li><strong>Higher traffic capacity:</strong> Incoming connections are spread across the gateway tier.</li>
+          </ul>
+          <p>Responsibilities are now separated:</p>
+          <div class="responsibility-stack">
+            <div><strong>Edge / L4 Load Balancer</strong><span>Distributes connections across API Gateway instances.</span></div>
+            <div><strong>API Gateway</strong><span>Understands API requests and routes each one to the appropriate service.</span></div>
+            <div><strong>Internal L7 Load Balancer</strong><span>Distributes service traffic across instances of a particular service.</span></div>
+          </div>
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>An <strong>Nginx stream proxy</strong> acts as the Edge/L4 Load Balancer and distributes TCP connections across <strong>two identical API Gateway instances</strong>. It does not inspect the HTTP path.</p>
+            <p>The selected API Gateway reads the path and routes User and Order requests directly. Product requests continue to an <strong>internal L7 Catalog Load Balancer</strong>, which selects one of two Catalog Service instances.</p>
+          </div>
+        </div>
+      </section>
     </main>
     <div id="toasts" aria-live="polite"></div>
     <script type="module" src="/lessons/lesson-06-advanced/app.js"></script>

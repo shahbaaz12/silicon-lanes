@@ -86,3 +86,8 @@ logical database. The detail page can stop one instance or kill all instances
 of the selected service; it does not remove PostgreSQL or its named data volume.
 For local development the database password defaults to `silicon_lanes`; set
 `SILICON_LANES_DATABASE_PASSWORD` before starting the panel to override it.
+
+The Service map's global **Kill all** action removes every labeled lesson and
+application-service container while keeping PostgreSQL and its data volume. The
+light/dark theme toggle is available on the Control Panel and every lesson, and
+the selected theme is remembered in the browser.

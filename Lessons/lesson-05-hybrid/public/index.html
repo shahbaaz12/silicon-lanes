@@ -6,6 +6,8 @@
     <title>Lesson 5 · Hybrid · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-05-hybrid/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 05</b> Hybrid</div></header>
@@ -34,7 +36,7 @@
             </div>
             <div class="catalog-branch">
               <span class="route-label">Products</span><div class="route-arrow" aria-hidden="true"></div>
-              <lesson-node-lite id="lb-node" kind="load-balancer" layer="7" heading="Load Balancer" configuration="Layer: L7&#10;Private port: 80&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2"></lesson-node-lite>
+              <lesson-node-lite id="lb-node" kind="load-balancer" layer="7" heading="L7 Load Balancer" configuration="Layer: L7&#10;Private port: 80&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2"></lesson-node-lite>
               <div class="catalog-split" aria-hidden="true"></div>
               <div class="catalogs">
                 <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Route: GET /api/products&#10;Member of the Catalog replica pool"></lesson-service-lite></div>
@@ -62,7 +64,43 @@ catalogService1
 catalogService2</pre></details>
         </aside>
       </section>
-      <section class="explain"><h2>Two different decisions</h2><p>The API Gateway chooses a <b>service type</b> from the path. Only the Catalog route then asks a Load Balancer to choose a <b>replica</b>. User and Order have one instance, so the gateway calls them directly.</p></section>
+      <section class="explain lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Scale only the services that need it.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>We can use the <strong>API Gateway as the main entry point</strong> for all client requests.</p>
+          <p>Not every service needs a load balancer. We can place load balancers only in front of services that receive high traffic or need multiple instances.</p>
+          <p>For example:</p>
+          <div class="request-flow-summary" aria-label="Client to API Gateway to User Service">
+            <strong>Client</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>User Service</strong>
+          </div>
+          <div class="request-flow-summary" aria-label="Client to API Gateway to Load Balancer to Order Service Instances">
+            <strong>Client</strong><b>→</b><strong>API Gateway</strong><b>→</b><strong>Load Balancer</strong><b>→</b><strong>Order Service Instances</strong>
+          </div>
+          <div class="tls-callout">
+            <strong>For HTTPS traffic</strong>
+            <p>The TLS connection can terminate at the API Gateway. The gateway handles SSL/TLS work such as encryption and decryption before forwarding the request over the internal network.</p>
+          </div>
+          <p>This gives us a cleaner architecture:</p>
+          <ul class="responsibility-list">
+            <li><strong>API Gateway:</strong> Handles the external entry point, routing, authentication, rate limiting, TLS termination, and other shared policies.</li>
+            <li><strong>Load Balancer:</strong> Is added only where horizontal scaling or high availability is needed.</li>
+            <li><strong>Application services:</strong> Can focus mainly on business logic.</li>
+          </ul>
+          <p>This also avoids adding unnecessary load balancers in front of services that do not need them.</p>
+          <div class="risk-callout" id="gateway-spof">
+            <strong>A new single point of failure</strong>
+            <p>A single API Gateway may now become the system’s <strong>Single Point of Failure (SPOF)</strong>. If it goes down, clients cannot reach any service through the public entry point. The next improvement is to run multiple API Gateway instances behind another load balancer.</p>
+          </div>
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>The API Gateway routes User and Order requests directly to one service instance each. Product requests go through an <strong>L7 Catalog Load Balancer</strong>, which distributes them across <strong>two Catalog Service instances</strong>.</p>
+            <p>The local lesson uses HTTP, so it demonstrates routing and selective load balancing without configuring a TLS certificate.</p>
+          </div>
+        </div>
+      </section>
     </main>
     <div id="toasts" aria-live="polite"></div>
     <script type="module" src="/lessons/lesson-05-hybrid/app.js"></script>

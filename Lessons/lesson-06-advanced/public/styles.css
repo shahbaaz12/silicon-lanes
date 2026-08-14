@@ -11,6 +11,59 @@ main { width:min(1480px,calc(100% - 36px)); margin:auto; padding:22px 0 54px; }.
 .route-split { position:relative; width:100%; height:28px; flex:0 0 28px; }.route-split::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:2px; transform:translateX(-50%); background:var(--connector); }.route-split::after { content:""; position:absolute; right:14.5%; bottom:0; left:14.5%; height:2px; background:var(--connector); }.branches { width:100%; display:grid; grid-template-columns:1fr 1.45fr 1fr; gap:8px; }.route-label { position:absolute; top:6px; z-index:1; padding:2px 5px; color:var(--muted); background:#11161b; font-size:7px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }.branches>.direct-branch>.route-arrow,.branches>.catalog-branch>.route-arrow { height:42px; flex-basis:42px; }.catalog-split { position:relative; width:100%; height:30px; flex:0 0 30px; }.catalog-split::before { content:""; position:absolute; top:0; bottom:0; left:50%; width:2px; transform:translateX(-50%); background:var(--connector); }.catalog-split::after { content:""; position:absolute; right:25%; bottom:0; left:25%; height:2px; background:var(--connector); }.catalogs { width:100%; display:grid; grid-template-columns:1fr 1fr; gap:5px; }.catalog-node .route-arrow { height:31px; flex-basis:31px; }.catalog-node lesson-service-lite { width:96px; }
 .trace { display:flex; flex-direction:column; gap:8px; }.decision { padding:11px; border:1px solid rgb(183 237 98 / 25%); border-radius:9px; background:rgb(183 237 98 / 5%); }.trace span { display:block; margin-bottom:5px; color:var(--muted); font-size:7px; font-weight:900; text-transform:uppercase; }.trace strong { color:var(--lime); font:850 9px/1.5 ui-monospace,Consolas,monospace; }.trace section { min-height:0; }.trace h2 { margin:0 0 5px; color:var(--muted); font-size:8px; letter-spacing:.08em; text-transform:uppercase; }.trace section pre { height:102px; margin:0; overflow:auto; padding:7px; border:1px solid var(--line); border-radius:8px; color:#acd5dc; background:#080b0d; font:7px/1.5 ui-monospace,Consolas,monospace; white-space:pre; scrollbar-width:thin; }.trace details { border:1px solid var(--line); border-radius:8px; background:#0a0e11; }.trace summary { padding:9px; cursor:pointer; color:var(--cyan); font-size:9px; font-weight:850; }.trace details pre { max-height:190px; margin:0; overflow:auto; padding:9px; border-top:1px solid var(--line); color:#acd5dc; font:8px/1.5 ui-monospace,Consolas,monospace; }
 .explain { display:grid; grid-template-columns:.7fr 1.3fr; gap:40px; margin-top:42px; padding:30px 8px; border-top:1px solid var(--line); }.explain h2 { margin:0; font-size:28px; }.explain p { margin:0; color:#aeb9c1; font-size:12px; line-height:1.75; }.toast { position:fixed; right:20px; bottom:20px; max-width:350px; padding:12px 14px; border:1px solid rgb(183 237 98 / 40%); border-radius:10px; background:#182111; box-shadow:0 14px 40px #0008; font-size:11px; }.toast.error { border-color:rgb(251 113 133 / 45%); background:#281318; }
-@media(max-width:1200px){.lab{grid-template-columns:340px minmax(520px,1fr)}.trace{grid-column:1/-1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr)}.trace .decision,.trace details{grid-column:1/-1}.intro{display:block}.intro code{display:inline-block;margin-top:12px}}
+.explain.lesson-overview {
+  grid-template-columns: 1fr;
+  gap: 22px;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel) 92%, var(--cyan));
+}
+.lesson-overview .eyebrow { margin: 0 0 9px; color: var(--cyan); font-size: 10px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
+.lesson-overview h2 { max-width: none; }
+.lesson-overview-copy { display: grid; gap: 17px; max-width: 1040px; }
+.lesson-overview-copy p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.8; }
+.lesson-overview-copy ul { display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.lesson-overview-copy li {
+  position: relative;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+.lesson-overview-copy li::before {
+  position: absolute;
+  top: .7em;
+  left: 1px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--lime);
+  content: "";
+}
+.lesson-overview-copy strong { color: var(--text); }
+.request-flow-summary {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 11px;
+  padding: 12px 15px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--panel) 84%, var(--cyan));
+  font-size: 14px;
+}
+.request-flow-summary b { color: var(--cyan); }
+.responsibility-stack { display: grid; gap: 10px; }
+.responsibility-stack > div { display: grid; gap: 5px; padding: 17px 19px; border-left: 3px solid var(--cyan); background: color-mix(in srgb, var(--panel) 84%, var(--cyan)); }
+.responsibility-stack > div:first-child { border-left-color: var(--amber); }
+.responsibility-stack > div:last-child { border-left-color: var(--lime); }
+.responsibility-stack span { color: var(--text); font-size: 15px; line-height: 1.65; }
+.setup-example { display: grid; gap: 12px; margin-top: 5px; padding: 20px; border-left: 3px solid var(--lime); background: color-mix(in srgb, var(--panel) 82%, var(--cyan)); }
+.setup-example h3 { margin: 0; font-size: 18px; }
+@media(max-width:1320px){.lab{grid-template-columns:340px minmax(520px,1fr)}.trace{grid-column:1/-1;min-height:0;display:grid;grid-template-columns:repeat(2,1fr)}.trace .decision,.trace details{grid-column:1/-1}.intro{display:block}.intro code{display:inline-block;margin-top:12px}}
 @media(max-width:900px){.lab{grid-template-columns:1fr}.client-card,.flow{min-height:0}.trace{display:flex}.explain{grid-template-columns:1fr}}
 @media(max-width:620px){.flow{align-items:stretch;overflow:auto}.flow>.tagged-node{align-self:center}.edge-split,.gateway-merge,.route-split{display:none}.gateways,.branches{width:100%;grid-template-columns:1fr}.gateway-column,.direct-branch,.catalog-branch{padding:13px 0;border-top:1px solid var(--connector)}.catalogs{max-width:280px}.topbar>div{font-size:0}.topbar b{font-size:9px}}

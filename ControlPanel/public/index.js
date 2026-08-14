@@ -4,6 +4,7 @@ const grid = document.querySelector("#services-grid");
 const errorNotice = document.querySelector("#error-notice");
 const systemStatus = document.querySelector("#system-status");
 const refreshButton = document.querySelector("#refresh-button");
+const globalKillButton = document.querySelector("#global-kill-button");
 let selectedService;
 
 const accents = {
@@ -106,4 +107,21 @@ grid.addEventListener("keydown", (event) => {
 });
 
 refreshButton.addEventListener("click", loadServices);
+globalKillButton.addEventListener("click", async () => {
+  if (!window.confirm("Stop and remove every Silicon Lanes service and lesson container? PostgreSQL data will be kept.")) return;
+
+  globalKillButton.disabled = true;
+  globalKillButton.textContent = "Killing all...";
+  try {
+    await api("/api/system", { method: "DELETE" });
+    selectedService = undefined;
+    showToast("All service and lesson containers were removed.");
+    await loadServices();
+  } catch (error) {
+    showToast(error.message, true);
+  } finally {
+    globalKillButton.disabled = false;
+    globalKillButton.textContent = "Kill all";
+  }
+});
 loadServices();

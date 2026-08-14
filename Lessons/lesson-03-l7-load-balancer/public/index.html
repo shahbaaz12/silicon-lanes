@@ -7,6 +7,8 @@
     <title>Lesson 3 · L7 Load Balancer · Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-03-l7-load-balancer/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -85,10 +87,38 @@ server {
         </div>
       </section>
 
-      <section class="explanation">
-        <div><p class="eyebrow">What this teaches</p><h2>The client no longer chooses a server.</h2></div>
-        <p>Nginx is acting as both a reverse proxy and a Layer 7 load balancer. It receives an HTTP request, selects the next healthy upstream in round-robin order, and returns that server's response through one stable client-facing address.</p>
-        <ul><li><b>Horizontal scaling</b><span>More replicas can share the same workload.</span></li><li><b>One client address</b><span>Replica addresses stay behind the load balancer.</span></li><li><b>Failure isolation</b><span>If one replica disappears, requests can continue through the others.</span></li></ul>
+      <section class="explanation lesson-overview" aria-labelledby="lesson-note-title">
+        <div>
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Distribute traffic across multiple servers.</h2>
+        </div>
+        <div class="lesson-overview-copy">
+          <p>The next improvement is to add a <strong>load balancer</strong>.</p>
+          <p>A load balancer sits in front of multiple application servers and distributes incoming traffic between them.</p>
+          <p>It can operate at different layers:</p>
+          <ul class="layer-list">
+            <li><strong>Layer 4 – Transport Layer:</strong> Uses transport-level information such as IP addresses, ports, and protocol. It sees less of the request, which allows it to make fast, efficient routing decisions.</li>
+            <li><strong>Layer 7 – Application Layer:</strong> Understands application-level information such as HTTP methods, hostnames, headers, URLs, paths, and cookies. It can make more intelligent, content-aware routing decisions, with some additional processing overhead.</li>
+          </ul>
+          <p>A Layer 7 load balancer behaves much like a specialized reverse proxy.</p>
+          <p>Some key advantages are:</p>
+          <ul class="advantage-list">
+            <li><strong>Load distribution:</strong> Prevents a single server from handling all requests.</li>
+            <li><strong>High availability:</strong> If one server goes down, traffic can be routed to healthy servers.</li>
+            <li><strong>Horizontal scaling:</strong> More servers can be added as traffic increases.</li>
+            <li><strong>Health checks:</strong> Unhealthy servers can automatically be removed from rotation.</li>
+            <li><strong>Better resource utilization:</strong> Traffic can be distributed using different load-balancing strategies.</li>
+          </ul>
+          <p>The flow now becomes:</p>
+          <div class="request-flow-summary" aria-label="Client to Load Balancer to Multiple Application Servers">
+            <strong>Client</strong><b>→</b><strong>Load Balancer</strong><b>→</b><strong>Multiple Application Servers</strong>
+          </div>
+          <div class="setup-example">
+            <h3>In our setup</h3>
+            <p>This is a <strong>Layer 7 load balancer</strong>. It can inspect the HTTP request, including the <code>/api/products</code> path, before selecting an upstream server.</p>
+            <p>We use <strong>Nginx</strong> as the load balancer and run <strong>three Catalog Service instances</strong>. Nginx sends requests to them in round-robin order and returns every response through one stable client-facing address.</p>
+          </div>
+        </div>
       </section>
     </main>
 

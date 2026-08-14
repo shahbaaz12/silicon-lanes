@@ -44,6 +44,20 @@ export function portIsAvailable(port) {
   });
 }
 
+export async function removeContainersByLabel(label) {
+  const output = await docker([
+    "ps",
+    "--all",
+    "--filter",
+    `label=${label}`,
+    "--format",
+    "{{.ID}}"
+  ]);
+  const ids = output.split(/\r?\n/).filter(Boolean);
+  if (ids.length > 0) await docker(["rm", "--force", ...ids]);
+  return ids;
+}
+
 export async function inspectLessonContainer({
   name,
   lessonLabel,
