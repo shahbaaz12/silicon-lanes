@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lesson 5 · Hybrid · Silicon Lanes</title>
+    <link rel="stylesheet" href="/lessons/shared/components.css">
+    <link rel="stylesheet" href="/lessons/lesson-05-hybrid/styles.css">
+  </head>
+  <body>
+    <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 05</b> Hybrid</div></header>
+    <main>
+      <section class="intro"><div><p>Combine routing decisions</p><h1>Choose a service. Then choose a replica.</h1><span>The API Gateway routes Users and Orders directly. Products take one extra step through a Catalog Load Balancer.</span></div><code>Client → Gateway → Service or Load Balancer</code></section>
+      <div class="controls"><button class="primary" id="start">Start Lesson 5</button><button id="stop" disabled>Stop lesson</button><button id="clear" disabled>Clear logs</button></div>
+      <section class="lab">
+        <lesson-client-card class="client-card" icon="C" kicker="Request origin" heading="Browser client" status="ready">
+          <div class="route-buttons" id="routes"></div>
+          <div class="url"><small>Selected URL</small><code id="url">http://127.0.0.1:7512/api/users</code></div>
+          <button class="send" id="send" disabled>GET · Send request</button>
+          <lesson-response-panel class="response" heading="Latest response" meta-id="response-meta" time-id="response-time" server-id="response-server">
+            <pre data-response-body id="pretty">Start the lesson, then send a request.</pre>
+            <pre data-response-json id="json">No JSON response yet.</pre>
+            <pre data-response-headers id="headers">No response headers yet.</pre>
+          </lesson-response-panel>
+        </lesson-client-card>
+
+        <div class="flow">
+          <lesson-node-lite id="gateway-node" heading="API Gateway"></lesson-node-lite>
+          <div class="gateway-split" aria-hidden="true"></div>
+          <div class="branches">
+            <div class="direct-branch">
+              <span class="route-label">Users</span><div class="route-arrow" aria-hidden="true"></div>
+              <lesson-service-lite data-key="user" heading="User Service"></lesson-service-lite>
+            </div>
+            <div class="catalog-branch">
+              <span class="route-label">Products</span><div class="route-arrow" aria-hidden="true"></div>
+              <lesson-node-lite id="lb-node" heading="Load Balancer"></lesson-node-lite>
+              <div class="catalog-split" aria-hidden="true"></div>
+              <div class="catalogs">
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" heading="Catalog Service 1"></lesson-service-lite></div>
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-2" heading="Catalog Service 2"></lesson-service-lite></div>
+              </div>
+            </div>
+            <div class="direct-branch">
+              <span class="route-label">Orders</span><div class="route-arrow" aria-hidden="true"></div>
+              <lesson-service-lite data-key="order" heading="Order Service"></lesson-service-lite>
+            </div>
+          </div>
+        </div>
+
+        <aside class="trace">
+          <div><span>Current route</span><strong id="decision">/api/users → User Service</strong></div>
+          <section><h2>Gateway log</h2><pre id="gateway-log">Start Lesson 5.</pre></section>
+          <section><h2>Load Balancer log</h2><pre id="lb-log">Only Catalog requests enter this node.</pre></section>
+          <details><summary>Simple configuration</summary><pre>Gateway:
+/api/users    → userService1
+/api/orders   → orderService1
+/api/products → hybridLoadBalancer1
+
+Load Balancer:
+catalogService1
+catalogService2</pre></details>
+        </aside>
+      </section>
+      <section class="explain"><h2>Two different decisions</h2><p>The API Gateway chooses a <b>service type</b> from the path. Only the Catalog route then asks a Load Balancer to choose a <b>replica</b>. User and Order have one instance, so the gateway calls them directly.</p></section>
+    </main>
+    <div id="toasts" aria-live="polite"></div>
+    <script type="module" src="/lessons/lesson-05-hybrid/app.js"></script>
+  </body>
+</html>

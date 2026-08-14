@@ -40,6 +40,13 @@ import {
   startApiGatewayLesson,
   stopApiGatewayLesson
 } from "./api-gateway-lesson-manager.js";
+import {
+  clearHybridLessonLogs,
+  getHybridLessonLogs,
+  getHybridLessonState,
+  startHybridLesson,
+  stopHybridLesson
+} from "./hybrid-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
@@ -48,6 +55,7 @@ const directServiceLessonDirectory = path.resolve(directory, "..", "Lessons", "l
 const reverseProxyLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-02-reverse-proxy", "public");
 const l7LoadBalancerLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-03-l7-load-balancer", "public");
 const apiGatewayLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-04-api-gateway", "public");
+const hybridLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-05-hybrid", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
@@ -59,6 +67,7 @@ app.use("/lessons/lesson-01-direct-service", express.static(directServiceLessonD
 app.use("/lessons/lesson-02-reverse-proxy", express.static(reverseProxyLessonDirectory));
 app.use("/lessons/lesson-03-l7-load-balancer", express.static(l7LoadBalancerLessonDirectory));
 app.use("/lessons/lesson-04-api-gateway", express.static(apiGatewayLessonDirectory));
+app.use("/lessons/lesson-05-hybrid", express.static(hybridLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -304,6 +313,26 @@ app.delete("/api/lessons/lesson-04-api-gateway/logs", async (_request, response,
   } catch (error) {
     next(error);
   }
+});
+
+app.get("/api/lessons/lesson-05-hybrid/state", async (_request, response, next) => {
+  try { response.json(await getHybridLessonState()); } catch (error) { next(error); }
+});
+
+app.post("/api/lessons/lesson-05-hybrid/start", async (_request, response, next) => {
+  try { response.status(201).json(await startHybridLesson()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-05-hybrid/stop", async (_request, response, next) => {
+  try { await stopHybridLesson(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.get("/api/lessons/lesson-05-hybrid/logs", async (_request, response, next) => {
+  try { response.json(await getHybridLessonLogs()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-05-hybrid/logs", async (_request, response, next) => {
+  try { await clearHybridLessonLogs(); response.status(204).end(); } catch (error) { next(error); }
 });
 
 app.get("/services/:key", (request, response, next) => {

@@ -582,6 +582,9 @@ h1 {
   gap: 12px;
 }
 
+.lesson-divider { display: flex; align-items: center; gap: 14px; margin: 20px 0 4px; color: var(--lime); font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.lesson-divider b { height: 1px; flex: 1; background: linear-gradient(90deg, rgb(199 243 107 / 45%), transparent); }
+
 .lesson-card:hover {
   border-color: var(--cyan);
   transform: translateY(-2px);

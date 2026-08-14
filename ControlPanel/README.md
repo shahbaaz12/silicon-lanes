@@ -35,6 +35,10 @@ starts Nginx on port `7412` and routes `/api/users`, `/api/products`,
 `/api/inventory`, `/api/carts`, `/api/orders`, and `/api/payments` to the six
 independent application services.
 
+Lesson 5 runs at `http://localhost:7012/lessons/lesson-05-hybrid`. Its API
+Gateway publishes port `7512`, routes User and Order directly, and sends
+Products through a private two-replica Catalog Load Balancer.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances

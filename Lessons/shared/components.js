@@ -70,6 +70,28 @@ class LessonServiceCompact extends LessonActivityElement {
   }
 }
 
+class LessonNodeLite extends LessonActivityElement {
+  connectedCallback() {
+    if (this.dataset.componentReady === "true") return;
+    this.dataset.componentReady = "true";
+    this.setAttribute("role", "article");
+    const name = document.createElement("strong");
+    name.textContent = this.getAttribute("heading") ?? "Infrastructure";
+    this.replaceChildren(name);
+  }
+}
+
+class LessonServiceLite extends LessonActivityElement {
+  connectedCallback() {
+    if (this.dataset.componentReady === "true") return;
+    this.dataset.componentReady = "true";
+    this.setAttribute("role", "article");
+    const name = document.createElement("strong");
+    name.textContent = this.getAttribute("heading") ?? "Service";
+    this.replaceChildren(name);
+  }
+}
+
 class LessonResponsePanel extends HTMLElement {
   connectedCallback() {
     if (this.dataset.componentReady === "true") return;
@@ -181,6 +203,8 @@ for (const tagName of ["lesson-client-card", "lesson-service-card", "lesson-prox
   if (!customElements.get(tagName)) customElements.define(tagName, class extends LessonNodeCard {});
 }
 if (!customElements.get("lesson-service-compact")) customElements.define("lesson-service-compact", LessonServiceCompact);
+if (!customElements.get("lesson-node-lite")) customElements.define("lesson-node-lite", LessonNodeLite);
+if (!customElements.get("lesson-service-lite")) customElements.define("lesson-service-lite", LessonServiceLite);
 if (!customElements.get("lesson-response-panel")) customElements.define("lesson-response-panel", LessonResponsePanel);
 
 export function formatResponseHeaders(response) {

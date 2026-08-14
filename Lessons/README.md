@@ -13,6 +13,9 @@ inside its own folder.
    Catalog Service replicas using its default round-robin algorithm.
 4. [`lesson-04-api-gateway`](lesson-04-api-gateway/README.md) — one Nginx API
    Gateway maps six public request paths to their owning e-commerce services.
+5. **Hybrid**
+   [`lesson-05-hybrid`](lesson-05-hybrid/README.md) — the API Gateway routes
+   User and Order directly while Catalog scales behind a Load Balancer.
 
 ## Shared UI components
 
@@ -25,3 +28,7 @@ the responding server name.
 Lessons 3 and 4 use the minimal `<lesson-service-compact>` component for
 service instances. It contains only the instance name, published port, compact
 request log, and reusable activity glow.
+
+Lesson 5 adds `<lesson-node-lite>` and `<lesson-service-lite>` for small,
+name-only infrastructure and service squares. Both retain the shared activity
+glow without embedding logs in the topology.

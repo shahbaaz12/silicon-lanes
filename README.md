@@ -51,4 +51,7 @@ request across three Catalog Service replicas with simple round-robin routing.
 Lesson 4 introduces one API Gateway address and uses the request path to select
 the appropriate e-commerce service.
 
+Lesson 5 combines the layers: the gateway selects Catalog, then a Catalog Load
+Balancer selects one of two replicas; User and Order remain direct routes.
+
 See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.
