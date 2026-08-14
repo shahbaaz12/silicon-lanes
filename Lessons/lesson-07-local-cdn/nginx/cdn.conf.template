@@ -1,0 +1,45 @@
+proxy_cache_path /var/cache/nginx/products levels=1:2 keys_zone=product_cache:10m inactive=60s max_size=50m;
+
+map $http_origin $cdn_cors_origin {
+  default "";
+  "http://localhost:7012" $http_origin;
+  "http://127.0.0.1:7012" $http_origin;
+}
+
+log_format local_cdn '[local-cdn] $time_iso8601 msec=$msec $request_method $uri $status cache=$upstream_cache_status';
+upstream advanced_origin { server ${ORIGIN_UPSTREAM}; }
+
+server {
+  listen 80;
+  access_log /dev/stdout local_cdn;
+  error_log /dev/stderr warn;
+
+  location = /cdn-health { access_log off; return 200 'ok'; }
+
+  location /api/products {
+    proxy_pass http://advanced_origin;
+    proxy_cache product_cache;
+    proxy_cache_methods GET HEAD;
+    proxy_cache_key "$request_method$request_uri";
+    proxy_cache_valid 200 15s;
+    proxy_cache_lock on;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-Cache-Status $upstream_cache_status always;
+    add_header Access-Control-Allow-Origin $cdn_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-Cache-Status, X-API-Gateway, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+
+  location /api/ {
+    proxy_pass http://advanced_origin;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-Cache-Status BYPASS always;
+    add_header Access-Control-Allow-Origin $cdn_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-Cache-Status, X-API-Gateway, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+}

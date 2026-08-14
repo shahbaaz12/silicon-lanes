@@ -20,6 +20,10 @@ inside its own folder.
    [`lesson-06-advanced`](lesson-06-advanced/README.md) — an L4 edge Load Balancer
    distributes requests across two stateless API Gateways before service
    routing and Catalog replica selection.
+7. **Local CDN**
+   [`lesson-07-local-cdn`](lesson-07-local-cdn/README.md) — a 15-second Product
+   cache sits in front of the advanced origin and makes cache hits skip every
+   downstream layer.
 
 ## Shared UI components
 

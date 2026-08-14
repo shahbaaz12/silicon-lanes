@@ -58,4 +58,7 @@ Lesson 6 scales the entry tier: one public L4 edge Load Balancer selects between
 two stateless API Gateways, which route Catalog traffic through a private L7
 Load Balancer.
 
+Lesson 7 adds a local CDN in front of that origin. Product cache hits return at
+the edge, while misses and uncached routes continue through the full topology.
+
 See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.

@@ -44,6 +44,10 @@ L4 edge Load Balancer is published, on port `7612`. It round-robins TCP connecti
 private API Gateways; Product traffic then crosses a second private Load
 Balancer at L7 before reaching one of two Catalog replicas.
 
+Lesson 7 runs at `http://localhost:7012/lessons/lesson-07-local-cdn`. Its local
+CDN is published on port `7712`, caches successful Product reads for 15 seconds,
+and reports `HIT`, `MISS`, or `BYPASS` in `X-Cache-Status`.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances

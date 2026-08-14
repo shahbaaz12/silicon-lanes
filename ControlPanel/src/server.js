@@ -54,6 +54,14 @@ import {
   startAdvancedLesson,
   stopAdvancedLesson
 } from "./advanced-lesson-manager.js";
+import {
+  clearLocalCdnCache,
+  clearLocalCdnLessonLogs,
+  getLocalCdnLessonLogs,
+  getLocalCdnLessonState,
+  startLocalCdnLesson,
+  stopLocalCdnLesson
+} from "./local-cdn-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
@@ -64,6 +72,7 @@ const l7LoadBalancerLessonDirectory = path.resolve(directory, "..", "Lessons", "
 const apiGatewayLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-04-api-gateway", "public");
 const hybridLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-05-hybrid", "public");
 const advancedLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-06-advanced", "public");
+const localCdnLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-07-local-cdn", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
@@ -77,6 +86,7 @@ app.use("/lessons/lesson-03-l7-load-balancer", express.static(l7LoadBalancerLess
 app.use("/lessons/lesson-04-api-gateway", express.static(apiGatewayLessonDirectory));
 app.use("/lessons/lesson-05-hybrid", express.static(hybridLessonDirectory));
 app.use("/lessons/lesson-06-advanced", express.static(advancedLessonDirectory));
+app.use("/lessons/lesson-07-local-cdn", express.static(localCdnLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -362,6 +372,30 @@ app.get("/api/lessons/lesson-06-advanced/logs", async (_request, response, next)
 
 app.delete("/api/lessons/lesson-06-advanced/logs", async (_request, response, next) => {
   try { await clearAdvancedLessonLogs(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.get("/api/lessons/lesson-07-local-cdn/state", async (_request, response, next) => {
+  try { response.json(await getLocalCdnLessonState()); } catch (error) { next(error); }
+});
+
+app.post("/api/lessons/lesson-07-local-cdn/start", async (_request, response, next) => {
+  try { response.status(201).json(await startLocalCdnLesson()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-07-local-cdn/stop", async (_request, response, next) => {
+  try { await stopLocalCdnLesson(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.get("/api/lessons/lesson-07-local-cdn/logs", async (_request, response, next) => {
+  try { response.json(await getLocalCdnLessonLogs()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-07-local-cdn/logs", async (_request, response, next) => {
+  try { await clearLocalCdnLessonLogs(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-07-local-cdn/cache", async (_request, response, next) => {
+  try { await clearLocalCdnCache(); response.status(204).end(); } catch (error) { next(error); }
 });
 
 app.get("/services/:key", (request, response, next) => {
