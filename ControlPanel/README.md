@@ -39,6 +39,11 @@ Lesson 5 runs at `http://localhost:7012/lessons/lesson-05-hybrid`. Its API
 Gateway publishes port `7512`, routes User and Order directly, and sends
 Products through a private two-replica Catalog Load Balancer.
 
+Lesson 6 runs at `http://localhost:7012/lessons/lesson-06-advanced`. Only its
+L4 edge Load Balancer is published, on port `7612`. It round-robins TCP connections across two
+private API Gateways; Product traffic then crosses a second private Load
+Balancer at L7 before reaching one of two Catalog replicas.
+
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
 label. Its image is built from the independent service folder when instances

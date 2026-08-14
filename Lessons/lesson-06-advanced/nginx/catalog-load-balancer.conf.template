@@ -1,0 +1,21 @@
+log_format advanced_catalog_lb '[advanced-catalog-lb] $time_iso8601 $request_method $uri $status server=$upstream_http_x_request_server';
+
+upstream catalog_pool {
+  zone catalog_pool 64k;
+  server ${CATALOG_1};
+  server ${CATALOG_2};
+}
+
+server {
+  listen 80;
+  access_log /dev/stdout advanced_catalog_lb;
+  error_log /dev/stderr warn;
+
+  location = /advanced-catalog-lb-health { access_log off; return 200 'ok'; }
+
+  location /api/products {
+    proxy_pass http://catalog_pool;
+    proxy_connect_timeout 1s;
+    proxy_next_upstream error timeout;
+  }
+}

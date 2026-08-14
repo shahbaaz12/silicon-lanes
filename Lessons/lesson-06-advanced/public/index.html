@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lesson 6 · Advanced · Silicon Lanes</title>
+    <link rel="stylesheet" href="/lessons/shared/components.css">
+    <link rel="stylesheet" href="/lessons/lesson-06-advanced/styles.css">
+  </head>
+  <body>
+    <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 06</b> Advanced</div></header>
+    <main>
+      <section class="intro">
+        <div><p>Scale the entry point</p><h1>No single gateway.</h1><span>An edge load balancer selects one of two identical API Gateways before service routing begins.</span></div>
+        <code>Client → Edge LB → Gateway → Service</code>
+      </section>
+      <div class="controls"><button class="primary" id="start">Start Lesson 6</button><button id="stop" disabled>Stop lesson</button><button id="clear" disabled>Clear logs</button></div>
+      <section class="lab">
+        <lesson-client-card class="client-card" icon="C" kicker="Request origin" heading="Browser client" status="ready">
+          <div class="route-buttons" id="routes"></div>
+          <div class="url"><small>Only public address</small><code id="url">http://127.0.0.1:7612/api/users</code></div>
+          <button class="send" id="send" disabled>GET · Send request</button>
+          <lesson-response-panel class="response" heading="Latest response" meta-id="response-meta" time-id="response-time" server-id="response-server">
+            <pre data-response-body id="pretty">Start the lesson, then send a request.</pre>
+            <pre data-response-json id="json">No JSON response yet.</pre>
+            <pre data-response-headers id="headers">No response headers yet.</pre>
+          </lesson-response-panel>
+        </lesson-client-card>
+
+        <div class="flow">
+          <div class="tagged-node"><span class="tier-tag">L4</span><lesson-node-lite id="edge-node" heading="Edge Load Balancer"></lesson-node-lite></div>
+          <div class="edge-split" aria-hidden="true"></div>
+          <div class="gateways">
+            <div class="gateway-column"><div class="route-arrow" aria-hidden="true"></div><lesson-node-lite data-gateway="advancedApiGateway1" heading="API Gateway 1"></lesson-node-lite></div>
+            <div class="gateway-column"><div class="route-arrow" aria-hidden="true"></div><lesson-node-lite data-gateway="advancedApiGateway2" heading="API Gateway 2"></lesson-node-lite></div>
+          </div>
+          <div class="gateway-merge" aria-hidden="true"><i></i><i></i></div>
+          <div class="route-split" aria-hidden="true"></div>
+          <div class="branches">
+            <div class="direct-branch"><span class="route-label">Users</span><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="user" heading="User Service"></lesson-service-lite></div>
+            <div class="catalog-branch">
+              <span class="route-label">Products</span><div class="route-arrow" aria-hidden="true"></div><div class="tagged-node"><span class="tier-tag">L7</span><lesson-node-lite id="catalog-lb-node" heading="Catalog Load Balancer"></lesson-node-lite></div>
+              <div class="catalog-split" aria-hidden="true"></div>
+              <div class="catalogs">
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" heading="Catalog Service 1"></lesson-service-lite></div>
+                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-2" heading="Catalog Service 2"></lesson-service-lite></div>
+              </div>
+            </div>
+            <div class="direct-branch"><span class="route-label">Orders</span><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="order" heading="Order Service"></lesson-service-lite></div>
+          </div>
+        </div>
+
+        <aside class="trace">
+          <div class="decision"><span>Request journey</span><strong id="decision">Edge LB → waiting</strong></div>
+          <section><h2>Edge Load Balancer log</h2><pre id="edge-log">Start Lesson 6.</pre></section>
+          <section><h2>API Gateway 1 log</h2><pre id="gateway-1-log">Start Lesson 6.</pre></section>
+          <section><h2>API Gateway 2 log</h2><pre id="gateway-2-log">Start Lesson 6.</pre></section>
+          <section><h2>Catalog Load Balancer log</h2><pre id="catalog-log">Only Product requests enter this node.</pre></section>
+          <details><summary>Simple configuration</summary><pre>Edge Load Balancer:
+advancedApiGateway1
+advancedApiGateway2
+
+Each API Gateway:
+/api/users    → userService1
+/api/orders   → orderService1
+/api/products → advancedCatalogLoadBalancer1
+
+Catalog Load Balancer:
+catalogService1
+catalogService2</pre></details>
+        </aside>
+      </section>
+      <section class="explain"><h2>Three independent decisions</h2><p>The <b>L4 edge load balancer</b> selects a Gateway for each TCP connection without reading HTTP paths. That gateway chooses a <b>service type</b>. Product traffic then asks the <b>L7 Catalog load balancer</b> to choose a Catalog replica using the HTTP request.</p></section>
+    </main>
+    <div id="toasts" aria-live="polite"></div>
+    <script type="module" src="/lessons/lesson-06-advanced/app.js"></script>
+  </body>
+</html>

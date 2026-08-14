@@ -54,4 +54,8 @@ the appropriate e-commerce service.
 Lesson 5 combines the layers: the gateway selects Catalog, then a Catalog Load
 Balancer selects one of two replicas; User and Order remain direct routes.
 
+Lesson 6 scales the entry tier: one public L4 edge Load Balancer selects between
+two stateless API Gateways, which route Catalog traffic through a private L7
+Load Balancer.
+
 See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.

@@ -16,6 +16,10 @@ inside its own folder.
 5. **Hybrid**
    [`lesson-05-hybrid`](lesson-05-hybrid/README.md) — the API Gateway routes
    User and Order directly while Catalog scales behind a Load Balancer.
+6. **Advanced**
+   [`lesson-06-advanced`](lesson-06-advanced/README.md) — an L4 edge Load Balancer
+   distributes requests across two stateless API Gateways before service
+   routing and Catalog replica selection.
 
 ## Shared UI components
 
@@ -32,3 +36,5 @@ request log, and reusable activity glow.
 Lesson 5 adds `<lesson-node-lite>` and `<lesson-service-lite>` for small,
 name-only infrastructure and service squares. Both retain the shared activity
 glow without embedding logs in the topology.
+
+Lesson 6 reuses those lite components for every infrastructure and service node.

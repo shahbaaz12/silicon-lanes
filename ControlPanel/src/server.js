@@ -47,6 +47,13 @@ import {
   startHybridLesson,
   stopHybridLesson
 } from "./hybrid-lesson-manager.js";
+import {
+  clearAdvancedLessonLogs,
+  getAdvancedLessonLogs,
+  getAdvancedLessonState,
+  startAdvancedLesson,
+  stopAdvancedLesson
+} from "./advanced-lesson-manager.js";
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDirectory = path.join(directory, "public");
@@ -56,6 +63,7 @@ const reverseProxyLessonDirectory = path.resolve(directory, "..", "Lessons", "le
 const l7LoadBalancerLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-03-l7-load-balancer", "public");
 const apiGatewayLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-04-api-gateway", "public");
 const hybridLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-05-hybrid", "public");
+const advancedLessonDirectory = path.resolve(directory, "..", "Lessons", "lesson-06-advanced", "public");
 const port = Number(process.env.PORT ?? 7012);
 const app = express();
 
@@ -68,6 +76,7 @@ app.use("/lessons/lesson-02-reverse-proxy", express.static(reverseProxyLessonDir
 app.use("/lessons/lesson-03-l7-load-balancer", express.static(l7LoadBalancerLessonDirectory));
 app.use("/lessons/lesson-04-api-gateway", express.static(apiGatewayLessonDirectory));
 app.use("/lessons/lesson-05-hybrid", express.static(hybridLessonDirectory));
+app.use("/lessons/lesson-06-advanced", express.static(advancedLessonDirectory));
 
 app.get("/api/services", async (_request, response, next) => {
   try {
@@ -333,6 +342,26 @@ app.get("/api/lessons/lesson-05-hybrid/logs", async (_request, response, next) =
 
 app.delete("/api/lessons/lesson-05-hybrid/logs", async (_request, response, next) => {
   try { await clearHybridLessonLogs(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.get("/api/lessons/lesson-06-advanced/state", async (_request, response, next) => {
+  try { response.json(await getAdvancedLessonState()); } catch (error) { next(error); }
+});
+
+app.post("/api/lessons/lesson-06-advanced/start", async (_request, response, next) => {
+  try { response.status(201).json(await startAdvancedLesson()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-06-advanced/stop", async (_request, response, next) => {
+  try { await stopAdvancedLesson(); response.status(204).end(); } catch (error) { next(error); }
+});
+
+app.get("/api/lessons/lesson-06-advanced/logs", async (_request, response, next) => {
+  try { response.json(await getAdvancedLessonLogs()); } catch (error) { next(error); }
+});
+
+app.delete("/api/lessons/lesson-06-advanced/logs", async (_request, response, next) => {
+  try { await clearAdvancedLessonLogs(); response.status(204).end(); } catch (error) { next(error); }
 });
 
 app.get("/services/:key", (request, response, next) => {

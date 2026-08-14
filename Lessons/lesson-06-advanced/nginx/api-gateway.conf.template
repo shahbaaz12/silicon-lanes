@@ -1,0 +1,55 @@
+map $http_origin $advanced_cors_origin {
+  default "";
+  "http://localhost:7012" $http_origin;
+  "http://127.0.0.1:7012" $http_origin;
+}
+
+log_format advanced_gateway '[advanced-gw] $time_iso8601 $request_method $uri $status gateway=${GATEWAY_NAME} service=$upstream_http_x_service_name server=$upstream_http_x_request_server';
+
+upstream user_service { server ${USER_UPSTREAM}; }
+upstream order_service { server ${ORDER_UPSTREAM}; }
+upstream catalog_load_balancer { server ${CATALOG_LB_UPSTREAM}; }
+
+server {
+  listen 80;
+  access_log /dev/stdout advanced_gateway;
+  error_log /dev/stderr warn;
+
+  location = /advanced-gateway-health { access_log off; return 200 'ok'; }
+
+  location /api/users {
+    proxy_pass http://user_service;
+    proxy_connect_timeout 2s;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-API-Gateway ${GATEWAY_NAME} always;
+    add_header Access-Control-Allow-Origin $advanced_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-API-Gateway, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+
+  location /api/orders {
+    proxy_pass http://order_service;
+    proxy_connect_timeout 2s;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-API-Gateway ${GATEWAY_NAME} always;
+    add_header Access-Control-Allow-Origin $advanced_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-API-Gateway, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+
+  location /api/products {
+    proxy_pass http://catalog_load_balancer;
+    proxy_connect_timeout 2s;
+    proxy_hide_header Access-Control-Allow-Origin;
+    proxy_hide_header Access-Control-Expose-Headers;
+    proxy_hide_header Vary;
+    add_header X-API-Gateway ${GATEWAY_NAME} always;
+    add_header Access-Control-Allow-Origin $advanced_cors_origin always;
+    add_header Access-Control-Expose-Headers "X-API-Gateway, X-Request-Server, X-Service-Name" always;
+    add_header Vary Origin always;
+  }
+}
