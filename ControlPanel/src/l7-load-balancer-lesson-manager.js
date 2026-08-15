@@ -54,6 +54,7 @@ async function ensurePool(preferredIds = [], previouslyOwnedIds = []) {
     selected.push(...started);
     started.forEach(({ id }) => ownedIds.add(id));
   }
+  selected.sort((left, right) => left.sequence - right.sequence);
   return { backends: selected.slice(0, poolSize), ownedIds: [...ownedIds] };
 }
 
@@ -109,7 +110,7 @@ async function stateFrom(container) {
       name: loadBalancerName,
       hostPort: loadBalancerPort,
       containerPort: 80,
-      directUrl: `http://127.0.0.1:${loadBalancerPort}/api/products`
+      directUrl: `http://localhost:${loadBalancerPort}/api/products`
     },
     configuredBackends: (container.Config.Labels?.["com.silicon-lanes.backend-specs"] ?? "").split(";").filter(Boolean),
     services

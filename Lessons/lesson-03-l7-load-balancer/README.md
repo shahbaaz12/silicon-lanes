@@ -4,11 +4,11 @@ This lesson places one Nginx Layer 7 load balancer in front of three Catalog
 Service replicas:
 
 ```text
-Browser -> 127.0.0.1:7312 -> loadBalancer1:80 -> catalogService1/2/3:6212
+Browser -> localhost:7312 -> loadBalancer1:80 -> catalogService1/2/3:6212
 ```
 
 Open the lesson from the main Control Panel at
-`http://127.0.0.1:7012/lessons/lesson-03-l7-load-balancer`.
+`http://localhost:7012/lessons/lesson-03-l7-load-balancer`.
 
 ## The important Nginx configuration
 
