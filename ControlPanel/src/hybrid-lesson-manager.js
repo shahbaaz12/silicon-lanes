@@ -100,7 +100,7 @@ async function stateFrom(gateway, loadBalancer) {
     ready: services.filter(({ serviceKey }) => serviceKey === "catalog").length === 2
       && services.some(({ serviceKey }) => serviceKey === "user")
       && services.some(({ serviceKey }) => serviceKey === "order"),
-    gateway: { name: gatewayName, hostPort: gatewayPort, containerPort: 80, baseUrl: `http://127.0.0.1:${gatewayPort}` },
+    gateway: { name: gatewayName, hostPort: gatewayPort, containerPort: 80, baseUrl: `http://localhost:${gatewayPort}` },
     loadBalancer: { name: loadBalancerName, containerPort: 80 },
     services,
     routes: hybridRoutes(services)

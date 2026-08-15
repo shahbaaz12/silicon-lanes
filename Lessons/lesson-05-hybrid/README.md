@@ -8,7 +8,7 @@ This lesson combines two Layer 7 decisions:
 /api/products -> API Gateway -> Load Balancer -> 2 Catalog replicas
 ```
 
-Open `http://127.0.0.1:7012/lessons/lesson-05-hybrid` through the main Control
+Open `http://localhost:7012/lessons/lesson-05-hybrid` through the main Control
 Panel. The gateway is published on port `7512`; the Catalog Load Balancer stays
 private inside the Docker network.
 
