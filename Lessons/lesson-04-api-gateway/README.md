@@ -4,11 +4,11 @@ This lesson places one Nginx API Gateway in front of all six e-commerce
 services:
 
 ```text
-Browser -> 127.0.0.1:7412 -> apiGateway1:80 -> path-selected service
+Browser -> localhost:7412 -> apiGateway1:80 -> path-selected service
 ```
 
 Open the page through the main Control Panel at
-`http://127.0.0.1:7012/lessons/lesson-04-api-gateway`.
+`http://localhost:7012/lessons/lesson-04-api-gateway`.
 
 ## The routing idea
 

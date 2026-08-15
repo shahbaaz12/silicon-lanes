@@ -142,7 +142,7 @@ async function stateFrom(container) {
       name: gatewayName,
       hostPort: gatewayPort,
       containerPort: 80,
-      baseUrl: `http://127.0.0.1:${gatewayPort}`
+      baseUrl: `http://localhost:${gatewayPort}`
     },
     routes,
     services: backends
