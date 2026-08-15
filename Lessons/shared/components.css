@@ -91,6 +91,34 @@ html[data-theme="light"] .lesson-response-summary small {
 
 html[data-theme="light"] .lesson-response-summary b { color: #29434d; }
 
+.defined-term { position: relative; display: block; padding: 8px 11px; border-radius: inherit; cursor: help; outline: none; }
+.defined-term::after { margin-left: 6px; color: var(--amber, #f4c95d); content: "?"; font-size: 10px; font-weight: 900; vertical-align: top; }
+.defined-term:focus-visible { box-shadow: 0 0 0 2px var(--amber, #f4c95d); }
+.term-definition {
+  position: absolute;
+  z-index: 20;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  width: min(260px, 78vw);
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--amber, #f4c95d) 42%, var(--line, #29313a));
+  border-radius: 9px;
+  color: var(--text, #f2f5f7);
+  background: #18150d;
+  box-shadow: 0 14px 38px rgb(0 0 0 / 38%);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  transition: opacity .14s ease, transform .14s ease;
+}
+.term-definition::after { position: absolute; top: 100%; left: 50%; border: 6px solid transparent; border-top-color: color-mix(in srgb, var(--amber, #f4c95d) 42%, var(--line, #29313a)); content: ""; transform: translateX(-50%); }
+.defined-term:hover .term-definition,
+.defined-term:focus .term-definition { opacity: 1; transform: translate(-50%, 0); }
+html[data-theme="light"] .term-definition { color: var(--text); background: #fff9e8; box-shadow: 0 14px 38px rgb(25 42 50 / 18%); }
+
 @keyframes lesson-node-activity {
   0% { outline: 0 solid transparent; box-shadow: inherit; }
   24% { outline: 3px solid var(--lesson-activity-color); outline-offset: 3px; box-shadow: 0 0 28px color-mix(in srgb, var(--lesson-activity-color) 55%, transparent); }

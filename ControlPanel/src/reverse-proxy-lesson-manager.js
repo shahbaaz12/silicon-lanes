@@ -79,7 +79,7 @@ async function stateFrom(container) {
       name: proxyName,
       hostPort: proxyPort,
       containerPort: 80,
-      directUrl: `http://127.0.0.1:${proxyPort}/api/products`
+      directUrl: `http://localhost:${proxyPort}/api/products`
     },
     service: backend ? {
       id: backend.id,

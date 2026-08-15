@@ -357,31 +357,6 @@ main {
 .explanation-copy > p:not(.eyebrow) { margin-bottom: 16px; color: var(--text); font-size: 17px; line-height: 1.82; }
 .responsibility-list { display: flex; flex-wrap: wrap; gap: 9px; margin: 5px 0 22px; padding: 0; list-style: none; }
 .responsibility-list li { position: relative; border: 1px solid color-mix(in srgb, var(--amber) 30%, var(--line)); border-radius: 8px; color: #f0e2ba; background: color-mix(in srgb, var(--amber) 8%, transparent); font-size: 13px; }
-.defined-term { display: block; padding: 8px 11px; border-radius: inherit; cursor: help; outline: none; }
-.defined-term::after { margin-left: 6px; color: var(--amber); content: "?"; font-size: 10px; font-weight: 900; vertical-align: top; }
-.defined-term:focus-visible { box-shadow: 0 0 0 2px var(--amber); }
-.term-definition {
-  position: absolute;
-  z-index: 5;
-  bottom: calc(100% + 10px);
-  left: 50%;
-  width: min(260px, 78vw);
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--amber) 42%, var(--line));
-  border-radius: 9px;
-  color: var(--text);
-  background: #18150d;
-  box-shadow: 0 14px 38px rgb(0 0 0 / 38%);
-  font-size: 12px;
-  line-height: 1.5;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 5px);
-  transition: opacity .14s ease, transform .14s ease;
-}
-.term-definition::after { position: absolute; top: 100%; left: 50%; border: 6px solid transparent; border-top-color: color-mix(in srgb, var(--amber) 42%, var(--line)); content: ""; transform: translateX(-50%); }
-.defined-term:hover .term-definition,
-.defined-term:focus .term-definition { opacity: 1; transform: translate(-50%, 0); }
 
 .tradeoffs {
   display: grid;
@@ -460,7 +435,6 @@ html[data-theme="light"] .tradeoff-card li,
 html[data-theme="light"] .request-trace strong { color: var(--text); }
 html[data-theme="light"] .lesson-response-summary b { color: #29434d; }
 html[data-theme="light"] .responsibility-list li { color: #644a0d; }
-html[data-theme="light"] .term-definition { color: var(--text); background: #fff9e8; box-shadow: 0 14px 38px rgb(25 42 50 / 18%); }
 html[data-theme="light"] .request-trace li.complete > span { color: #172205; background: var(--lime); }
 html[data-theme="light"] .primary-action { color: #172205; background: #a9d85c; }
 html[data-theme="light"] .secondary-action { color: var(--text); background: var(--panel-raised); }

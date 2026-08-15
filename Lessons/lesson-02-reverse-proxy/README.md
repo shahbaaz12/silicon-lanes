@@ -4,7 +4,7 @@ This lesson inserts a real Nginx reverse proxy between the browser and the
 Catalog Service:
 
 ```text
-Browser client -> http://127.0.0.1:7212/api/products -> Nginx cache -> catalogService1
+Browser client -> http://localhost:7212/api/products -> Nginx cache -> catalogService1
 ```
 
 Run the main Control Panel and open
