@@ -17,7 +17,7 @@ server {
 
   location = /hybrid-gateway-health { access_log off; return 200 'ok'; }
 
-  location /api/users { proxy_pass http://user_service; include /etc/nginx/hybrid_proxy_params; }
-  location /api/orders { proxy_pass http://order_service; include /etc/nginx/hybrid_proxy_params; }
-  location /api/products { proxy_pass http://catalog_load_balancer; include /etc/nginx/hybrid_proxy_params; }
+  location = /api/users { proxy_pass http://user_service; include /etc/nginx/hybrid_proxy_params; }
+  location = /api/orders { proxy_pass http://order_service; include /etc/nginx/hybrid_proxy_params; }
+  location = /api/products { proxy_pass http://catalog_load_balancer; include /etc/nginx/hybrid_proxy_params; }
 }

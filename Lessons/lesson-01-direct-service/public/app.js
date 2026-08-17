@@ -40,7 +40,7 @@ function toast(message, isError = false) {
   const item = document.createElement("div");
   item.className = `toast${isError ? " error" : ""}`;
   item.textContent = message;
-  document.querySelector("#toast-region").append(item);
+  document.querySelector("#toasts").append(item);
   setTimeout(() => item.remove(), 3600);
 }
 
@@ -92,7 +92,7 @@ async function refreshLogs() {
   if (!state?.running || logRefreshInProgress) return;
   logRefreshInProgress = true;
   try {
-    const result = await api(`${lessonApi}/catalog/logs`);
+    const result = await api(`${lessonApi}/logs`);
     logs.textContent = result.logs;
     logs.scrollTop = logs.scrollHeight;
   } catch {
@@ -138,7 +138,7 @@ startButton.addEventListener("click", async () => {
   startButton.disabled = true;
   startButton.textContent = "Starting Docker service...";
   try {
-    renderState(await api(`${lessonApi}/catalog/start`, { method: "POST" }));
+    renderState(await api(`${lessonApi}/start`, { method: "POST" }));
     products.innerHTML = '<p class="empty-copy">Service ready. Send the request directly from this client.</p>';
     responseMeta.textContent = "waiting";
     responseTime.textContent = "— ms";
@@ -158,7 +158,7 @@ stopButton.addEventListener("click", async () => {
   stopButton.disabled = true;
   stopButton.textContent = "Stopping...";
   try {
-    await api(`${lessonApi}/catalog/stop`, { method: "DELETE" });
+    await api(`${lessonApi}/stop`, { method: "DELETE" });
     renderState(await api(`${lessonApi}/state`));
     logs.textContent = "Start the service to see its request log.";
     products.innerHTML = '<p class="empty-copy">Start the service, then send the direct request.</p>';
@@ -224,7 +224,7 @@ requestButton.addEventListener("click", async () => {
 clearButton.addEventListener("click", async () => {
   clearButton.disabled = true;
   try {
-    await api(`${lessonApi}/catalog/logs`, { method: "DELETE" });
+    await api(`${lessonApi}/logs`, { method: "DELETE" });
     logs.textContent = "No requests received yet.";
   } catch (error) {
     toast(error.message, true);

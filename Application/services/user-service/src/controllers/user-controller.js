@@ -10,7 +10,7 @@ export function createUserController(service) {
 
     async get(request, response, next) {
       try {
-        response.json(await service.getUser(Number(request.params.id)));
+        response.json(await service.getUser(request.params.id));
       } catch (error) {
         next(error);
       }

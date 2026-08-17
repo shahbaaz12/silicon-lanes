@@ -16,7 +16,7 @@ server {
 
   location = /cdn-health { access_log off; return 200 'ok'; }
 
-  location /api/products {
+  location = /api/products {
     proxy_pass http://advanced_origin;
     proxy_cache product_cache;
     proxy_cache_methods GET HEAD;

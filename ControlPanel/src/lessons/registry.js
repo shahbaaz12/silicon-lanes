@@ -74,16 +74,14 @@ function standardLesson({ id, state, start, stop, logs, clearLogs, extraRoutes =
 }
 
 export const lessonRegistry = Object.freeze([
-  {
+  standardLesson({
     id: "lesson-01-direct-service",
-    routes: [
-      jsonRoute("get", "/state", getDirectServiceLessonState),
-      jsonRoute("post", "/catalog/start", startDirectServiceLesson, 201),
-      emptyRoute("delete", "/catalog/stop", stopDirectServiceLesson),
-      jsonRoute("get", "/catalog/logs", getDirectServiceLessonLogs, 200, (logs) => ({ logs })),
-      emptyRoute("delete", "/catalog/logs", clearDirectServiceLessonLogs)
-    ]
-  },
+    state: getDirectServiceLessonState,
+    start: startDirectServiceLesson,
+    stop: stopDirectServiceLesson,
+    logs: getDirectServiceLessonLogs,
+    clearLogs: clearDirectServiceLessonLogs
+  }),
   standardLesson({
     id: "lesson-02-reverse-proxy",
     state: getReverseProxyLessonState,

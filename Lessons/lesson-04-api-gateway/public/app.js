@@ -34,7 +34,7 @@ const elements = {
   lastRouteValue: document.querySelector("#last-route-value"),
   lastRouteMessage: document.querySelector("#last-route-message"),
   requestTrace: document.querySelector("#request-trace"),
-  toast: document.querySelector("#toast-region")
+  toast: document.querySelector("#toasts")
 };
 
 let state;

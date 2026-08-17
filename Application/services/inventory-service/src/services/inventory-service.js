@@ -1,3 +1,11 @@
+function positiveInteger(value, fieldName) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw Object.assign(new Error(`${fieldName} must be a positive integer`), { statusCode: 400 });
+  }
+  return parsed;
+}
+
 export class InventoryService {
   constructor(repository) {
     this.repository = repository;
@@ -8,7 +16,7 @@ export class InventoryService {
   }
 
   async getInventory(productId) {
-    const item = await this.repository.findByProductId(productId);
+    const item = await this.repository.findByProductId(positiveInteger(productId, "productId"));
     if (!item) throw Object.assign(new Error("Inventory record not found"), { statusCode: 404 });
     return item;
   }

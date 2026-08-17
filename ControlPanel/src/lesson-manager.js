@@ -75,7 +75,8 @@ export async function stopDirectServiceLesson() {
 
 export async function getDirectServiceLessonLogs() {
   const instance = await currentInstance();
-  return instance ? getInstanceLogs(instance.id) : "Start the service to see its request log.";
+  const logs = instance ? await getInstanceLogs(instance.id) : "Start the service to see its request log.";
+  return { logs };
 }
 
 export async function clearDirectServiceLessonLogs() {

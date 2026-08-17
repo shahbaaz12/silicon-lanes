@@ -2,7 +2,12 @@
    .lesson-workspace, .architecture-flow, .node-card, .routing-stage, .edge-row, .tagged-node,
    .layer-tag, .edge-branches, .gateway-tier/.gateway-merge, .service-tier, .observation,
    .request-trace, .log-grid, .architecture-explanation, .tradeoffs, .next-lesson, and toasts
-   all come from there. This file only adds what is specific to the CDN layer. */
+   all come from there. This file only adds what is specific to the CDN layer.
+
+   This is the one cross-lesson stylesheet dependency in the project (every other lesson is
+   fully self-contained) — if a class this file relies on gets renamed or removed over there,
+   this page breaks silently with no build step to catch it. lesson-06-advanced/styles.css
+   carries a matching note. If Lesson 6 is redesigned again, verify this page after. */
 
 .layer-tag.cache { border: 1px solid rgb(251 113 133 / 45%); color: #ffc2c9; background: #2a1418; }
 

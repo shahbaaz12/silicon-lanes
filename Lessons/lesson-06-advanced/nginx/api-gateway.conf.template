@@ -17,7 +17,7 @@ server {
 
   location = /advanced-gateway-health { access_log off; return 200 'ok'; }
 
-  location /api/users {
+  location = /api/users {
     proxy_pass http://user_service;
     proxy_connect_timeout 2s;
     proxy_hide_header Access-Control-Allow-Origin;
@@ -29,7 +29,7 @@ server {
     add_header Vary Origin always;
   }
 
-  location /api/orders {
+  location = /api/orders {
     proxy_pass http://order_service;
     proxy_connect_timeout 2s;
     proxy_hide_header Access-Control-Allow-Origin;
@@ -41,7 +41,7 @@ server {
     add_header Vary Origin always;
   }
 
-  location /api/products {
+  location = /api/products {
     proxy_pass http://catalog_load_balancer;
     proxy_connect_timeout 2s;
     proxy_hide_header Access-Control-Allow-Origin;

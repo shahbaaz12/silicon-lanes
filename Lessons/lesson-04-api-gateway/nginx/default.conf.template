@@ -26,10 +26,10 @@ server {
     return 200 'ok';
   }
 
-  location /api/users { proxy_pass http://user_service; include /etc/nginx/proxy_params; }
-  location /api/products { proxy_pass http://catalog_service; include /etc/nginx/proxy_params; }
-  location /api/inventory { proxy_pass http://inventory_service; include /etc/nginx/proxy_params; }
-  location /api/carts { proxy_pass http://cart_service; include /etc/nginx/proxy_params; }
-  location /api/orders { proxy_pass http://order_service; include /etc/nginx/proxy_params; }
-  location /api/payments { proxy_pass http://payment_service; include /etc/nginx/proxy_params; }
+  location = /api/users { proxy_pass http://user_service; include /etc/nginx/proxy_params; }
+  location = /api/products { proxy_pass http://catalog_service; include /etc/nginx/proxy_params; }
+  location = /api/inventory { proxy_pass http://inventory_service; include /etc/nginx/proxy_params; }
+  location = /api/carts { proxy_pass http://cart_service; include /etc/nginx/proxy_params; }
+  location = /api/orders { proxy_pass http://order_service; include /etc/nginx/proxy_params; }
+  location = /api/payments { proxy_pass http://payment_service; include /etc/nginx/proxy_params; }
 }

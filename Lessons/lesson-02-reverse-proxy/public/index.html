@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Learn how a reverse proxy hides an application server, forwards requests, and caches responses.">
-    <title>Lesson 2 · Reverse Proxy · Silicon Lanes</title>
+    <title>Lesson 2 &middot; Reverse Proxy &middot; Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-02-reverse-proxy/styles.css">
     <link rel="stylesheet" href="/theme.css">
@@ -21,7 +21,7 @@
 
     <main>
       <section class="intro" aria-labelledby="lesson-title">
-        <p class="eyebrow">Lesson 2 · Infrastructure layer</p>
+        <p class="eyebrow">Lesson 2 &middot; Infrastructure layer</p>
         <h1 id="lesson-title">The client calls the reverse proxy, not the application server.</h1>
         <p class="intro-copy">The client knows only <code>localhost:7212</code>. Nginx forwards requests to the hidden Catalog Service and can return a cached response without contacting it.</p>
         <div class="concept-tags" aria-label="Lesson concepts">
@@ -90,7 +90,7 @@
               <div><span>Published address</span><code id="detail-published-address">localhost:7212</code><small>The only address known by the client.</small></div>
               <div><span>Container listener</span><code id="detail-listen-port">reverseProxy1:80</code><small>Nginx listens here inside Docker.</small></div>
               <div><span>proxy_pass destination</span><code id="detail-upstream-address">catalogService1:6212</code><small>Only cache misses are forwarded here.</small></div>
-              <div><span>Cache expiry</span><code>HTTP 200 · 15 seconds</code><small>Successful product responses remain fresh for 15 seconds.</small></div>
+              <div><span>Cache expiry</span><code>HTTP 200 &middot; 15 seconds</code><small>Successful product responses remain fresh for 15 seconds.</small></div>
               <pre id="proxy-config-snippet">listen 80;
 proxy_pass http://catalogService1:6212;
 proxy_cache_valid 200 15s;</pre>
@@ -105,7 +105,7 @@ proxy_cache_valid 200 15s;</pre>
                 <code id="ttl-label">TTL 15s</code>
               </div>
               <div class="request-log">
-                <div class="section-heading"><span>Reverse Proxy log · URL / cache</span></div>
+                <div class="section-heading"><span>Reverse Proxy log &middot; URL / cache</span></div>
                 <pre id="proxy-logs">Start the lesson to see Reverse Proxy requests.</pre>
               </div>
             </div>
@@ -122,7 +122,7 @@ proxy_cache_valid 200 15s;</pre>
               <small>The client never calls this address.</small>
             </div>
             <div class="request-log">
-              <div class="section-heading"><span>Catalog Service log · time / method / URL</span></div>
+              <div class="section-heading"><span>Catalog Service log &middot; time / method / URL</span></div>
               <pre id="service-logs">Start the lesson to see Catalog Service requests.</pre>
             </div>
           </lesson-service-card>
@@ -212,7 +212,7 @@ proxy_cache_valid 200 15s;</pre>
       </section>
     </main>
 
-    <div id="toast-region" class="toast-region" aria-live="polite"></div>
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
     <script type="module" src="/lessons/lesson-02-reverse-proxy/app.js"></script>
   </body>
 </html>

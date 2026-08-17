@@ -60,7 +60,7 @@ function toast(message, isError = false) {
   const item = document.createElement("div");
   item.className = `toast${isError ? " error" : ""}`;
   item.textContent = message;
-  document.querySelector("#toast-region").append(item);
+  document.querySelector("#toasts").append(item);
   setTimeout(() => item.remove(), 3500);
 }
 

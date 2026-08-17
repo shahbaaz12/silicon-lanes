@@ -25,7 +25,7 @@ const elements = {
   clientUrl: document.querySelector("#load-balancer-url"),
   upstreamConfig: document.querySelector("#config-snippet"),
   clientConnector: document.querySelector(".connector-client"),
-  toast: document.querySelector("#toast-region"),
+  toast: document.querySelector("#toasts"),
   requestTrace: document.querySelector("#request-trace"),
   totalRequests: document.querySelector("#total-request-count"),
   healthyReplicas: document.querySelector("#healthy-replica-count"),

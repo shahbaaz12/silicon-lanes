@@ -1,3 +1,11 @@
+function positiveInteger(value, fieldName) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw Object.assign(new Error(`${fieldName} must be a positive integer`), { statusCode: 400 });
+  }
+  return parsed;
+}
+
 export class PaymentService {
   constructor(repository) {
     this.repository = repository;
@@ -8,7 +16,7 @@ export class PaymentService {
   }
 
   async getPayment(id) {
-    const payment = await this.repository.findById(id);
+    const payment = await this.repository.findById(positiveInteger(id, "id"));
     if (!payment) throw Object.assign(new Error("Payment not found"), { statusCode: 404 });
     return payment;
   }

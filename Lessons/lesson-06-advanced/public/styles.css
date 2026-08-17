@@ -1,3 +1,11 @@
+/* NOTE: Lesson 7 (`/lessons/lesson-07-local-cdn/`) links this file directly and reuses its
+   design tokens plus most of its layout classes (.site-header, .architecture-flow, .node-card,
+   .routing-stage, .edge-row/.edge-summary/.edge-branches, .gateway-tier/.gateway-merge,
+   .service-tier/.service-grid/.service-path, .observation, .request-trace, .log-grid,
+   .architecture-explanation, .tradeoffs, .next-lesson, toasts, and the flow/reveal animations).
+   Renaming or removing any of those selectors here will silently break Lesson 7's layout —
+   check `Lessons/lesson-07-local-cdn/public/styles.css` and `index.html` before doing so. */
+
 :root {
   color-scheme: dark;
   --bg: #090b0e;
