@@ -227,7 +227,7 @@ h1 {
   position: relative;
   margin-bottom: 24px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -271,7 +271,7 @@ h1 {
   min-width: 0;
   padding-inline: 9px;
   border-color: rgb(111 224 167 / 45%);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .service-lab-card {
@@ -382,7 +382,7 @@ h1 {
   border-radius: 999px;
   color: var(--muted);
   background: var(--panel);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .lab-facts strong {
@@ -422,7 +422,7 @@ h1 {
 
 .fleet-summary span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -470,7 +470,7 @@ h1 {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .service-mini-copy {
@@ -491,7 +491,7 @@ h1 {
 .service-mini-copy small {
   overflow: hidden;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -510,7 +510,7 @@ h1 {
 
 .service-mini-count small {
   color: var(--muted);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -573,7 +573,7 @@ h1 {
   align-items: baseline;
   gap: 6px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -626,7 +626,7 @@ h1 {
   color: var(--text);
   background: #0c0f12;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .instance-option.selected {
@@ -650,7 +650,7 @@ h1 {
   border: 1px dashed var(--line);
   border-radius: 10px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .api-workbench {
@@ -681,7 +681,7 @@ h1 {
 
 .selected-endpoint strong {
   color: var(--lime);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .selected-endpoint code {
@@ -696,7 +696,7 @@ h1 {
   display: block;
   margin: 12px 0 6px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -746,7 +746,7 @@ h1 {
 }
 
 .execution-empty span {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .execution-result-header {
@@ -757,7 +757,7 @@ h1 {
   gap: 9px 18px;
   margin-bottom: 8px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .execution-result-header strong {
@@ -799,7 +799,7 @@ h1 {
   color: var(--muted);
   background: transparent;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -1121,7 +1121,7 @@ h1 {
 .code-label {
   margin: 18px 0 8px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -1139,7 +1139,7 @@ h1 {
 .clear-logs {
   min-height: 30px;
   padding-inline: 10px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .endpoint-list {
@@ -1181,7 +1181,7 @@ h1 {
 
 .endpoint-option span {
   color: var(--lime);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
@@ -1338,7 +1338,7 @@ h1 {
 
 .lesson-level {
   color: var(--lime);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 850;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -1350,7 +1350,7 @@ h1 {
   border-radius: 7px;
   color: color-mix(in srgb, var(--cyan) 70%, var(--text));
   background: #0b0e11;
-  font: 11px/1.45 var(--font-mono, monospace);
+  font: 12px/1.45 var(--font-mono, monospace);
 }
 
 .lesson-tags {
@@ -1365,7 +1365,7 @@ h1 {
   border-radius: 999px;
   color: var(--muted);
   background: rgb(255 255 255 / 2%);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 

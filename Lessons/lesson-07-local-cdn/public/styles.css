@@ -18,15 +18,15 @@
 /* Second status row: CDN infrastructure state, cache result, and the live journey string. */
 .cdn-summary { width: min(620px, 100%); display: grid; grid-template-columns: 150px 110px minmax(0, 1fr); gap: 8px; }
 .cdn-summary > div { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-raised); }
-.cdn-summary span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.cdn-summary strong { color: var(--muted); font: 900 10px ui-monospace, Consolas, monospace; }
+.cdn-summary span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.cdn-summary strong { color: var(--muted); font: 900 11px ui-monospace, Consolas, monospace; }
 .cdn-summary strong[data-tone="ready"] { color: var(--lime); }
 .cdn-summary strong[data-tone="warning"] { color: var(--amber); }
 .cdn-summary strong[data-tone="hit"] { color: var(--lime); }
 .cdn-summary strong[data-tone="miss"] { color: var(--amber); }
 .cdn-summary strong[data-tone="bypass"] { color: var(--cyan); }
 .cdn-summary strong[data-tone="failed"] { color: var(--danger); }
-.cdn-summary code { display: block; overflow: auto; color: var(--cyan); font-size: 9px; white-space: nowrap; }
+.cdn-summary code { display: block; overflow: auto; color: var(--cyan); font-size: 10px; white-space: nowrap; }
 
 /* Single-line connector from the CDN row down to the Edge/L4 row (no branching). */
 .cdn-descend { position: relative; width: 2px; height: 40px; margin: 0 auto; background: var(--connector); }

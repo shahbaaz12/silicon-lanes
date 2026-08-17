@@ -90,7 +90,7 @@ main {
 .eyebrow {
   margin: 0 0 10px;
   color: var(--cyan);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -140,7 +140,7 @@ main {
   border-radius: 999px;
   color: #d5dde2;
   background: var(--panel);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -206,7 +206,7 @@ main {
 
 .primary-action.start { min-width: 142px; padding: 0 20px; }
 .primary-action.request-action { width: 100%; margin: 14px 0 0; }
-.primary-action span { margin-right: 8px; font-size: 10px; }
+.primary-action span { margin-right: 8px; font-size: 11px; }
 .primary-action.sending { animation: buttonPulse .7s ease-in-out infinite alternate; }
 .secondary-action { padding: 0 18px; border: 1px solid var(--line); color: var(--text); background: transparent; }
 
@@ -245,7 +245,7 @@ main {
 .endpoint-box span,
 .server-identity span {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
@@ -265,7 +265,7 @@ main {
 .product:last-child { border-bottom: 0; }
 .product div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .product b { font-size: 13px; }
-.product span { overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.product span { overflow: hidden; color: var(--muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .product strong { color: var(--lime); font: 800 12px ui-monospace, Consolas, monospace; }
 
 .connection {
@@ -278,10 +278,10 @@ main {
 }
 
 .connection-label,
-.address-label { font: 800 10px ui-monospace, Consolas, monospace; text-transform: uppercase; }
+.address-label { font: 800 11px ui-monospace, Consolas, monospace; text-transform: uppercase; }
 .connection-label { margin-bottom: 11px; color: var(--cyan); }
 .address-label { margin-top: 10px; color: #d4dce1; }
-.connection p { margin: 8px 0 0; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.connection p { margin: 8px 0 0; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
 .wire { position: relative; width: 100%; height: 2px; overflow: visible; background: #34444b; }
 .wire::after { position: absolute; top: -4px; right: 0; width: 8px; height: 8px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); content: ""; transform: rotate(45deg); }
 .packet { position: absolute; top: -4px; left: -10px; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 15px var(--lime); opacity: 0; }
@@ -290,9 +290,9 @@ main {
 
 .server-identity { margin-bottom: 18px; }
 .request-log { margin-top: auto; }
-.section-heading { min-height: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: var(--muted); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.request-log button { border: 0; color: var(--cyan); background: transparent; font-size: 10px; text-transform: uppercase; }
-.request-log pre { height: 150px; margin: 0; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: #d2d9de; background: #090b0d; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+.section-heading { min-height: 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: var(--muted); font-size: 10px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.request-log button { border: 0; color: var(--cyan); background: transparent; font-size: 11px; text-transform: uppercase; }
+.request-log pre { height: 150px; margin: 0; overflow: auto; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: #d2d9de; background: #090b0d; font: 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
 
 .observation {
   display: grid;
@@ -339,14 +339,14 @@ main {
   border-radius: 50%;
   color: var(--muted);
   background: var(--panel-raised);
-  font: 800 11px ui-monospace, Consolas, monospace;
+  font: 800 12px ui-monospace, Consolas, monospace;
   transition: border-color .2s ease, color .2s ease, background .2s ease, box-shadow .2s ease;
 }
 
 .request-trace li div { padding-top: 2px; }
 .request-trace strong { display: block; color: #dde4e8; font-size: 14px; }
 .request-trace small { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.5; }
-.request-trace code { padding: 1px 5px; font-size: 10px; }
+.request-trace code { padding: 1px 5px; font-size: 11px; }
 .request-trace li.active > span { border-color: var(--cyan); color: var(--cyan); background: rgb(85 217 232 / 10%); box-shadow: 0 0 18px rgb(85 217 232 / 24%); }
 .request-trace li.complete > span { border-color: var(--lime); color: #172205; background: var(--lime); }
 .request-trace li.complete:not(:last-child)::after { background: color-mix(in srgb, var(--lime) 65%, var(--line)); }
@@ -460,7 +460,7 @@ html[data-theme="light"] .next-lesson a { color: var(--text); background: rgb(8 
 @media (max-width: 640px) {
   .site-header { padding-inline: 16px; }
   .lesson-chip { font-size: 0; }
-  .lesson-chip span { font-size: 9px; }
+  .lesson-chip span { font-size: 10px; }
   main { width: min(100% - 24px, 1320px); padding-top: 42px; }
   .intro h1 { font-size: 42px; }
   .intro-copy { font-size: 16px; }
