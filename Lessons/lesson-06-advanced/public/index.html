@@ -3,112 +3,241 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lesson 6 · Advanced · Silicon Lanes</title>
+    <meta name="description" content="Learn how an Edge Layer 4 Load Balancer distributes connections across multiple API Gateway instances.">
+    <title>Lesson 6 &middot; Advanced Availability &middot; Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-06-advanced/styles.css">
     <link rel="stylesheet" href="/theme.css">
     <script src="/theme.js"></script>
   </head>
   <body>
-    <header class="topbar"><a href="/"><span>SL</span> Silicon Lanes</a><div><b>Lesson 06</b> Advanced</div></header>
-    <main>
-      <section class="intro">
-        <div><p>Scale the entry point</p><h1>No single gateway.</h1><span>An edge load balancer selects one of two identical API Gateways before service routing begins.</span></div>
-        <code>Client → Edge LB → Gateway → Service</code>
-      </section>
-      <div class="controls"><button class="primary" id="start">Start Lesson 6</button><button id="stop" disabled>Stop lesson</button><button id="clear" disabled>Clear logs</button></div>
-      <section class="lab">
-        <lesson-client-card class="client-card" icon="C" kicker="Request origin" heading="Browser client" status="ready">
-          <div class="route-buttons" id="routes"></div>
-          <div class="url"><small>Only public address</small><code id="url">http://127.0.0.1:7612/api/users</code></div>
-          <button class="send" id="send" disabled>GET · Send request</button>
-          <lesson-response-panel class="response" heading="Latest response" meta-id="response-meta" time-id="response-time" server-id="response-server">
-            <pre data-response-body id="pretty">Start the lesson, then send a request.</pre>
-            <pre data-response-json id="json">No JSON response yet.</pre>
-            <pre data-response-headers id="headers">No response headers yet.</pre>
-          </lesson-response-panel>
-        </lesson-client-card>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 06</span> Advanced availability</div>
+    </header>
 
-        <div class="flow">
-          <div class="tagged-node"><span class="tier-tag">L4</span><lesson-node-lite id="edge-node" kind="load-balancer" layer="4" heading="Edge Load Balancer" configuration="Layer: L4&#10;Published: 127.0.0.1:7612&#10;Balances TCP connections&#10;Pool: API Gateway 1, API Gateway 2"></lesson-node-lite></div>
-          <div class="edge-split" aria-hidden="true"></div>
-          <div class="gateways">
-            <div class="gateway-column"><div class="route-arrow" aria-hidden="true"></div><lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway1" heading="API Gateway 1" configuration="Private port: 80&#10;Stateless L7 path router&#10;Configuration matches API Gateway 2"></lesson-node-lite></div>
-            <div class="gateway-column"><div class="route-arrow" aria-hidden="true"></div><lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway2" heading="API Gateway 2" configuration="Private port: 80&#10;Stateless L7 path router&#10;Configuration matches API Gateway 1"></lesson-node-lite></div>
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 6 &middot; Scale the entry layer</p>
+        <h1 id="lesson-title">No single API Gateway.</h1>
+        <p class="intro-copy">An <strong>Edge/L4 Load Balancer</strong> accepts the public connection and selects one of two identical API Gateway instances. The selected gateway then reads the HTTP path and continues the Lesson 5 routing design.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>Edge Load Balancer</span>
+          <span>Layer 4 connections</span>
+          <span>Two API Gateways</span>
+          <span>High availability</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive architecture lab</p>
+            <h2 id="lab-title">Distribute connections across the gateway tier.</h2>
+            <p>Send one request or open six concurrent connections. Observe which gateway receives each connection before any HTTP path is inspected.</p>
           </div>
-          <div class="gateway-merge" aria-hidden="true"><i></i><i></i></div>
-          <div class="route-split" aria-hidden="true"></div>
-          <div class="branches">
-            <div class="direct-branch"><span class="route-label">Users</span><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="user" service-key="user" heading="User Service" configuration="Target: userService1:6112&#10;Route: GET /api/users"></lesson-service-lite></div>
-            <div class="catalog-branch">
-              <span class="route-label">Products</span><div class="route-arrow" aria-hidden="true"></div><div class="tagged-node"><span class="tier-tag">L7</span><lesson-node-lite id="catalog-lb-node" kind="load-balancer" layer="7" heading="Catalog Load Balancer" configuration="Layer: L7&#10;Private port: 80&#10;Reads HTTP Product requests&#10;Algorithm: round robin"></lesson-node-lite></div>
-              <div class="catalog-split" aria-hidden="true"></div>
-              <div class="catalogs">
-                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Member of the Catalog replica pool"></lesson-service-lite></div>
-                <div class="catalog-node"><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="catalog-2" service-key="catalog" heading="Catalog Service 2" configuration="Target: catalogService2:6212&#10;Member of the Catalog replica pool"></lesson-service-lite></div>
+          <div class="lesson-controls">
+            <button class="primary-action" id="start" type="button">Start Lesson</button>
+            <button class="secondary-action" id="stop" type="button" disabled>Stop Lesson</button>
+            <button class="secondary-action" id="clear" type="button" disabled>Clear Logs</button>
+          </div>
+        </div>
+
+        <div class="architecture-flow" aria-label="Browser Client to Edge L4 Load Balancer to two API Gateways and backend services">
+          <lesson-client-card class="node-card client-card" icon="C" kicker="Request origin" heading="Browser Client" status="ready">
+            <div class="route-picker-heading"><span>Choose an API</span><small>Edge cannot see this path</small></div>
+            <div class="route-picker" id="routes"></div>
+
+            <div class="endpoint-box">
+              <span>Only public URL</span>
+              <code id="url">http://localhost:7612/api/users</code>
+            </div>
+
+            <div class="request-actions">
+              <button class="primary-action request-action" id="send" type="button" disabled><span>GET</span> Execute request</button>
+              <button class="secondary-action experiment-action" id="run-connections" type="button" disabled>Open 6 connections</button>
+            </div>
+            <div class="client-tooling">
+              <span>You can run the selected request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+
+            <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
+              <pre data-response-body id="pretty">Start the lesson, then execute a request.</pre>
+              <pre data-response-json id="json">Execute a request to inspect the original response.</pre>
+              <pre data-response-headers id="headers">Execute a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector connector-client" aria-label="Public connection to the Edge Load Balancer"><span>One public address</span><b class="packet"></b></div>
+
+          <div class="routing-stage">
+            <div class="edge-row">
+              <div class="tagged-node">
+                <span class="layer-tag l4">L4</span>
+                <lesson-node-lite id="edge-node" kind="load-balancer" layer="4" heading="Edge Load Balancer" configuration="Layer: L4&#10;Published address: localhost:7612&#10;Decision input: IP address and TCP port&#10;Pool: advancedApiGateway1, advancedApiGateway2&#10;Idle timeout: 3 seconds for observable teaching logs&#10;Does not inspect HTTP paths"></lesson-node-lite>
+              </div>
+              <div class="edge-summary">
+                <div><span>Infrastructure status</span><strong id="infrastructure-status" data-tone="stopped">STOPPED</strong></div>
+                <div><span>Current journey</span><code id="decision">Edge L4 &rarr; waiting</code></div>
               </div>
             </div>
-            <div class="direct-branch"><span class="route-label">Orders</span><div class="route-arrow" aria-hidden="true"></div><lesson-service-lite data-key="order" service-key="order" heading="Order Service" configuration="Target: orderService1:6512&#10;Route: GET /api/orders"></lesson-service-lite></div>
+
+            <div class="edge-branches" aria-hidden="true"><i></i><i></i></div>
+            <section class="gateway-tier" aria-labelledby="gateway-tier-title">
+              <div class="tier-heading"><span>Stateless gateway tier</span><strong id="gateway-tier-title">Two identical L7 routers</strong></div>
+              <div class="gateway-grid">
+                <div class="gateway-slot" data-gateway-slot="advancedApiGateway1">
+                  <lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway1" heading="API Gateway 1" configuration="Private listener: advancedApiGateway1:80&#10;Layer: L7 HTTP path routing&#10;Configuration matches API Gateway 2&#10;Routes User and Order directly&#10;Routes Products through the Catalog Load Balancer"></lesson-node-lite>
+                </div>
+                <div class="gateway-slot" data-gateway-slot="advancedApiGateway2">
+                  <lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway2" heading="API Gateway 2" configuration="Private listener: advancedApiGateway2:80&#10;Layer: L7 HTTP path routing&#10;Configuration matches API Gateway 1&#10;Routes User and Order directly&#10;Routes Products through the Catalog Load Balancer"></lesson-node-lite>
+                </div>
+              </div>
+            </section>
+
+            <div class="gateway-merge" aria-hidden="true"><i></i><i></i></div>
+            <section class="service-tier" aria-labelledby="service-tier-title">
+              <div class="tier-heading"><span>Internal routing</span><strong id="service-tier-title">Service destinations</strong></div>
+              <div class="service-grid">
+                <article class="service-path" data-service-path="user">
+                  <div class="path-heading"><span>Direct</span><code>/api/users</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <lesson-service-lite data-key="user" service-key="user" heading="User Service" configuration="Target: userService1:6112&#10;Route: GET /api/users&#10;Selected directly by either API Gateway"></lesson-service-lite>
+                </article>
+
+                <article class="service-path catalog-path" data-service-path="catalog">
+                  <div class="path-heading"><span>Scaled</span><code>/api/products</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <div class="tagged-node">
+                    <span class="layer-tag l7">L7</span>
+                    <lesson-node-lite id="catalog-lb-node" kind="load-balancer" layer="7" heading="Catalog Load Balancer" configuration="Layer: L7&#10;Private listener: advancedCatalogLoadBalancer1:80&#10;Decision input: HTTP Product request&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2"></lesson-node-lite>
+                  </div>
+                  <div class="catalog-branches" aria-hidden="true"><i></i><i></i></div>
+                  <div class="catalog-replicas">
+                    <lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                    <lesson-service-lite data-key="catalog-2" service-key="catalog" heading="Catalog Service 2" configuration="Target: catalogService2:6212&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                  </div>
+                </article>
+
+                <article class="service-path" data-service-path="order">
+                  <div class="path-heading"><span>Direct</span><code>/api/orders</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <lesson-service-lite data-key="order" service-key="order" heading="Order Service" configuration="Target: orderService1:6512&#10;Route: GET /api/orders&#10;Selected directly by either API Gateway"></lesson-service-lite>
+                </article>
+              </div>
+            </section>
           </div>
         </div>
-
-        <aside class="trace">
-          <div class="decision"><span>Request journey</span><strong id="decision">Edge LB → waiting</strong></div>
-          <section><h2>Edge Load Balancer log</h2><pre id="edge-log">Start Lesson 6.</pre></section>
-          <section><h2>API Gateway 1 log</h2><pre id="gateway-1-log">Start Lesson 6.</pre></section>
-          <section><h2>API Gateway 2 log</h2><pre id="gateway-2-log">Start Lesson 6.</pre></section>
-          <section><h2>Catalog Load Balancer log</h2><pre id="catalog-log">Only Product requests enter this node.</pre></section>
-          <details><summary>Simple configuration</summary><pre>Edge Load Balancer:
-advancedApiGateway1
-advancedApiGateway2
-
-Each API Gateway:
-/api/users    → userService1
-/api/orders   → orderService1
-/api/products → advancedCatalogLoadBalancer1
-
-Catalog Load Balancer:
-catalogService1
-catalogService2</pre></details>
-        </aside>
       </section>
-      <section class="explain lesson-overview" aria-labelledby="lesson-note-title">
-        <div>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">Observe the gateway tier</p>
+          <h2 id="observation-title">Which API Gateway accepted the connection?</h2>
+          <p>The Edge Load Balancer makes its decision before the HTTP request is visible. A reused TCP connection can therefore keep reaching the same gateway.</p>
+          <div class="last-route" id="last-route" data-tone="waiting">
+            <span>Latest request journey</span>
+            <strong id="last-route-value">WAITING</strong>
+            <small id="last-route-message">Execute a request to reveal every selected component.</small>
+          </div>
+        </div>
+
+        <div class="observation-content">
+          <div class="route-summary">
+            <div><span>Selected gateway</span><strong id="selected-gateway">Waiting</strong></div>
+            <div><span>Final server</span><strong id="selected-server">Waiting</strong></div>
+            <div><span>Gateway history</span><strong id="gateway-history">No connections yet</strong></div>
+          </div>
+
+          <ol class="request-trace" id="request-trace">
+            <li class="pending"><span>1</span><div><strong>Start the lesson</strong><small>The trace will separate connection distribution from API and service routing.</small></div></li>
+          </ol>
+
+          <div class="connection-note">
+            <strong>Why concurrent connections?</strong>
+            <p>Layer 4 balances TCP connections. Sequential browser requests may reuse one existing connection and remain on one gateway. The experiment sends requests concurrently so the browser is more likely to open multiple connections.</p>
+          </div>
+
+          <div class="log-grid">
+            <section><div class="log-heading"><span>Edge/L4 log</span><b>connection &rarr; gateway</b></div><pre id="edge-log">Start Lesson 6.</pre></section>
+            <section><div class="log-heading"><span>API Gateway 1 log</span><b>path &rarr; service</b></div><pre id="gateway-1-log">Start Lesson 6.</pre></section>
+            <section><div class="log-heading"><span>API Gateway 2 log</span><b>path &rarr; service</b></div><pre id="gateway-2-log">Start Lesson 6.</pre></section>
+            <section><div class="log-heading"><span>Catalog L7 log</span><b>Products only</b></div><pre id="catalog-log">Only Product requests enter this node.</pre></section>
+          </div>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="lesson-note-title">
+        <div class="explanation-copy">
           <p class="eyebrow">What this teaches</p>
-          <h2 id="lesson-note-title">Remove the single gateway bottleneck.</h2>
-        </div>
-        <div class="lesson-overview-copy">
-          <p>Once the <strong>API Gateway becomes the main entry point</strong>, it can itself become a <strong>Single Point of Failure (SPOF)</strong>.</p>
-          <p>To avoid this, we can run multiple API Gateway instances and place another load balancer in front of them.</p>
-          <p>The flow becomes:</p>
-          <div class="request-flow-summary" aria-label="Client to Edge Layer 4 Load Balancer to API Gateway Instances to Services">
-            <strong>Client</strong><b>→</b><strong>Edge / L4 Load Balancer</strong><b>→</b><strong>API Gateway Instances</strong><b>→</b><strong>Services</strong>
+          <h2 id="lesson-note-title">Remove the single API Gateway SPOF.</h2>
+          <p>Once the <strong>API Gateway becomes the main entry point</strong>, it can become a <strong>Single Point of Failure (SPOF)</strong>. To avoid this, we run multiple API Gateway instances and place another Load Balancer in front of them.</p>
+
+          <div class="flow-summary" aria-label="Client to Edge Layer 4 Load Balancer to API Gateway instances to services">
+            <strong>Client</strong><b>&rarr;</b><strong>Edge/L4 Load Balancer</strong><b>&rarr;</b><strong>API Gateway Instances</strong><b>&rarr;</b><strong>Services</strong>
           </div>
-          <p>This outer load balancer distributes incoming connections across the available API Gateway instances.</p>
-          <p>It is often a <strong>Layer 4 load balancer</strong> when its main responsibility is simply to distribute traffic using IP addresses and ports rather than inspect application-level requests.</p>
-          <p>It may also be called an <strong>edge load balancer</strong> because it sits near the outermost entry point of the infrastructure.</p>
-          <p>This gives us:</p>
-          <ul class="advantage-list">
-            <li><strong>High availability:</strong> More than one API Gateway can accept traffic.</li>
-            <li><strong>No single API Gateway SPOF:</strong> Another healthy gateway can receive new connections if one fails.</li>
-            <li><strong>Horizontal scaling:</strong> More API Gateway instances can be added as traffic grows.</li>
-            <li><strong>Higher traffic capacity:</strong> Incoming connections are spread across the gateway tier.</li>
-          </ul>
-          <p>Responsibilities are now separated:</p>
+
+          <p>The outer Load Balancer distributes incoming connections across available API Gateway instances. It can operate at <strong>Layer 4</strong> because its main responsibility is to use transport information such as IP addresses and ports, rather than inspect application-level paths.</p>
+          <p>It is also called an <strong>Edge Load Balancer</strong> because it sits near the outermost entry point of the infrastructure.</p>
+
+          <div class="advantage-grid">
+            <article><h3>High availability</h3><p>More than one API Gateway can accept traffic.</p></article>
+            <article><h3>No gateway-instance SPOF</h3><p>Another healthy gateway can receive new connections if one fails.</p></article>
+            <article><h3>Horizontal scaling</h3><p>More gateway instances can be added as traffic grows.</p></article>
+            <article><h3>Higher entry capacity</h3><p>Incoming connections are spread across the gateway tier.</p></article>
+          </div>
+
           <div class="responsibility-stack">
-            <div><strong>Edge / L4 Load Balancer</strong><span>Distributes connections across API Gateway instances.</span></div>
-            <div><strong>API Gateway</strong><span>Understands API requests and routes each one to the appropriate service.</span></div>
-            <div><strong>Internal L7 Load Balancer</strong><span>Distributes service traffic across instances of a particular service.</span></div>
+            <article><span class="layer-pill l4">L4</span><div><h3>Edge Load Balancer</h3><p>Distributes connections across API Gateway instances without understanding API paths.</p></div></article>
+            <article><span class="layer-pill gateway">L7</span><div><h3>API Gateway</h3><p>Understands each HTTP request and routes it to the appropriate service type.</p></div></article>
+            <article><span class="layer-pill l7">L7</span><div><h3>Internal Catalog Load Balancer</h3><p>Distributes Product requests across instances of one particular service.</p></div></article>
           </div>
-          <div class="setup-example">
-            <h3>In our setup</h3>
-            <p>An <strong>Nginx stream proxy</strong> acts as the Edge/L4 Load Balancer and distributes TCP connections across <strong>two identical API Gateway instances</strong>. It does not inspect the HTTP path.</p>
-            <p>The selected API Gateway reads the path and routes User and Order requests directly. Product requests continue to an <strong>internal L7 Catalog Load Balancer</strong>, which selects one of two Catalog Service instances.</p>
-          </div>
+
+          <aside class="setup-example">
+            <p class="eyebrow">In our setup</p>
+            <h3>Nginx performs three distinct infrastructure jobs.</h3>
+            <p>An <strong>Nginx stream proxy</strong> acts as the Edge/L4 Load Balancer and distributes TCP connections across <strong>two identical API Gateway instances</strong>. The selected gateway reads the path and routes User and Order directly. Products continue to an <strong>internal L7 Catalog Load Balancer</strong>, which selects one of two Catalog Service instances.</p>
+          </aside>
         </div>
+
+        <div class="tradeoffs" aria-label="Benefits and remaining limitations of the advanced architecture">
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>No single API Gateway instance SPOF</li>
+              <li>Horizontally scalable gateway tier</li>
+              <li>Higher public-entry capacity</li>
+              <li>Clear separation of L4 and L7 decisions</li>
+              <li>Selective Catalog scaling remains intact</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What still remains</p>
+            <ul>
+              <li class="spof-warning"><strong>The single Edge Load Balancer is now the outermost SPOF</strong></li>
+              <li>Gateway configurations must remain consistent</li>
+              <li>The internal Catalog Load Balancer is one instance</li>
+              <li>Every cacheable request still reaches the backend</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">The next design pressure</p>
+          <h2 id="next-lesson-title">Can cacheable responses avoid the backend entirely?</h2>
+          <p>The next lesson places a local CDN in front of this architecture and caches only the Product API by design.</p>
+        </div>
+        <a href="/lessons/lesson-07-local-cdn/">Next: add a local CDN <span>&rarr;</span></a>
       </section>
     </main>
-    <div id="toasts" aria-live="polite"></div>
+
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
     <script type="module" src="/lessons/lesson-06-advanced/app.js"></script>
   </body>
 </html>

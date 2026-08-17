@@ -127,7 +127,7 @@ async function stateFrom(edge, gateways, catalogLoadBalancer) {
   return {
     running: Boolean(edge.State.Running && gateways.every((gateway) => gateway.State.Running) && catalogLoadBalancer.State.Running),
     ready,
-    edge: { name: edgeName, hostPort: edgePort, containerPort: 80, baseUrl: `http://127.0.0.1:${edgePort}` },
+    edge: { name: edgeName, hostPort: edgePort, containerPort: 80, baseUrl: `http://localhost:${edgePort}` },
     gateways: gatewayNames.map((name) => ({ name, containerPort: 80 })),
     catalogLoadBalancer: { name: catalogLoadBalancerName, containerPort: 80 },
     services,
