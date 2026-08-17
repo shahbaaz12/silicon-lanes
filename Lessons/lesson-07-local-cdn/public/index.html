@@ -242,7 +242,7 @@
           <article class="tradeoff-card problems">
             <p class="tradeoff-label">What still remains</p>
             <ul>
-              <li class="spof-warning"><strong>The single Local CDN instance is now a new SPOF and a layer that must be operated</strong></li>
+              <li class="spof-warning"><strong>This CDN is one instance — but how did the client's request even find it, out of every CDN location in the world?</strong> Lesson 8 (bonus) walks through the DNS and routing layer that answers that.</li>
               <li>Cached content can be stale for up to the TTL window</li>
               <li>Every non-cached route still crosses the full origin chain</li>
               <li>Cache policy must be chosen deliberately per endpoint</li>
@@ -251,16 +251,13 @@
         </div>
       </section>
 
-      <section class="next-lesson journey-complete" aria-labelledby="journey-title">
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
         <div>
-          <p class="eyebrow">The journey so far</p>
-          <h2 id="journey-title">One request, seven progressively more resilient architectures.</h2>
-          <p>You've followed a single Product request from one direct service call all the way to a cached edge in front of a multi-tier, highly available origin.</p>
+          <p class="eyebrow">One question this lesson skipped</p>
+          <h2 id="next-lesson-title">How did the request reach this CDN in the first place?</h2>
+          <p>Every lesson so far began the moment a request arrived at one of our containers. The bonus lesson backs up one step further, to DNS, anycast, and BGP — the real-world layer that decides which CDN a client even talks to.</p>
         </div>
-        <div class="journey-links">
-          <a href="/lessons/lesson-01-direct-service/">Restart from Lesson 1 <span>&rarr;</span></a>
-          <a href="/service-lab">Open the Service Lab <span>&rarr;</span></a>
-        </div>
+        <a href="/lessons/lesson-08-request-path/">Bonus: How the request finds you <span>&rarr;</span></a>
       </section>
     </main>
 

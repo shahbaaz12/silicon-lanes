@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Bonus reading: how a request finds a CDN in the first place, through DNS, anycast, and BGP routing.">
+    <title>Lesson 8 &middot; Request Path &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="/lessons/shared/components.css">
+    <link rel="stylesheet" href="/lessons/lesson-08-request-path/styles.css">
+    <link rel="stylesheet" href="/theme.css">
+    <script src="/theme.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 08</span> Bonus reading</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Bonus lesson &middot; Optional &middot; No Docker required</p>
+        <h1 id="lesson-title">How did your request even find Silicon Lanes?</h1>
+        <p class="intro-copy">Every lesson so far began the moment a request landed on one of our containers. This one rewinds further, out onto the open internet: how a domain name becomes an IP address, and how that address becomes one specific physical machine, out of many, possibly on the other side of the world. Nothing here runs in Docker — it's a walk through the plumbing that gets a request to <em>any</em> CDN before Lesson 7 ever sees it.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>DNS resolution</span>
+          <span>Anycast</span>
+          <span>BGP routing</span>
+          <span>CDN Points of Presence</span>
+        </div>
+      </section>
+
+      <section class="walkthrough" aria-labelledby="walkthrough-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">The shape of it</p>
+            <h2 id="walkthrough-title">Two separate decisions happen before your request says hello.</h2>
+            <p>They get lumped together in conversation, but DNS and routing are answering two completely different questions. Step through the request below to see where one ends and the other begins.</p>
+          </div>
+        </div>
+
+        <div class="path-diagram" id="path-diagram" aria-label="Client to DNS to BGP routing to CDN, then the Silicon Lanes infrastructure from Lesson 6 and 7">
+          <div class="path-group internet-group">
+            <span class="group-label">The open internet</span>
+            <div class="path-row">
+              <lesson-node-lite id="step-client" kind="client" heading="Browser Client" configuration="Knows a domain name, not an address.&#10;Sends a DNS query first, before any HTTP request."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-dns" kind="infrastructure" heading="DNS Resolver" configuration="Walks the DNS hierarchy: root -> TLD -> authoritative nameserver.&#10;Under anycast, returns the same IP address to every client on Earth.&#10;Does not pick a nearby server — that decision hasn't happened yet."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-bgp" kind="infrastructure" heading="BGP Routing" configuration="The client's packet heads toward the IP DNS returned.&#10;Because that IP is announced from many physical locations, routers between here and there use BGP to agree on the best path.&#10;A network-layer decision, not a DNS decision."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-pop" kind="cdn" heading="CDN Point of Presence" configuration="Wherever BGP decided the path should end.&#10;Usually, though not guaranteed, the topologically nearest location.&#10;TCP and TLS handshakes happen here — this is Lesson 7's CDN."></lesson-node-lite>
+            </div>
+          </div>
+
+          <div class="path-divider" aria-hidden="true"><span>on a MISS or BYPASS, continues into&hellip;</span></div>
+
+          <div class="path-group silicon-lanes-group">
+            <span class="group-label">Silicon Lanes (Lessons 6 &amp; 7)</span>
+            <div class="path-row">
+              <div class="tagged-node">
+                <span class="layer-tag l4">L4</span>
+                <lesson-node-lite id="step-edge" kind="load-balancer" layer="4" heading="Edge Load Balancer" configuration="The Lesson 6 edge tier.&#10;Distributes TCP connections across API Gateway instances."></lesson-node-lite>
+              </div>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-gateway" kind="api-gateway" heading="API Gateway" configuration="Reads the HTTP path.&#10;Routes User and Order directly; sends Products onward."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <div class="tagged-node">
+                <span class="layer-tag l7">L7</span>
+                <lesson-node-lite id="step-l7lb" kind="load-balancer" layer="7" heading="L7 Load Balancer" configuration="The Lesson 6 Catalog Load Balancer.&#10;Selects one healthy Catalog replica by round robin."></lesson-node-lite>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-controls">
+          <button class="secondary-action" id="step-prev" type="button">&larr; Previous</button>
+          <div class="step-status">
+            <span id="step-counter">Step 1 of 6</span>
+            <div class="step-dots" id="step-dots" aria-hidden="true"></div>
+          </div>
+          <button class="primary-action" id="step-next" type="button">Next &rarr;</button>
+        </div>
+
+        <div class="step-panel" id="step-panel" aria-live="polite">
+          <h3 id="step-title">Your browser knows a name, not an address.</h3>
+          <p id="step-body">It knows <code>yourapp.com</code>. It has no idea what IP address that is, or which of the (possibly many) computers behind it should answer. That's the very first thing that has to be resolved, before a single packet aimed at your application goes anywhere.</p>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="anycast-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">Why BGP matters</p>
+          <h2 id="anycast-title">The same IP address can legitimately live in three places at once.</h2>
+          <p>This is the part that trips people up, so it's worth sitting with: anycast isn't DNS quietly picking a nearby server for you. The exact same IP address is broadcast from multiple physical locations at the same time. Every one of them is telling the internet "route traffic for this address to me." Nothing about the address itself says which one is closest — that's decided entirely by how your packet gets routed once it leaves your device.</p>
+
+          <div class="anycast-diagram" aria-label="One IP address announced from three CDN locations; two clients take different BGP paths to their nearest one">
+            <div class="anycast-clients">
+              <div class="anycast-client" style="--slot: 1;">
+                <strong>Client &middot; Bengaluru</strong>
+                <span>BGP path: 3 hops</span>
+              </div>
+              <div class="anycast-client" style="--slot: 2;">
+                <strong>Client &middot; Berlin</strong>
+                <span>BGP path: 2 hops</span>
+              </div>
+            </div>
+            <div class="anycast-pops">
+              <div class="anycast-pop" style="--slot: 1;"><strong>PoP &middot; Mumbai</strong><small>203.0.113.10</small></div>
+              <div class="anycast-pop" style="--slot: 2;"><strong>PoP &middot; Frankfurt</strong><small>203.0.113.10</small></div>
+              <div class="anycast-pop" style="--slot: 3;"><strong>PoP &middot; Virginia</strong><small>203.0.113.10</small></div>
+            </div>
+            <div class="anycast-caption">All three PoPs announce the identical address. BGP — not DNS — decides which one each client actually reaches.</div>
+          </div>
+
+          <p>Most of the time this lines up with intuition: the client in Bengaluru lands in Mumbai, the client in Berlin lands in Frankfurt. But BGP isn't optimizing for the map — it's optimizing for network cost, usually the fewest networks a packet has to cross. Those two things are correlated, not identical, which is why anycast occasionally sends someone to a location that doesn't look like the nearest one if you're just eyeballing a globe.</p>
+
+          <aside class="analogy-callout">
+            <p class="eyebrow">A useful way to picture it</p>
+            <h3>BGP works like directions passed between neighbors.</h3>
+            <p>Every network (an <strong>Autonomous System</strong>, or AS) tells its neighboring networks which addresses it can reach. Those neighbors pass the announcement further along, tacking their own name onto the path as it travels. Eventually every network on the internet ends up with a table full of entries like "to reach this address, go via AS64500 &rarr; AS7018 &rarr; AS13335." When more than one path exists to the same address — exactly what anycast creates — each router just picks whichever path has the fewest networks to cross.</p>
+          </aside>
+
+          <h3>DNS, anycast, and load balancing keep getting mixed up. Here's the actual split:</h3>
+          <div class="comparison-table" role="table" aria-label="DNS versus anycast versus load balancing">
+            <div class="comparison-row comparison-head" role="row">
+              <span role="columnheader">Mechanism</span>
+              <span role="columnheader">Who actually picks the target</span>
+              <span role="columnheader">Layer</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell"><strong>Anycast</strong></span>
+              <span role="cell">BGP routers, from network topology</span>
+              <span role="cell">L3 &middot; Network</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell"><strong>Round-robin DNS / GeoDNS</strong></span>
+              <span role="cell">The DNS server, per query</span>
+              <span role="cell">DNS protocol</span>
+            </div>
+            <div class="comparison-row" role="row">
+              <span role="cell"><strong>Load balancer</strong></span>
+              <span role="cell">The load balancer, per connection or request</span>
+              <span role="cell">L4 or L7</span>
+            </div>
+          </div>
+          <p>Under anycast, DNS isn't load balancing anything — it hands back the same answer to everyone, every time. The distribution effect comes entirely from BGP, underneath that one shared address. DNS only starts actively spreading clients across different addresses when it's doing round-robin or GeoDNS instead, which hand back <em>different</em> answers to different callers.</p>
+
+          <aside class="setup-example">
+            <p class="eyebrow">Back to Silicon Lanes</p>
+            <h3>Lesson 7's CDN is where this diagram rejoins ours.</h3>
+            <p>In a real deployment, the moment a client's packet lands at a CDN PoP is the moment Lesson 7 picks up the story. Everything before that — DNS, anycast, BGP — decided <em>which</em> PoP; everything after it is the cache, the Edge Load Balancer, the API Gateways, and the L7 Catalog Load Balancer you already built by hand across Lessons 6 and 7. Locally, all of that collapses to <code>127.0.0.1</code>, because there's only one machine and no BGP to speak of — but the shape of the chain is exactly the same.</p>
+          </aside>
+        </div>
+
+        <div class="glossary" aria-label="Key terms">
+          <p class="tradeoff-label">Terms worth keeping straight</p>
+          <dl>
+            <div><dt>Anycast</dt><dd>The same IP address, announced from multiple physical locations at once. BGP decides which location a given client actually reaches.</dd></div>
+            <div><dt>BGP</dt><dd>Border Gateway Protocol — the way independent networks (Autonomous Systems) tell each other which addresses they can reach, and how routers pick a path when several exist.</dd></div>
+            <div><dt>Autonomous System (AS)</dt><dd>One independent network on the internet — an ISP, a cloud provider, a CDN — identified by an AS number.</dd></div>
+            <div><dt>Point of Presence (PoP)</dt><dd>One physical location where a CDN accepts client connections. A CDN using anycast runs many of these behind one address.</dd></div>
+            <div><dt>GeoDNS</dt><dd>A DNS technique that returns a different IP depending on the resolver's location. Unlike anycast, the decision is made by DNS itself, not by routers.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">That's the whole path</p>
+          <h2 id="next-lesson-title">From the open internet to a Catalog replica, in eight lessons.</h2>
+          <p>You've now seen both halves: the real-world routing that gets a request to a CDN, and the architecture you built by hand to take it from there.</p>
+        </div>
+        <div class="journey-links">
+          <a href="/lessons/lesson-01-direct-service/">Restart from Lesson 1 <span>&rarr;</span></a>
+          <a href="/service-lab">Open the Service Lab <span>&rarr;</span></a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/lessons/shared/components.js"></script>
+    <script type="module" src="/lessons/lesson-08-request-path/app.js"></script>
+  </body>
+</html>

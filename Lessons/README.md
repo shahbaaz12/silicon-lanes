@@ -25,6 +25,13 @@ inside its own folder.
    cache sits in front of the advanced origin and makes cache hits skip every
    downstream layer.
 
+## Bonus: beyond the sequential path
+
+8. **Request Path** (optional, advanced reading)
+   [`lesson-08-request-path`](lesson-08-request-path/README.md) — not a Docker
+   lab. Backs up to before Lesson 1: how a real client finds a CDN at all, via
+   DNS, anycast, and BGP routing, then rejoins the Lesson 6/7 topology.
+
 ## Shared UI components
 
 Reusable client, service, Reverse Proxy, Load Balancer, and response-tab

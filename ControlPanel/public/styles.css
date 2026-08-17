@@ -1375,6 +1375,75 @@ h1 {
   font-weight: 800;
 }
 
+.bonus-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 64px 0 40px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.bonus-divider::before,
+.bonus-divider::after {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line) 20%, var(--line) 80%, transparent);
+  content: "";
+}
+
+.bonus-section {
+  margin-top: 0;
+}
+
+.bonus-card {
+  border-color: color-mix(in srgb, #fb7185 30%, var(--line));
+  background:
+    linear-gradient(115deg, rgb(251 113 133 / 8%), transparent 40%),
+    var(--panel);
+}
+
+.bonus-card:hover {
+  border-color: color-mix(in srgb, #fb7185 65%, var(--line));
+}
+
+.bonus-number {
+  border-color: rgb(251 113 133 / 45%);
+  color: #fb7185;
+  background: color-mix(in srgb, #fb7185 10%, var(--panel-raised));
+}
+
+.bonus-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.badge-advanced,
+.badge-optional {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.badge-advanced {
+  border: 1px solid rgb(251 113 133 / 45%);
+  color: #ffb4bd;
+  background: rgb(251 113 133 / 12%);
+}
+
+.badge-optional {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: transparent;
+}
+
 .instance-actions {
   margin-top: 14px;
 }

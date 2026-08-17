@@ -51,9 +51,6 @@
 .layer-pill.cache { color: #ffc2c9; background: rgb(251 113 133 / 14%); }
 .layer-pill.origin { color: #9fe4ec; background: rgb(85 217 232 / 14%); }
 
-.journey-complete { border-color: color-mix(in srgb, var(--lime) 40%, var(--line)); }
-.journey-links { display: flex; flex-wrap: wrap; gap: 10px; }
-
 html[data-theme="light"] .layer-tag.cache { border-color: rgb(251 113 133 / 45%); color: #9f1d38; background: #ffe3e7; }
 html[data-theme="light"] .policy-note { color: #4a5259; background: #fff3e6; }
 html[data-theme="light"] .cdn-summary > div { border-color: var(--line); color: var(--text); background: #f6f9fa; }
@@ -64,5 +61,4 @@ html[data-theme="light"] .layer-pill.origin { color: #075f70; background: #e6f3f
 
 @media (max-width: 780px) {
   .cdn-summary { grid-template-columns: 1fr; }
-  .journey-complete .journey-links a { width: 100%; justify-content: space-between; }
 }

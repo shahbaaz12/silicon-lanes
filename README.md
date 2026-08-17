@@ -61,4 +61,9 @@ Load Balancer.
 Lesson 7 adds a local CDN in front of that origin. Product cache hits return at
 the edge, while misses and uncached routes continue through the full topology.
 
+A bonus Lesson 8 sits outside this sequence: optional, advanced-reading
+material with no Docker lab, covering how a real client's request finds a CDN
+at all — DNS, anycast, and BGP routing — before rejoining the Lesson 6/7
+topology.
+
 See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.

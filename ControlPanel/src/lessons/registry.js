@@ -134,5 +134,8 @@ export const lessonRegistry = Object.freeze([
     logs: getLocalCdnLessonLogs,
     clearLogs: clearLocalCdnLessonLogs,
     extraRoutes: [emptyRoute("delete", "/cache", clearLocalCdnCache)]
-  })
+  }),
+  // Bonus reading, not a Docker lab: no lifecycle routes, just its public/ folder mounted at
+  // /lessons/lesson-08-request-path/ like every other lesson's static assets.
+  { id: "lesson-08-request-path", routes: [] }
 ]);

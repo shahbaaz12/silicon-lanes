@@ -29,7 +29,9 @@ The Control Panel is arranged by responsibility:
 - `test/` verifies the route contract and infrastructure helpers with Node's built-in test runner.
 
 When adding a lesson, implement its manager and add one entry to the lesson registry; the app
-will mount its public folder and API routes from that declaration.
+will mount its public folder and API routes from that declaration. A lesson with no Docker
+lifecycle (bonus reading, like Lesson 8) can register with an empty `routes` array — the app
+still mounts its public folder, it just contributes no API routes.
 
 Run the automated checks with `npm test` from this folder.
 
@@ -67,6 +69,12 @@ Balancer at L7 before reaching one of two Catalog replicas.
 Lesson 7 runs at `http://localhost:7012/lessons/lesson-07-local-cdn`. Its local
 CDN is published on port `7712`, caches successful Product reads for 15 seconds,
 and reports `HIT`, `MISS`, or `BYPASS` in `X-Cache-Status`.
+
+Lesson 8 runs at `http://localhost:7012/lessons/lesson-08-request-path`. It is
+optional, advanced-reading material, not a Docker lab — no containers, no
+port, no `Start`/`Stop`. It is presented separately on the home page, behind
+an explicit divider, and reuses only the shared `lesson-node-lite` components
+for its diagrams.
 
 The panel binds only to `127.0.0.1`. It operates only on the six configured
 service images and containers carrying the `com.silicon-lanes.managed=true`
