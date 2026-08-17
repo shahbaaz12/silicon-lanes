@@ -86,8 +86,8 @@ main { width: min(1360px, calc(100% - 40px)); margin: 0 auto; padding: 68px 0 78
 .connector-client.flowing .packet { animation: flowHorizontal 1s ease-in-out; }
 
 .routing-stage { min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: 15px; background: rgb(9 12 15 / 48%); }
-.gateway-row { position: relative; display: grid; grid-template-columns: 118px minmax(0, 1fr); align-items: center; gap: 16px; width: min(560px, 100%); margin: 0 auto; }
-.gateway-summary { min-width: 0; display: grid; gap: 8px; }
+.gateway-row { position: relative; display: grid; justify-items: center; gap: 14px; }
+.gateway-summary { width: min(420px, 100%); display: grid; gap: 8px; }
 .gateway-summary > div { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-raised); }
 .gateway-summary span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
 .gateway-summary strong { color: var(--muted); font: 900 10px ui-monospace, Consolas, monospace; }
@@ -257,7 +257,6 @@ html[data-theme="light"] .next-lesson a { color: var(--text); background: rgb(8 
   .tradeoffs { grid-template-columns: 1fr; }
   .client-tooling { align-items: flex-start; flex-direction: column; }
   .routing-stage { padding: 18px 12px; }
-  .gateway-row { grid-template-columns: 1fr; justify-items: center; }
   .gateway-summary { width: 100%; }
   .route-lanes { display: flex; flex-direction: column; gap: 18px; margin-top: 32px; padding-top: 0; }
   .route-lanes::before,
