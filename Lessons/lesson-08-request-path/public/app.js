@@ -20,8 +20,8 @@ const steps = [
   },
   {
     nodeIds: ["step-pop"],
-    title: "You arrive wherever the routing decided.",
-    body: "Usually that's the nearest location, though it counts networks crossed rather than kilometres, so it's occasionally a surprise. Your connection gets established here — and this is precisely where Lesson 7 picks up the story, with a cache lookup at the edge."
+    title: "You arrive at the nearest location.",
+    body: "Your connection gets established here, and this is precisely where Lesson 7 picks up the story with a cache lookup at the edge. And if this location goes offline, it stops announcing the address, routing shifts to the next nearest, and nobody has to change a thing."
   },
   {
     nodeIds: ["step-edge", "step-gateway", "step-l7lb"],

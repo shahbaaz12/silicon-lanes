@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Bonus reading: how a request finds a CDN in the first place — DNS, anycast, and BGP explained from scratch, in plain language.">
+    <meta name="description" content="Bonus reading: how a request finds a CDN in the first place, and why that finally removes the single point of failure.">
     <title>Lesson 8 &middot; Request Path &middot; Silicon Lanes</title>
     <link rel="stylesheet" href="/lessons/shared/components.css">
     <link rel="stylesheet" href="/lessons/lesson-08-request-path/styles.css">
@@ -23,8 +23,8 @@
       <section class="intro" aria-labelledby="lesson-title">
         <p class="eyebrow">Bonus lesson &middot; Optional &middot; No Docker required</p>
         <h1 id="lesson-title">How did your request even find Silicon Lanes?</h1>
-        <p class="intro-copy">Every lesson so far started the moment a request arrived at one of our containers. This one rewinds further back, onto the open internet, and answers a question the other lessons quietly skip: when you type a web address, how does your computer end up talking to <em>one specific machine</em> — possibly one of hundreds, possibly on another continent?</p>
-        <p class="intro-copy">No Docker here. Just an explanation, built from the ground up. If a word shows up in this lesson, it gets explained before it's used.</p>
+        <p class="intro-copy">Every lesson so far started the moment a request arrived at one of our containers. This one rewinds back onto the open internet &mdash; and answers the question Lesson 7 left hanging: our CDN was a single box, so wasn't that just one more single point of failure?</p>
+        <p class="intro-copy">Short version: in the real world it isn't one box, and the reason why is genuinely clever.</p>
         <div class="concept-tags" aria-label="Lesson concepts">
           <span>IP addresses</span>
           <span>DNS</span>
@@ -36,24 +36,24 @@
       <section class="teaching-block" aria-labelledby="vocab-title">
         <p class="eyebrow">Start here</p>
         <h2 id="vocab-title">Four words, in plain English.</h2>
-        <p class="lead">Everything in this lesson is built out of these four ideas. Nothing fancy yet.</p>
+        <p class="lead">Everything below is built out of these. Nothing fancy yet.</p>
 
         <div class="plain-terms">
           <article class="term-card">
             <h3>IP address</h3>
-            <p>A number that identifies a machine on a network, like <code>203.0.113.10</code>. If you want to send data to a computer, this is what you actually need. Names don't work at this level — only numbers.</p>
+            <p>A number that identifies a machine on a network, like <code>203.0.113.10</code>. To send data anywhere, this is what you actually need &mdash; names don't work at this level.</p>
           </article>
           <article class="term-card">
             <h3>Domain name</h3>
-            <p>The human-friendly name, like <code>yourapp.com</code>. Easy to remember, completely useless to the network on its own. It has to be turned into an IP address first.</p>
+            <p>The human-friendly name, like <code>yourapp.com</code>. Easy to remember, useless to the network on its own. It has to become an IP address first.</p>
           </article>
           <article class="term-card">
             <h3>DNS</h3>
-            <p>The system that turns a domain name into an IP address. Think of it as the internet's phone book: you look up a name, you get back a number.</p>
+            <p>The system that turns a domain name into an IP address. The internet's phone book: look up a name, get back a number.</p>
           </article>
           <article class="term-card">
-            <h3>Resolver</h3>
-            <p>The helper that does the phone-book lookup on your behalf — usually run by your internet provider, or a public one like <code>8.8.8.8</code>. Your browser asks it, it asks around, it comes back with an answer.</p>
+            <h3>BGP</h3>
+            <p>How networks tell each other which addresses they can reach. Once you have a number, this is what decides the route your data actually takes to get there.</p>
           </article>
         </div>
       </section>
@@ -61,7 +61,7 @@
       <section class="teaching-block" aria-labelledby="simple-title">
         <p class="eyebrow">The normal case</p>
         <h2 id="simple-title">One name, one address, one server.</h2>
-        <p class="lead">Before anything clever happens, here's the setup most applications actually run. It's worth seeing plainly, because the fancy version is just a variation on it.</p>
+        <p class="lead">Before anything clever, here's the setup most applications actually run.</p>
 
         <div class="mini-flow" aria-label="Browser asks DNS for an address, then connects to a single server">
           <div class="mini-node"><strong>Your browser</strong><small>wants yourapp.com</small></div>
@@ -71,174 +71,97 @@
           <div class="mini-node accent"><strong>One server</strong><small>in one building, London</small></div>
         </div>
 
-        <p>You ask for a name, DNS hands back one number, your computer connects to the one machine that has that number. Clean and simple, and genuinely how a huge number of real applications work today.</p>
-        <p>The catch shows up when your users aren't all in London. Someone in Sydney is now sending every request roughly seventeen thousand kilometres and back. Nothing is broken — it's just slow, and no amount of tuning that London server fixes it. The problem isn't the server. It's the distance.</p>
-        <p>So the question becomes: <strong>how do we put copies of this thing all over the world, without making users memorise a different address for each one?</strong></p>
+        <p>Ask for a name, get back one number, connect to the one machine that has it. Simple, and genuinely how a great many real applications work.</p>
+        <p>But look at what it is: <strong>one address, one building.</strong> Slow for anyone far away, and gone entirely if that building has a bad day. It's the exact shape of problem you've been removing layer by layer since Lesson 1 &mdash; only now it's the whole site, not one container.</p>
       </section>
 
-      <section class="teaching-block" aria-labelledby="approaches-title">
-        <p class="eyebrow">Two ways to solve it</p>
-        <h2 id="approaches-title">Give different answers, or give one answer that means different things.</h2>
-        <p class="lead">There are two genuinely different strategies here, and mixing them up is the single most common source of confusion in this topic.</p>
+      <section class="teaching-block" aria-labelledby="anycast-title">
+        <p class="eyebrow">The fix</p>
+        <h2 id="anycast-title">Many locations, all answering to the same address.</h2>
+        <p class="lead">This is <strong>anycast</strong>, and it's the whole idea in one line: the same address is announced from lots of places at once, and BGP delivers each person to whichever one is nearest them.</p>
 
-        <div class="approach-grid">
-          <article class="approach-card">
-            <span class="approach-tag">Approach 1</span>
-            <h3>GeoDNS &mdash; hand out different addresses</h3>
-            <p>Each location gets its very own IP address. When someone in Sydney asks DNS for <code>yourapp.com</code>, DNS looks at roughly where the question came from and replies with the Sydney address. Someone in London asks the same question and gets the London address.</p>
-            <p class="approach-note"><strong>The decision is made by DNS</strong>, at lookup time. Different people genuinely get different numbers.</p>
-          </article>
-          <article class="approach-card highlight">
-            <span class="approach-tag">Approach 2</span>
-            <h3>Anycast &mdash; hand out one address everywhere</h3>
-            <p>Every location shares the <em>exact same</em> IP address. DNS gives that one number to everybody on the planet, no matter who's asking. It has no idea where you are and doesn't try to find out.</p>
-            <p class="approach-note"><strong>The decision is made by the network itself</strong>, after DNS is already finished, as your data physically travels.</p>
-          </article>
+        <div class="anycast-diagram" aria-label="One address announced from three locations; two people are routed to different ones">
+          <div class="anycast-clients">
+            <div class="anycast-client" style="--slot: 1;">
+              <strong>Someone in Bengaluru</strong>
+              <span>DNS says: 203.0.113.10</span>
+            </div>
+            <div class="anycast-client" style="--slot: 2;">
+              <strong>Someone in Berlin</strong>
+              <span>DNS says: 203.0.113.10</span>
+            </div>
+          </div>
+          <div class="anycast-pops">
+            <div class="anycast-pop" style="--slot: 1;"><strong>Mumbai</strong><small>203.0.113.10</small></div>
+            <div class="anycast-pop" style="--slot: 2;"><strong>Frankfurt</strong><small>203.0.113.10</small></div>
+            <div class="anycast-pop" style="--slot: 3;"><strong>Virginia</strong><small>203.0.113.10</small></div>
+          </div>
+          <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; BGP is what sends them to different buildings.</div>
         </div>
 
-        <p>Both are real, both are widely used, and plenty of large providers use a mix. But it's the second one that makes people stop and squint — because on first hearing, it sounds like it shouldn't be legal, let alone functional.</p>
+        <p>Each of those locations is a <strong>Point of Presence</strong>, or PoP &mdash; just a site where a provider accepts connections from the public. A large CDN runs hundreds of them.</p>
+        <p>Notice what DNS did here: nothing clever. It handed the same number to everyone and had no idea where anybody was. All the routing intelligence lives one layer down, in BGP, and happens after DNS has already finished.</p>
       </section>
 
-      <section class="teaching-block question-block" aria-labelledby="conflict-title">
-        <p class="eyebrow">The obvious objection</p>
-        <h2 id="conflict-title">Hold on. The same IP address in multiple places? Isn't that a conflict?</h2>
-        <p class="lead">This is the right thing to get stuck on, and it usually comes bundled with a second worry: surely DNS notices? Surely something rejects it when you try to register it? Here's the honest answer, in three parts.</p>
+      <section class="teaching-block spof-block" aria-labelledby="spof-title">
+        <p class="eyebrow">The payoff</p>
+        <h2 id="spof-title">And that's the single point of failure, gone.</h2>
+        <p class="lead">Here's why this matters for everything you've built. A PoP announces the address only while it's healthy. If it stops being healthy, it stops announcing &mdash; and the routes to it simply disappear.</p>
 
-        <div class="answer-list">
-          <article class="answer-card">
-            <span class="answer-number">1</span>
-            <div>
-              <h3>DNS never checks. It's a text field, not a verification system.</h3>
-              <p>This is the part that surprises people most. When you point a domain at an IP address, you're filling in a record &mdash; and DNS stores exactly what you typed. It does not ping the address. It does not look up who owns it. It does not know or care what country it's in, whether it's live, or how many machines answer to it.</p>
-              <p>You could point your domain at an IP address belonging to a company on the other side of the world right now, and DNS would store it without complaint. It simply wouldn't be useful &mdash; visitors would be sent to a machine that has no idea who you are. But nothing would <em>reject</em> it.</p>
-              <p class="answer-punch">So there's no "registration conflict," because there was never a registration step that looks at location. DNS is a lookup table, and you own the row.</p>
+        <div class="failover-demo" aria-label="When the Mumbai location goes offline, traffic from Bengaluru routes to Frankfurt instead">
+          <div class="failover-row">
+            <span class="failover-state ok">Normally</span>
+            <div class="failover-path">
+              <span class="fo-node">Bengaluru</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">Mumbai</span>
             </div>
-          </article>
-
-          <article class="answer-card">
-            <span class="answer-number">2</span>
-            <div>
-              <h3>The network was already built to handle multiple paths.</h3>
-              <p>Here's the piece that makes anycast click. Internet routing doesn't work on single addresses &mdash; it works on <strong>ranges</strong>. Instead of a route to <code>203.0.113.10</code>, routers keep a route to a whole block like <code>203.0.113.0/24</code> (that notation just means "these 256 addresses, as one unit"). A range like this is called a <strong>prefix</strong>.</p>
-              <p>Now: routers have <em>always</em> had to cope with knowing several different paths to the same prefix. That's completely ordinary &mdash; the internet has redundant links everywhere, and picking between them is a router's day job. It's not an error condition. It's the normal state of affairs.</p>
-              <p class="answer-punch">Anycast doesn't sneak past this. It just deliberately uses the behaviour that was already there: announce the same prefix from many places, and let every router do what it already does &mdash; pick whichever path looks cheapest from where it's standing.</p>
+          </div>
+          <div class="failover-row">
+            <span class="failover-state down">Mumbai offline</span>
+            <div class="failover-path">
+              <span class="fo-node">Bengaluru</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node dead">Mumbai</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">Frankfurt</span>
             </div>
-          </article>
-
-          <article class="answer-card">
-            <span class="answer-number">3</span>
-            <div>
-              <h3>The real guardrail is ownership, and it lives in routing, not DNS.</h3>
-              <p>If DNS doesn't check, what stops anyone announcing any address? Ownership does &mdash; enforced one layer down.</p>
-              <p>IP address blocks are allocated by regional registries (ARIN, RIPE, APNIC and their siblings). To announce a block to the internet you also need to be an <strong>Autonomous System</strong> &mdash; one independently-run network, like an ISP or a cloud provider, with its own registered number. Networks increasingly publish cryptographically signed records saying which Autonomous System is permitted to announce which prefix, so their neighbours can reject announcements that don't match.</p>
-              <p class="answer-punch">Announcing a prefix you don't own is a genuine attack, called BGP hijacking, and it has happened at real scale more than once. The defence lives here, in routing &mdash; not in DNS, which was never looking.</p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="teaching-block question-block" aria-labelledby="vip-title">
-        <p class="eyebrow">Your second question</p>
-        <h2 id="vip-title">So is an anycast address a &ldquo;virtual IP&rdquo;?</h2>
-        <p class="lead">Sort of &mdash; but that phrase usually means something narrower, and the difference matters. There are three distinct things people call "an IP address," and they behave very differently.</p>
-
-        <div class="ip-kind-grid">
-          <article class="ip-kind-card">
-            <h3>Ordinary (unicast)</h3>
-            <div class="kind-visual" aria-hidden="true">
-              <span class="kind-ip">203.0.113.10</span>
-              <span class="kind-line"></span>
-              <div class="kind-boxes"><span class="kind-box live">London</span></div>
-            </div>
-            <p><strong>One address, one machine.</strong> The everyday case. This is what almost everything you've ever set up uses.</p>
-          </article>
-
-          <article class="ip-kind-card">
-            <h3>Virtual IP (VIP)</h3>
-            <div class="kind-visual" aria-hidden="true">
-              <span class="kind-ip">203.0.113.10</span>
-              <span class="kind-line"></span>
-              <div class="kind-boxes"><span class="kind-box live">Server A</span><span class="kind-box standby">Server B</span></div>
-            </div>
-            <p><strong>One address that isn't nailed to one machine</strong> &mdash; but only ever one machine holds it at a time. If A dies, B takes the address over. Same building, same network. This is a failover trick.</p>
-          </article>
-
-          <article class="ip-kind-card highlight">
-            <h3>Anycast</h3>
-            <div class="kind-visual" aria-hidden="true">
-              <span class="kind-ip">203.0.113.10</span>
-              <span class="kind-line"></span>
-              <div class="kind-boxes"><span class="kind-box live">Mumbai</span><span class="kind-box live">Frankfurt</span><span class="kind-box live">Virginia</span></div>
-            </div>
-            <p><strong>One address, many machines, all live simultaneously</strong> &mdash; in different cities, on different continents. Nobody is on standby. Routing decides who you reach.</p>
-          </article>
+          </div>
         </div>
 
-        <p>So: yes, an anycast address is "virtual" in the loose sense that it isn't tied to one physical machine. But when someone says <strong>virtual IP</strong> in a normal infrastructure conversation, they almost always mean the middle card &mdash; a failover address inside one data centre, where exactly one machine is live at a time. Anycast is the third card, and it's a different mechanism at a different layer solving a different problem.</p>
-        <p>Worth noticing: the middle and right cards <em>solve different problems</em>. A VIP is about surviving a dead machine. Anycast is about being physically closer to your users. You can absolutely have both at once.</p>
+        <p>Nobody changes a DNS record. Nobody edits a config file. Nobody gets paged at 3am to fail something over. The announcement stops, every router quietly recalculates, and traffic starts arriving at the next-nearest location instead &mdash; usually within seconds.</p>
+        <p>That's the answer to Lesson 7's open question. Our local CDN really was one container and really was a SPOF. A real one isn't a box at all &mdash; it's an address that hundreds of buildings answer to, where losing any one of them is a routing update rather than an outage.</p>
+        <p class="footnote">The honest caveat: connections already open to the failed location do break and have to be re-established. Users typically see a blip, not a failure.</p>
       </section>
 
-      <section class="teaching-block question-block" aria-labelledby="enterprise-title">
-        <p class="eyebrow">Your third question</p>
-        <h2 id="enterprise-title">Do real applications have just one IP address?</h2>
-        <p class="lead">Often, yes &mdash; and that's completely fine. The answer depends on scale, and most teams never touch anycast directly at all.</p>
+      <section class="teaching-block" aria-labelledby="enterprise-title">
+        <p class="eyebrow">A fair question</p>
+        <h2 id="enterprise-title">So do real applications have just one IP address?</h2>
+        <p class="lead">Often yes &mdash; and that's completely fine. It depends on scale, and most teams never touch anycast directly at all.</p>
 
         <div class="tier-list">
           <article class="tier-row">
             <span class="tier-label">Most applications</span>
             <div>
               <h3>One address, one region. No anycast anywhere.</h3>
-              <p>A single load balancer sitting in one cloud region, with one public IP pointing at it. Users everywhere connect to that one place. This covers an enormous share of real production software, including plenty of things you use daily. It is not a design failure &mdash; it's the right call until latency actually becomes a problem worth paying to solve.</p>
+              <p>A single load balancer in one cloud region with one public address. This covers an enormous share of real production software. It isn't a design failure &mdash; it's the right call until distance actually becomes a problem worth paying to solve.</p>
             </div>
           </article>
           <article class="tier-row highlight">
             <span class="tier-label">Most that need global speed</span>
             <div>
               <h3>They rent someone else's anycast, by putting a CDN in front.</h3>
-              <p>This is the key practical insight. When a team puts a CDN in front of their application, they point their domain at <em>the CDN's</em> addresses &mdash; and those are the anycast ones, already announced from that provider's locations worldwide. The team configures a hostname in a dashboard. They never own an address block, never run a router, never speak BGP.</p>
-              <p class="tier-note">So the honest answer to "how does an enterprise configure one IP in many locations?" is usually: <strong>they don't. Their CDN provider already did, and they're pointing at it.</strong></p>
+              <p>This is the practical bit. When a team puts a CDN in front of their app, they point their domain at <em>the CDN's</em> addresses &mdash; and those are already anycast, already announced worldwide. The team fills in a hostname on a dashboard. They never own an address block or run a router.</p>
+              <p class="tier-note">So &ldquo;how does a company configure one address in many cities?&rdquo; usually resolves to: <strong>it doesn't. Its CDN provider already did.</strong></p>
             </div>
           </article>
           <article class="tier-row">
             <span class="tier-label">The giants</span>
             <div>
               <h3>They own the address blocks and run the anycast themselves.</h3>
-              <p>The CDN providers themselves, the big search and cloud companies, the public DNS services. They hold their own allocations, operate their own Autonomous Systems, and announce their prefixes from their own locations globally. This is a small club, and it's a serious operational commitment.</p>
+              <p>The CDN providers, the big cloud and search companies, the public DNS services. They hold their own address allocations and announce them from their own locations globally. Small club, serious operational commitment.</p>
             </div>
           </article>
-        </div>
-      </section>
-
-      <section class="teaching-block" aria-labelledby="anycast-diagram-title">
-        <p class="eyebrow">Putting the pieces together</p>
-        <h2 id="anycast-diagram-title">One address block, announced from three cities at once.</h2>
-        <p class="lead">Here's the whole anycast idea in one picture, now that the parts have names.</p>
-
-        <div class="anycast-diagram" aria-label="One IP prefix announced from three CDN locations; two clients take different network paths to reach it">
-          <div class="anycast-clients">
-            <div class="anycast-client" style="--slot: 1;">
-              <strong>Someone in Bengaluru</strong>
-              <span>asks DNS &rarr; gets 203.0.113.10</span>
-            </div>
-            <div class="anycast-client" style="--slot: 2;">
-              <strong>Someone in Berlin</strong>
-              <span>asks DNS &rarr; gets 203.0.113.10</span>
-            </div>
-          </div>
-          <div class="anycast-pops">
-            <div class="anycast-pop" style="--slot: 1;"><strong>Mumbai</strong><small>announces 203.0.113.0/24</small></div>
-            <div class="anycast-pop" style="--slot: 2;"><strong>Frankfurt</strong><small>announces 203.0.113.0/24</small></div>
-            <div class="anycast-pop" style="--slot: 3;"><strong>Virginia</strong><small>announces 203.0.113.0/24</small></div>
-          </div>
-          <div class="anycast-caption">Identical address, identical announcement, all three live at the same time. DNS gave both people the same answer &mdash; the network is what sends them to different buildings.</div>
-        </div>
-
-        <p>Each of those three locations is called a <strong>Point of Presence</strong>, or PoP &mdash; just a physical site where a provider accepts connections from the public. A big CDN runs hundreds of them.</p>
-        <p>The system the routers use to spread and compare those announcements is <strong>BGP</strong>, the Border Gateway Protocol. It works a lot like directions passed between neighbours: every network tells the networks next to it which address ranges it can reach, those neighbours pass the message along and add their own name to the trail, and eventually everyone holds a table full of routes like <em>"to reach 203.0.113.0/24, go via this network, then that one, then that one."</em> When several trails lead to the same range, each router picks the one that crosses the fewest networks.</p>
-
-        <div class="caveat-note">
-          <h3>One honest wrinkle</h3>
-          <p>BGP isn't looking at a map. It counts networks crossed, not kilometres travelled &mdash; and those two usually agree, but not always. Which is why anycast occasionally lands someone in a city that isn't the closest one on a globe. It picked the shortest <em>network</em> path, and network cables don't run in straight lines.</p>
         </div>
       </section>
 
@@ -247,7 +170,7 @@
           <div>
             <p class="eyebrow">The whole journey</p>
             <h2 id="walkthrough-title">Step through it, start to finish.</h2>
-            <p>Now that all the words have meanings, here's the complete trip &mdash; from typing a name, out across the internet, and into the exact architecture you built in Lessons 6 and 7. Click any box to see what it's doing.</p>
+            <p>The complete trip &mdash; from typing a name, across the internet, into the architecture you built in Lessons 6 and 7. Click any box to see what it's doing.</p>
           </div>
         </div>
 
@@ -257,11 +180,11 @@
             <div class="path-row">
               <lesson-node-lite id="step-client" kind="client" heading="Browser" configuration="Knows a domain name, not an address.&#10;Has to ask DNS before it can send anything anywhere."></lesson-node-lite>
               <span class="step-arrow" aria-hidden="true">&rarr;</span>
-              <lesson-node-lite id="step-dns" kind="infrastructure" heading="DNS Lookup" configuration="Turns the name into a number.&#10;Under anycast, hands the same number to everyone on Earth.&#10;Does not know or check where that address physically is."></lesson-node-lite>
+              <lesson-node-lite id="step-dns" kind="infrastructure" heading="DNS Lookup" configuration="Turns the name into a number.&#10;Under anycast, hands the same number to everyone.&#10;Does not know or check where that address physically is."></lesson-node-lite>
               <span class="step-arrow" aria-hidden="true">&rarr;</span>
-              <lesson-node-lite id="step-bgp" kind="infrastructure" heading="Network Routing" configuration="Your data now travels toward that address.&#10;Because many locations announce it, routers compare paths using BGP and pick one.&#10;This happens after DNS is completely finished."></lesson-node-lite>
+              <lesson-node-lite id="step-bgp" kind="infrastructure" heading="Network Routing" configuration="Your data travels toward that address.&#10;Many locations announce it, so routers compare paths using BGP and pick the nearest.&#10;This happens after DNS is completely finished."></lesson-node-lite>
               <span class="step-arrow" aria-hidden="true">&rarr;</span>
-              <lesson-node-lite id="step-pop" kind="cdn" heading="CDN Location" configuration="Whichever site the routing landed on.&#10;Usually the nearest, though not guaranteed.&#10;This is exactly where Lesson 7 begins."></lesson-node-lite>
+              <lesson-node-lite id="step-pop" kind="cdn" heading="CDN Location" configuration="Whichever site the routing landed on.&#10;If this one goes offline, routing shifts to the next nearest automatically.&#10;This is where Lesson 7 begins."></lesson-node-lite>
             </div>
           </div>
 
@@ -296,7 +219,7 @@
 
         <div class="step-panel" id="step-panel" aria-live="polite">
           <h3 id="step-title">You type a name. Your browser has no idea what that means yet.</h3>
-          <p id="step-body">It has <code>yourapp.com</code>, which is a word, and words don't work on a network. Before a single byte can be sent anywhere, that word has to become a number.</p>
+          <p id="step-body">It has <code>yourapp.com</code>, which is a word, and words don't work on a network. Before a single byte goes anywhere, that word has to become a number.</p>
         </div>
       </section>
 
@@ -304,25 +227,18 @@
         <div class="explanation-copy">
           <p class="eyebrow">Bringing it home</p>
           <h2 id="closing-title">Where this meets what you already built.</h2>
-          <p>Everything in this lesson happens <em>before</em> Lesson 7's first line of code runs. DNS, anycast, BGP &mdash; that whole first half decides <strong>which</strong> CDN location a person reaches. From the moment their connection lands there, it's the story you already know: check the cache, and on a miss, forward to the origin &mdash; the Edge Load Balancer, the API Gateways, the Catalog Load Balancer, the replicas.</p>
-          <p>Running locally, all of that collapses to <code>127.0.0.1</code>. There's one machine, no cities to choose between, and no BGP in sight. But the shape is identical, and every decision still gets made &mdash; just by Nginx on your laptop instead of by routers spread across the planet. That's the whole point: the same job, at wildly different scales.</p>
+          <p>Everything in this lesson happens <em>before</em> Lesson 7's first line of code runs. DNS and BGP decide <strong>which</strong> CDN location a person reaches. From the moment their connection lands there, it's the story you already know: check the cache, and on a miss, forward to the origin &mdash; the Edge Load Balancer, the API Gateways, the Catalog Load Balancer, the replicas.</p>
+          <p>Running locally, all of that collapses to <code>127.0.0.1</code>. One machine, no cities to choose between, no BGP in sight. But the shape is identical, and every decision still gets made &mdash; just by Nginx on your laptop instead of by routers spread across the planet.</p>
 
           <div class="glossary" aria-label="Key terms">
-            <p class="glossary-title">Every term from this lesson, in one place</p>
+            <p class="glossary-title">The terms from this lesson</p>
             <dl>
-              <div><dt>IP address</dt><dd>A number identifying a machine on a network. What your computer actually needs in order to send anything.</dd></div>
-              <div><dt>Domain name</dt><dd>The readable name for a site. Must be turned into an IP address before it's usable.</dd></div>
-              <div><dt>DNS</dt><dd>The internet's phone book: give it a name, it gives back an address. It stores what you tell it and verifies nothing about location.</dd></div>
-              <div><dt>Resolver</dt><dd>The service that performs the DNS lookup for you, usually run by your internet provider.</dd></div>
-              <div><dt>Prefix</dt><dd>A block of IP addresses treated as one unit, written like <code>203.0.113.0/24</code>. Routing works on these blocks, not on single addresses.</dd></div>
-              <div><dt>Unicast</dt><dd>The ordinary arrangement: one address, one machine.</dd></div>
-              <div><dt>Virtual IP (VIP)</dt><dd>An address not fixed to one machine, but held by only one at a time. Used for failover within a single site.</dd></div>
-              <div><dt>Anycast</dt><dd>The same address, live simultaneously in many locations. Routing, not DNS, decides which one a given person reaches.</dd></div>
-              <div><dt>GeoDNS</dt><dd>The alternative approach: DNS hands back <em>different</em> addresses depending on roughly where the question came from.</dd></div>
-              <div><dt>BGP</dt><dd>Border Gateway Protocol &mdash; how independent networks tell each other which address blocks they can reach, and how routers choose between competing paths.</dd></div>
-              <div><dt>Autonomous System (AS)</dt><dd>One independently-operated network &mdash; an ISP, a cloud provider, a CDN &mdash; with its own registered number.</dd></div>
-              <div><dt>Point of Presence (PoP)</dt><dd>A physical site where a provider accepts connections from the public. Large CDNs run hundreds.</dd></div>
-              <div><dt>BGP hijacking</dt><dd>Announcing address blocks you don't own, to pull traffic toward you. A real attack, defended against in routing rather than in DNS.</dd></div>
+              <div><dt>IP address</dt><dd>A number identifying a machine on a network. What your computer actually needs to send anything.</dd></div>
+              <div><dt>Domain name</dt><dd>The readable name for a site. Must become an IP address before it's usable.</dd></div>
+              <div><dt>DNS</dt><dd>The internet's phone book: give it a name, it gives back an address.</dd></div>
+              <div><dt>Anycast</dt><dd>The same address, live in many locations at once. Routing, not DNS, decides which one you reach.</dd></div>
+              <div><dt>BGP</dt><dd>How networks tell each other which addresses they can reach, and how routers pick between competing paths.</dd></div>
+              <div><dt>Point of Presence (PoP)</dt><dd>A physical site where a provider accepts public connections. Large CDNs run hundreds.</dd></div>
             </dl>
           </div>
         </div>
@@ -332,7 +248,7 @@
         <div>
           <p class="eyebrow">That's the whole path</p>
           <h2 id="next-lesson-title">From typing a name to a Catalog replica answering.</h2>
-          <p>You've now seen both halves: the real-world routing that gets a request to a CDN at all, and the architecture you built by hand to handle it from there.</p>
+          <p>You've now seen both halves: the routing that gets a request to a CDN at all, and the architecture you built by hand to handle it from there.</p>
         </div>
         <div class="journey-links">
           <a href="/lessons/lesson-01-direct-service/">Restart from Lesson 1 <span>&rarr;</span></a>

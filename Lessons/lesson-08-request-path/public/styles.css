@@ -3,9 +3,9 @@
    apart from /lessons/shared/components.css, which supplies the lesson-node-lite boxes reused
    in the walkthrough diagram to stay visually consistent with Lessons 6 and 7.
 
-   Because this lesson is prose-heavy rather than diagram-heavy, it runs a wider column and
-   noticeably larger body text than the interactive lessons — it is meant to be read, not
-   scanned while watching logs. */
+   Because this lesson is prose rather than a live diagram, it runs a wider column and larger
+   body text than the interactive lessons — it is meant to be read, not scanned while watching
+   logs. */
 
 :root {
   color-scheme: dark;
@@ -43,7 +43,6 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .intro { max-width: 1040px; margin-bottom: 40px; }
 .intro h1 { max-width: 980px; margin-bottom: 20px; font-size: clamp(38px, 5.4vw, 64px); line-height: 1.05; letter-spacing: -.045em; }
 .intro-copy { max-width: 940px; margin-bottom: 16px; color: var(--text); font-size: 19px; line-height: 1.75; }
-.intro-copy em { color: #ffb4bd; font-style: normal; font-weight: 700; }
 .concept-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
 .concept-tags span { padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; color: #d5dde2; background: var(--panel); font-size: 13px; font-weight: 700; }
 
@@ -58,11 +57,13 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .next-lesson h2 { margin-bottom: 14px; font-size: clamp(25px, 3vw, 34px); line-height: 1.2; letter-spacing: -.03em; }
 .teaching-block > p { max-width: 1000px; margin-bottom: 18px; color: var(--text); font-size: 17px; line-height: 1.8; }
 .teaching-block > p.lead { color: var(--muted); font-size: 18px; }
+.teaching-block > p:last-child { margin-bottom: 0; }
 .teaching-block em { color: #ffb4bd; font-style: normal; font-weight: 700; }
 .teaching-block code { color: var(--cyan); font-size: .92em; }
+.footnote { color: var(--muted) !important; font-size: 15px !important; font-style: italic; }
 
-/* Question-led sections get a rose accent bar so the three "your question" blocks read as a set. */
-.question-block { border-left: 3px solid var(--rose); }
+/* The SPOF payoff section — the point the whole lesson exists to make. */
+.spof-block { border-left: 3px solid var(--lime); }
 
 /* Four foundational definitions, before any of them get used in prose. */
 .plain-terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 26px 0 8px; }
@@ -79,48 +80,7 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .mini-node small { color: var(--muted); font-size: 13px; }
 .mini-arrow { align-self: center; color: var(--connector); font-size: 22px; }
 
-/* GeoDNS vs anycast, side by side. */
-.approach-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 26px 0; }
-.approach-card { padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
-.approach-card.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
-.approach-tag { display: inline-block; margin-bottom: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.approach-card h3 { margin-bottom: 12px; font-size: 20px; }
-.approach-card p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.72; }
-.approach-note { margin: 0 !important; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted) !important; font-size: 15px !important; }
-
-/* Numbered long-form answers to the "isn't that a conflict?" question. */
-.answer-list { display: grid; gap: 16px; margin: 26px 0 8px; }
-.answer-card { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 20px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
-.answer-number { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #4a1620; background: var(--rose); font: 900 17px ui-monospace, Consolas, monospace; }
-.answer-card h3 { margin-bottom: 12px; font-size: 20px; line-height: 1.35; }
-.answer-card p { margin-bottom: 13px; color: var(--text); font-size: 16px; line-height: 1.78; }
-.answer-punch { margin: 14px 0 0 !important; padding: 14px 16px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); font-size: 16px !important; }
-
-/* Unicast vs VIP vs anycast, with a small live/standby box illustration in each card. */
-.ip-kind-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 26px 0; }
-.ip-kind-card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
-.ip-kind-card.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
-.ip-kind-card h3 { margin-bottom: 16px; font-size: 19px; }
-.ip-kind-card > p { margin: 0; color: var(--text); font-size: 15px; line-height: 1.7; }
-.kind-visual { display: grid; justify-items: center; gap: 0; margin-bottom: 18px; padding: 16px 12px; border: 1px solid var(--line); border-radius: 11px; background: rgb(9 12 15 / 55%); }
-.kind-ip { padding: 5px 10px; border: 1px solid color-mix(in srgb, var(--cyan) 40%, var(--line)); border-radius: 7px; color: var(--cyan); background: #0b0f13; font: 800 12px ui-monospace, Consolas, monospace; }
-.kind-line { width: 2px; height: 18px; background: var(--connector); }
-.kind-boxes { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
-.kind-box { padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; }
-.kind-box.live { border: 1px solid color-mix(in srgb, var(--lime) 50%, var(--line)); color: #d6f4a0; background: color-mix(in srgb, var(--panel-raised) 72%, var(--lime)); }
-.kind-box.standby { border: 1px dashed var(--connector); color: var(--muted); background: transparent; }
-
-/* Three scale tiers answering "do real apps have one IP?" */
-.tier-list { display: grid; gap: 14px; margin: 26px 0 8px; }
-.tier-row { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 22px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
-.tier-row.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
-.tier-label { align-self: start; padding-top: 3px; color: var(--cyan); font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
-.tier-row h3 { margin-bottom: 10px; font-size: 19px; line-height: 1.35; }
-.tier-row p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.76; }
-.tier-row p:last-child { margin-bottom: 0; }
-.tier-note { padding: 13px 15px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); }
-
-/* The anycast picture: two client callouts above three simultaneously-live PoPs. */
+/* The anycast picture: two client callouts above three simultaneously-live locations. */
 .anycast-diagram { display: grid; gap: 16px; margin: 26px 0 22px; padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
 .anycast-clients,
 .anycast-pops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -132,9 +92,28 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .anycast-pop small { color: var(--muted); font: 12px ui-monospace, Consolas, monospace; }
 .anycast-caption { grid-column: 1 / -1; padding-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.6; text-align: center; }
 
-.caveat-note { margin: 24px 0 0; padding: 22px; border-left: 3px solid var(--amber); border-radius: 0 12px 12px 0; background: color-mix(in srgb, var(--panel-raised) 82%, var(--amber)); }
-.caveat-note h3 { margin-bottom: 9px; font-size: 19px; }
-.caveat-note p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.76; }
+/* Before/after failover strip: same client, different destination once a location drops out. */
+.failover-demo { display: grid; gap: 12px; margin: 26px 0; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
+.failover-row { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; }
+.failover-state { min-width: 132px; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 900; letter-spacing: .06em; text-align: center; text-transform: uppercase; }
+.failover-state.ok { border: 1px solid color-mix(in srgb, var(--lime) 45%, var(--line)); color: #d6f4a0; background: color-mix(in srgb, var(--panel-raised) 74%, var(--lime)); }
+.failover-state.down { border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); color: #ffd7dc; background: color-mix(in srgb, var(--panel-raised) 74%, var(--danger)); }
+.failover-path { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.fo-node { padding: 9px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-raised); font-size: 14px; font-weight: 700; }
+.fo-node.target { border-color: color-mix(in srgb, var(--lime) 50%, var(--line)); color: #d6f4a0; background: color-mix(in srgb, var(--panel-raised) 74%, var(--lime)); }
+.fo-node.dead { border-style: dashed; border-color: color-mix(in srgb, var(--danger) 42%, var(--line)); color: var(--muted); background: transparent; text-decoration: line-through; }
+.fo-arrow { color: var(--connector); font-size: 18px; }
+
+/* Three scale tiers answering "do real apps have one IP?" */
+.tier-list { display: grid; gap: 14px; margin: 26px 0 8px; }
+.tier-row { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 22px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
+.tier-row.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
+.tier-label { align-self: start; padding-top: 3px; color: var(--cyan); font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.tier-row h3 { margin-bottom: 10px; font-size: 19px; line-height: 1.35; }
+.tier-row p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.76; }
+.tier-row p:last-child { margin-bottom: 0; }
+.tier-row em { color: #ffb4bd; font-style: normal; font-weight: 700; }
+.tier-note { padding: 13px 15px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); }
 
 .walkthrough { margin-bottom: 22px; padding: clamp(24px, 3.4vw, 42px); }
 .workspace-heading { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
@@ -178,7 +157,6 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .glossary dl > div { padding: 17px 19px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-raised); }
 .glossary dt { margin-bottom: 7px; color: var(--cyan); font-size: 15px; font-weight: 800; }
 .glossary dd { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.62; }
-.glossary code { color: var(--lime); font-size: .92em; }
 
 .next-lesson { display: flex; align-items: center; justify-content: space-between; gap: 40px; margin-top: 22px; padding: clamp(26px, 4vw, 42px); border-color: color-mix(in srgb, var(--lime) 38%, var(--line)); }
 .next-lesson p { max-width: 760px; margin-bottom: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
@@ -195,42 +173,35 @@ html[data-theme="light"] .concept-tags span,
 html[data-theme="light"] .term-card,
 html[data-theme="light"] .mini-flow,
 html[data-theme="light"] .mini-node,
-html[data-theme="light"] .approach-card,
-html[data-theme="light"] .answer-card,
-html[data-theme="light"] .ip-kind-card,
-html[data-theme="light"] .kind-visual,
-html[data-theme="light"] .tier-row,
 html[data-theme="light"] .anycast-diagram,
+html[data-theme="light"] .failover-demo,
+html[data-theme="light"] .fo-node,
+html[data-theme="light"] .tier-row,
 html[data-theme="light"] .path-diagram,
 html[data-theme="light"] .step-panel,
 html[data-theme="light"] .path-divider span,
-html[data-theme="light"] .caveat-note,
 html[data-theme="light"] .glossary dl > div { border-color: var(--line); color: var(--text); background: #f6f9fa; }
-html[data-theme="light"] .approach-card.highlight,
-html[data-theme="light"] .ip-kind-card.highlight,
 html[data-theme="light"] .tier-row.highlight,
 html[data-theme="light"] .anycast-pop { border-color: rgb(251 113 133 / 42%); background: #fff0f2; }
-html[data-theme="light"] .mini-node.accent { border-color: #a9d85c; background: #f2f9e7; }
-html[data-theme="light"] .kind-box.live { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
-html[data-theme="light"] .answer-punch,
+html[data-theme="light"] .mini-node.accent,
+html[data-theme="light"] .fo-node.target { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
+html[data-theme="light"] .fo-node.dead { border-color: #d98b96; color: var(--muted); background: transparent; }
+html[data-theme="light"] .failover-state.ok { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
+html[data-theme="light"] .failover-state.down { border-color: #d98b96; color: #8e2333; background: #fff0f2; }
 html[data-theme="light"] .tier-note { background: #f2f9e7; }
-html[data-theme="light"] .caveat-note { background: #fff8e6; }
 html[data-theme="light"] .secondary-action { color: var(--text); background: var(--panel-raised); }
 html[data-theme="light"] .next-lesson a { color: var(--text); background: rgb(118 169 41 / 10%); }
-html[data-theme="light"] .intro-copy em,
 html[data-theme="light"] .teaching-block em,
+html[data-theme="light"] .tier-row em,
 html[data-theme="light"] .explanation-copy em { color: #b3223f; }
-html[data-theme="light"] .term-card code,
-html[data-theme="light"] .glossary code { color: #4f7a12; }
+html[data-theme="light"] .term-card code { color: #4f7a12; }
 
 @media (max-width: 1180px) {
   .plain-terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .glossary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ip-kind-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
-  .approach-grid { grid-template-columns: 1fr; }
   .tier-row { grid-template-columns: 1fr; gap: 12px; }
 }
 
@@ -243,7 +214,7 @@ html[data-theme="light"] .glossary code { color: #4f7a12; }
   .teaching-block > p.lead { font-size: 16px; }
   .plain-terms { grid-template-columns: 1fr; }
   .glossary dl { grid-template-columns: 1fr; }
-  .answer-card { grid-template-columns: 1fr; gap: 14px; }
+  .failover-row { align-items: flex-start; flex-direction: column; gap: 10px; }
   .step-controls { flex-wrap: wrap; }
   .step-status { order: -1; width: 100%; }
   .next-lesson { align-items: flex-start; flex-direction: column; }
