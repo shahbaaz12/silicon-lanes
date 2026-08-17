@@ -1,7 +1,7 @@
 import path from "node:path";
-import { clearInstanceLogs, getInstanceLogs, listManagedInstances, startInstances, stopInstance } from "./docker-manager.js";
+import { clearInstanceLogs, getInstanceLogs, listManagedInstances, startInstances, stopOwnedInstances } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, parseTaggedLogs, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 import { ensureServicePool } from "./infrastructure/service-pool.js";
 const lessonDirectory = path.join(repositoryRoot, "Lessons", "lesson-05-hybrid", "nginx");
 const gatewayTemplate = path.join(lessonDirectory, "api-gateway.conf.template");
@@ -57,7 +57,7 @@ async function startLoadBalancer(catalogs) {
   return inspectInfrastructure(loadBalancerName);
 }
 
-async function startGateway(user, order, loadBalancer, services, ownedIds) {
+async function startGateway(user, order, services, ownedIds) {
   if (!await portIsAvailable(gatewayPort)) {
     throw Object.assign(new Error(`Port ${gatewayPort} is already in use.`), { statusCode: 409 });
   }
@@ -69,7 +69,6 @@ async function startGateway(user, order, loadBalancer, services, ownedIds) {
     "--label", `com.silicon-lanes.lesson=${lessonLabel}`,
     "--label", `com.silicon-lanes.backend-ids=${services.map(({ id: backendId }) => backendId).join(",")}`,
     "--label", `com.silicon-lanes.owned-backend-ids=${ownedIds.join(",")}`,
-    "--label", `com.silicon-lanes.load-balancer-id=${loadBalancer.Id}`,
     "--publish", `127.0.0.1:${gatewayPort}:80`,
     "--env", `USER_UPSTREAM=${user.name}:${user.containerPort}`,
     "--env", `ORDER_UPSTREAM=${order.name}:${order.containerPort}`,
@@ -143,7 +142,7 @@ export async function startHybridLesson() {
     const order = pool.services.find(({ serviceKey }) => serviceKey === "order");
     const catalogs = pool.services.filter(({ serviceKey }) => serviceKey === "catalog");
     const loadBalancer = await startLoadBalancer(catalogs);
-    const gateway = await startGateway(user, order, loadBalancer, pool.services, pool.ownedIds);
+    const gateway = await startGateway(user, order, pool.services, pool.ownedIds);
     await Promise.all(pool.services.map(({ id }) => clearInstanceLogs(id)));
     return stateFrom(gateway, loadBalancer);
   } catch (error) {
@@ -159,17 +158,11 @@ export async function stopHybridLesson() {
     const ownedIds = idsFromLabel(gateway, "com.silicon-lanes.owned-backend-ids");
     await removeInfrastructure(gateway);
     await removeInfrastructure(loadBalancer);
-    const runningIds = new Set((await listManagedInstances()).map(({ id }) => id));
-    for (const id of ownedIds) if (runningIds.has(id)) await stopInstance(id);
+    await stopOwnedInstances(ownedIds);
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);
   }
-}
-
-function parseLogs(output, pattern, clearTime, format) {
-  return output.split(/\r?\n/).map((line) => line.match(pattern)).filter(Boolean)
-    .filter((match) => !clearTime || Date.parse(match[1]) > clearTime).map(format);
 }
 
 export async function getHybridLessonLogs() {
@@ -180,9 +173,9 @@ export async function getHybridLessonLogs() {
     const [gatewayOutput, loadBalancerOutput] = await Promise.all([
       docker(["logs", "--tail", "200", gateway.Id]), docker(["logs", "--tail", "200", loadBalancer.Id])
     ]);
-    const gatewayLines = parseLogs(gatewayOutput, /^\[hybrid-gw\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+service=(\S+)\s+server=(\S+)$/, logClearTimes.get(gateway.Id),
+    const gatewayLines = parseTaggedLogs(gatewayOutput, /^\[hybrid-gw\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+service=(\S+)\s+server=(\S+)$/, logClearTimes.get(gateway.Id),
       (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[5]} / ${match[6]}`);
-    const loadBalancerLines = parseLogs(loadBalancerOutput, /^\[hybrid-lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/, logClearTimes.get(loadBalancer.Id),
+    const loadBalancerLines = parseTaggedLogs(loadBalancerOutput, /^\[hybrid-lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/, logClearTimes.get(loadBalancer.Id),
       (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[5]}`);
     const state = await stateFrom(gateway, loadBalancer);
     const serviceLogs = await Promise.all(state.services.map(async (service) => ({

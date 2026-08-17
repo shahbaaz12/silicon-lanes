@@ -282,6 +282,16 @@ export async function stopInstance(id) {
   }
 }
 
+// Stops each of `ownedIds` that is still running. Lesson managers own the application-service
+// instances they started themselves (not ones a learner already had running) and must leave
+// everything else untouched when the lesson stops.
+export async function stopOwnedInstances(ownedIds) {
+  const runningIds = new Set((await listManagedInstances()).map(({ id }) => id));
+  for (const id of ownedIds) {
+    if (runningIds.has(id)) await stopInstance(id);
+  }
+}
+
 export async function stopServiceInstances(serviceKey) {
   const instances = (await listManagedInstances({ includeStopped: true }))
     .filter((instance) => instance.serviceKey === serviceKey);

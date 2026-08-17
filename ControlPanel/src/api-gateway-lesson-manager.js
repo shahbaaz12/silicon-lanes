@@ -4,10 +4,10 @@ import {
   getInstanceLogs,
   listManagedInstances,
   startInstances,
-  stopInstance
+  stopOwnedInstances
 } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { docker, formattedLogs, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 const nginxTemplate = path.join(repositoryRoot, "Lessons", "lesson-04-api-gateway", "nginx", "default.conf.template");
 const nginxProxyParams = path.join(repositoryRoot, "Lessons", "lesson-04-api-gateway", "nginx", "proxy_params");
 const services = Object.values(serviceCatalog);
@@ -187,10 +187,7 @@ export async function stopApiGatewayLesson() {
     if (!gateway) return;
     const ownedIds = idsFromLabel(gateway, "com.silicon-lanes.owned-backend-ids");
     await removeGateway(gateway);
-    const runningIds = new Set((await listManagedInstances()).map(({ id }) => id));
-    for (const id of ownedIds) {
-      if (runningIds.has(id)) await stopInstance(id);
-    }
+    await stopOwnedInstances(ownedIds);
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);
@@ -204,13 +201,14 @@ export async function getApiGatewayLessonLogs() {
       return { gatewayLogs: "Start the lesson to see API Gateway routing decisions.", serviceLogs: [] };
     }
 
-    const output = await docker(["logs", "--tail", "300", gateway.Id]);
-    const clearTime = gatewayLogClearTimes.get(gateway.Id);
-    const lines = output.split(/\r?\n/)
-      .map((line) => line.match(/^\[gateway\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+service=(\S+)\s+server=(\S+)$/))
-      .filter(Boolean)
-      .filter((match) => !clearTime || Date.parse(match[1]) > clearTime)
-      .map((match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  → ${match[5]} / ${match[6]}`);
+    const gatewayLogs = await formattedLogs(gateway, {
+      tail: 300,
+      keep: 50,
+      pattern: /^\[gateway\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+service=(\S+)\s+server=(\S+)$/,
+      clearTime: gatewayLogClearTimes.get(gateway.Id),
+      format: (match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  → ${match[5]} / ${match[6]}`,
+      emptyMessage: "No gateway requests received yet."
+    });
     const state = await stateFrom(gateway);
     const serviceLogs = await Promise.all(state.services.map(async (service) => ({
       id: service.id,
@@ -219,10 +217,7 @@ export async function getApiGatewayLessonLogs() {
       logs: await getInstanceLogs(service.id)
     })));
 
-    return {
-      gatewayLogs: lines.length ? lines.slice(-50).join("\n") : "No gateway requests received yet.",
-      serviceLogs
-    };
+    return { gatewayLogs, serviceLogs };
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);

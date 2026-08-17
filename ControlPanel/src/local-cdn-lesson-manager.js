@@ -6,7 +6,7 @@ import {
   startAdvancedLesson,
   stopAdvancedLesson
 } from "./advanced-lesson-manager.js";
-import { docker, friendlyDockerError, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy as waitForContainer } from "./infrastructure/docker-client.js";
+import { docker, formattedLogs, friendlyDockerError, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy as waitForContainer } from "./infrastructure/docker-client.js";
 const cdnTemplate = path.join(repositoryRoot, "Lessons", "lesson-07-local-cdn", "nginx", "cdn.conf.template");
 const lessonLabel = "lesson-07-local-cdn";
 const cdnName = "localCdn1";
@@ -81,19 +81,19 @@ export async function stopLocalCdnLesson() {
   } catch (error) { if (error.statusCode) throw error; throw friendlyDockerError(error); }
 }
 
-function parseCdnLogs(output) {
-  return output.split(/\r?\n/).map((line) => line.match(/^\[local-cdn\]\s+(\S+)\s+msec=(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+cache=(\S+)$/)).filter(Boolean)
-    .filter((match) => !logClearTime || Number(match[2]) * 1000 > logClearTime)
-    .map((match) => `${match[1]}  ${match[3]}  ${match[4]}  ${match[6] === "-" ? "BYPASS" : match[6]}`);
-}
-
 export async function getLocalCdnLessonLogs() {
   try {
     const cdn = await inspectCdn();
     const downstream = await getAdvancedLessonLogs();
     if (!cdn) return { cdnLogs: "Start Lesson 7.", ...downstream };
-    const lines = parseCdnLogs(await docker(["logs", "--tail", "200", cdn.Id]));
-    return { cdnLogs: lines.length ? lines.slice(-30).join("\n") : "No CDN requests yet.", ...downstream };
+    const cdnLogs = await formattedLogs(cdn, {
+      pattern: /^\[local-cdn\]\s+(\S+)\s+msec=(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+cache=(\S+)$/,
+      clearTime: logClearTime,
+      format: (match) => `${match[1]}  ${match[3]}  ${match[4]}  ${match[6] === "-" ? "BYPASS" : match[6]}`,
+      emptyMessage: "No CDN requests yet.",
+      timeMs: (match) => Number(match[2]) * 1000
+    });
+    return { cdnLogs, ...downstream };
   } catch (error) { if (error.statusCode) throw error; throw friendlyDockerError(error); }
 }
 

@@ -4,10 +4,11 @@ import {
   getInstanceLogs,
   listManagedInstances,
   startInstances,
-  stopInstance
+  stopInstance,
+  stopOwnedInstances
 } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { docker, formattedLogs, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 const nginxTemplate = path.join(repositoryRoot, "Lessons", "lesson-03-l7-load-balancer", "nginx", "default.conf.template");
 const catalog = serviceCatalog.catalog;
 const loadBalancerName = "loadBalancer1";
@@ -152,10 +153,7 @@ export async function stopL7LoadBalancerLesson() {
     if (!loadBalancer) return;
     const ownedIds = idsFromLabel(loadBalancer, "com.silicon-lanes.owned-backend-ids");
     await removeLoadBalancer(loadBalancer);
-    const runningIds = new Set((await listManagedInstances()).map(({ id }) => id));
-    for (const id of ownedIds) {
-      if (runningIds.has(id)) await stopInstance(id);
-    }
+    await stopOwnedInstances(ownedIds);
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);
@@ -180,23 +178,21 @@ export async function getL7LoadBalancerLessonLogs() {
   try {
     const loadBalancer = await inspectLoadBalancer();
     if (!loadBalancer) return { loadBalancerLogs: "Start the lesson to see L7 Load Balancer requests.", serviceLogs: [] };
-    const output = await docker(["logs", "--tail", "240", loadBalancer.Id]);
-    const clearTime = loadBalancerLogClearTimes.get(loadBalancer.Id);
-    const lines = output.split(/\r?\n/)
-      .map((line) => line.match(/^\[lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/))
-      .filter(Boolean)
-      .filter((match) => !clearTime || Date.parse(match[1]) > clearTime)
-      .map((match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  → ${match[5]}`);
+    const loadBalancerLogs = await formattedLogs(loadBalancer, {
+      tail: 240,
+      keep: 40,
+      pattern: /^\[lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/,
+      clearTime: loadBalancerLogClearTimes.get(loadBalancer.Id),
+      format: (match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  → ${match[5]}`,
+      emptyMessage: "No load-balanced requests received yet."
+    });
     const state = await stateFrom(loadBalancer);
     const serviceLogs = await Promise.all(state.services.map(async (service) => ({
       id: service.id,
       name: service.name,
       logs: await getInstanceLogs(service.id)
     })));
-    return {
-      loadBalancerLogs: lines.length ? lines.slice(-40).join("\n") : "No load-balanced requests received yet.",
-      serviceLogs
-    };
+    return { loadBalancerLogs, serviceLogs };
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);

@@ -94,3 +94,24 @@ export async function waitForHealthy(id, label, { attempts = 80, intervalMs = 25
   }
   throw new Error(`${label} did not become ready in time.`);
 }
+
+// Every lesson's Nginx access log is tagged with a `[lesson-tag]` prefix and matched with its
+// own regex; this is the shared split → match → drop-anything-before-the-last-clear → format
+// chain that every lesson manager otherwise reimplemented individually. `timeMs` extracts the
+// comparable timestamp from a match (defaults to the first capture group as an ISO string);
+// pass a custom one for logs that key clear-time off a different field (e.g. a raw `msec=`).
+export function parseTaggedLogs(output, pattern, clearTime, format, timeMs = (match) => Date.parse(match[1])) {
+  return output.split(/\r?\n/)
+    .map((line) => line.match(pattern))
+    .filter(Boolean)
+    .filter((match) => !clearTime || timeMs(match) > clearTime)
+    .map(format);
+}
+
+// Fetches, parses, and trims one container's tagged log stream down to its last `keep` lines,
+// falling back to `emptyMessage` when nothing matched.
+export async function formattedLogs(container, { tail = 200, pattern, clearTime, format, keep = 30, emptyMessage, timeMs }) {
+  const output = await docker(["logs", "--tail", String(tail), container.Id]);
+  const lines = parseTaggedLogs(output, pattern, clearTime, format, timeMs);
+  return lines.length ? lines.slice(-keep).join("\n") : emptyMessage;
+}

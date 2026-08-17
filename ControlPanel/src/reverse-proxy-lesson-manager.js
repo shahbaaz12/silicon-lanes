@@ -7,7 +7,7 @@ import {
   stopInstance
 } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-import { docker, friendlyDockerError, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { docker, formattedLogs, friendlyDockerError, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 const nginxTemplate = path.join(repositoryRoot, "Lessons", "lesson-02-reverse-proxy", "nginx", "default.conf.template");
 const catalog = serviceCatalog.catalog;
 const proxyName = "reverseProxy1";
@@ -166,16 +166,15 @@ export async function getReverseProxyLessonLogs() {
       proxyLogs: "Start the lesson to see Reverse Proxy requests.",
       serviceLogs: "Start the lesson to see Catalog Service requests."
     };
-    const output = await docker(["logs", "--tail", "200", proxy.Id]);
-    const clearTime = proxyLogClearTimes.get(proxy.Id);
-    const proxyLines = output.split(/\r?\n/)
-      .map((line) => line.match(/^\[proxy\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+cache=(\S+)\s+upstream=(\S+)$/))
-      .filter(Boolean)
-      .filter((match) => !clearTime || Date.parse(match[1]) > clearTime)
-      .map((match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  cache=${match[5]}`);
+    const proxyLogs = await formattedLogs(proxy, {
+      pattern: /^\[proxy\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+cache=(\S+)\s+upstream=(\S+)$/,
+      clearTime: proxyLogClearTimes.get(proxy.Id),
+      format: (match) => `${match[1]}  ${match[2]}  ${match[3]}  ${match[4]}  cache=${match[5]}`,
+      emptyMessage: "No proxy requests received yet."
+    });
     const backendId = proxy.Config.Labels?.["com.silicon-lanes.backend-id"];
     return {
-      proxyLogs: proxyLines.length ? proxyLines.slice(-30).join("\n") : "No proxy requests received yet.",
+      proxyLogs,
       serviceLogs: backendId ? await getInstanceLogs(backendId) : "Catalog Service is unavailable."
     };
   } catch (error) {

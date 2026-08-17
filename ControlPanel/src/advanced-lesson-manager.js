@@ -1,7 +1,7 @@
 import path from "node:path";
-import { clearInstanceLogs, listManagedInstances, startInstances, stopInstance } from "./docker-manager.js";
+import { clearInstanceLogs, listManagedInstances, startInstances, stopOwnedInstances } from "./docker-manager.js";
 import { serviceCatalog } from "./service-catalog.js";
-import { docker, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
+import { docker, formattedLogs, friendlyDockerError, idsFromLabel, inspectLessonContainer, portIsAvailable, repositoryRoot, waitForHealthy } from "./infrastructure/docker-client.js";
 import { ensureServicePool } from "./infrastructure/service-pool.js";
 const nginxDirectory = path.join(repositoryRoot, "Lessons", "lesson-06-advanced", "nginx");
 const edgeTemplate = path.join(nginxDirectory, "edge-load-balancer.conf.template");
@@ -82,7 +82,7 @@ async function startGateway(name, user, order) {
   });
 }
 
-async function startEdgeLoadBalancer(gateways, services, ownedIds) {
+async function startEdgeLoadBalancer(services, ownedIds) {
   if (!await portIsAvailable(edgePort)) {
     throw Object.assign(new Error(`Port ${edgePort} is already in use.`), { statusCode: 409 });
   }
@@ -91,7 +91,6 @@ async function startEdgeLoadBalancer(gateways, services, ownedIds) {
     "--label", `com.silicon-lanes.lesson=${lessonLabel}`,
     "--label", `com.silicon-lanes.backend-ids=${services.map(({ id }) => id).join(",")}`,
     "--label", `com.silicon-lanes.owned-backend-ids=${ownedIds.join(",")}`,
-    "--label", `com.silicon-lanes.gateway-ids=${gateways.map(({ Id }) => Id).join(",")}`,
     "--env", `GATEWAY_1=${gatewayNames[0]}:80`, "--env", `GATEWAY_2=${gatewayNames[1]}:80`,
     "--env", "NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx",
     "--mount", `type=bind,source=${edgeTemplate},target=/etc/nginx/templates/nginx.conf.template,readonly`,
@@ -172,7 +171,7 @@ export async function startAdvancedLesson() {
     const catalogs = pool.services.filter(({ serviceKey }) => serviceKey === "catalog");
     const catalogLoadBalancer = await startCatalogLoadBalancer(catalogs);
     const gateways = await Promise.all(gatewayNames.map((name) => startGateway(name, user, order)));
-    const edge = await startEdgeLoadBalancer(gateways, pool.services, pool.ownedIds);
+    const edge = await startEdgeLoadBalancer(pool.services, pool.ownedIds);
     await Promise.all(pool.services.map(({ id }) => clearInstanceLogs(id)));
     return stateFrom(edge, gateways, catalogLoadBalancer);
   } catch (error) {
@@ -186,23 +185,11 @@ export async function stopAdvancedLesson() {
     const infrastructure = await inspectAll({ includeStopped: true });
     const ownedIds = idsFromLabel(infrastructure.edge, "com.silicon-lanes.owned-backend-ids");
     await Promise.all([infrastructure.edge, ...infrastructure.gateways, infrastructure.catalogLoadBalancer].map(removeInfrastructure));
-    const runningIds = new Set((await listManagedInstances()).map(({ id }) => id));
-    for (const id of ownedIds) if (runningIds.has(id)) await stopInstance(id);
+    await stopOwnedInstances(ownedIds);
   } catch (error) {
     if (error.statusCode) throw error;
     throw friendlyDockerError(error);
   }
-}
-
-function parseLogs(output, pattern, clearTime, format) {
-  return output.split(/\r?\n/).map((line) => line.match(pattern)).filter(Boolean)
-    .filter((match) => !clearTime || Date.parse(match[1]) > clearTime).map(format);
-}
-
-async function formattedLogs(container, pattern, emptyMessage, format) {
-  const output = await docker(["logs", "--tail", "200", container.Id]);
-  const lines = parseLogs(output, pattern, logClearTimes.get(container.Id), format);
-  return lines.length ? lines.slice(-30).join("\n") : emptyMessage;
 }
 
 export async function getAdvancedLessonLogs() {
@@ -215,18 +202,27 @@ export async function getAdvancedLessonLogs() {
       gateway.NetworkSettings.Networks?.[networkName]?.IPAddress,
       gatewayNames[index]
     ]));
-    const edgeLogs = await formattedLogs(infrastructure.edge,
-      /^\[advanced-edge-l4\]\s+(\S+)\s+client=(\S+)\s+gateway=(\S+):(\d+)\s+status=(\d+)$/,
-      "No edge connections yet.", (match) => `${match[1]}  TCP  connection  → ${gatewayIpNames.get(match[3]) ?? match[3]}`);
+    const edgeLogs = await formattedLogs(infrastructure.edge, {
+      pattern: /^\[advanced-edge-l4\]\s+(\S+)\s+client=(\S+)\s+gateway=(\S+):(\d+)\s+status=(\d+)$/,
+      clearTime: logClearTimes.get(infrastructure.edge.Id),
+      format: (match) => `${match[1]}  TCP  connection  → ${gatewayIpNames.get(match[3]) ?? match[3]}`,
+      emptyMessage: "No edge connections yet."
+    });
     const gatewayLogs = await Promise.all(infrastructure.gateways.map(async (gateway, index) => ({
       name: gatewayNames[index],
-      logs: await formattedLogs(gateway,
-        /^\[advanced-gw\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+gateway=(\S+)\s+service=(\S+)\s+server=(\S+)$/,
-        "No gateway requests yet.", (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[6]} / ${match[7]}`)
+      logs: await formattedLogs(gateway, {
+        pattern: /^\[advanced-gw\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+gateway=(\S+)\s+service=(\S+)\s+server=(\S+)$/,
+        clearTime: logClearTimes.get(gateway.Id),
+        format: (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[6]} / ${match[7]}`,
+        emptyMessage: "No gateway requests yet."
+      })
     })));
-    const catalogLogs = await formattedLogs(infrastructure.catalogLoadBalancer,
-      /^\[advanced-catalog-lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/,
-      "No Catalog requests yet.", (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[5]}`);
+    const catalogLogs = await formattedLogs(infrastructure.catalogLoadBalancer, {
+      pattern: /^\[advanced-catalog-lb\]\s+(\S+)\s+([A-Z]+)\s+(\S+)\s+(\d+)\s+server=(\S+)$/,
+      clearTime: logClearTimes.get(infrastructure.catalogLoadBalancer.Id),
+      format: (match) => `${match[1]}  ${match[2]}  ${match[3]}  → ${match[5]}`,
+      emptyMessage: "No Catalog requests yet."
+    });
     return { edgeLogs, gatewayLogs, catalogLogs };
   } catch (error) {
     if (error.statusCode) throw error;
