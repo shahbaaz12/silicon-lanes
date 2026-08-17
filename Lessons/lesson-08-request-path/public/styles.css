@@ -1,7 +1,11 @@
-/* Lesson 8 is reading material, not a Docker lab: no lesson-workspace/response-panel/log-grid
-   machinery from the other lessons applies here. This file is fully self-contained aside from
-   /lessons/shared/components.css, which supplies the lesson-node-lite boxes reused below to
-   keep the diagrams visually consistent with Lessons 6 and 7. */
+/* Lesson 8 is reading material, not a Docker lab: none of the lesson-workspace / response-panel
+   / log-grid machinery from the other lessons applies here. This file is fully self-contained
+   apart from /lessons/shared/components.css, which supplies the lesson-node-lite boxes reused
+   in the walkthrough diagram to stay visually consistent with Lessons 6 and 7.
+
+   Because this lesson is prose-heavy rather than diagram-heavy, it runs a wider column and
+   noticeably larger body text than the interactive lessons — it is meant to be read, not
+   scanned while watching logs. */
 
 :root {
   color-scheme: dark;
@@ -15,6 +19,7 @@
   --lime: #b7ed62;
   --amber: #f4c95d;
   --violet: #a78bfa;
+  --rose: #fb7185;
   --danger: #ff6b78;
   --connector: #3b4b54;
 }
@@ -29,142 +34,218 @@ code { font-family: ui-monospace, Consolas, monospace; }
 .site-header { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(20px, 5vw, 72px); border-bottom: 1px solid var(--line); background: rgb(9 11 14 / 86%); backdrop-filter: blur(16px); }
 .brand { display: flex; align-items: center; gap: 11px; color: var(--text); font-weight: 800; letter-spacing: -.02em; text-decoration: none; }
 .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #47606b; border-radius: 10px; color: var(--cyan); background: #10191d; font-size: 12px; }
-.lesson-chip { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
-.lesson-chip span { padding: 6px 9px; border-radius: 999px; color: #4a1620; background: #fb7185; font-weight: 900; }
+.lesson-chip { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.lesson-chip span { padding: 6px 9px; border-radius: 999px; color: #4a1620; background: var(--rose); font-weight: 900; }
 
-main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 68px 0 78px; }
-.eyebrow { margin: 0 0 10px; color: var(--cyan); font-size: 12px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
-.intro { max-width: 1000px; margin-bottom: 44px; }
-.intro h1 { max-width: 940px; margin-bottom: 18px; font-size: clamp(38px, 5.4vw, 64px); line-height: 1.05; letter-spacing: -.045em; }
-.intro-copy { max-width: 880px; margin-bottom: 22px; color: var(--text); font-size: 17px; line-height: 1.75; }
+main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78px; }
+.eyebrow { margin: 0 0 10px; color: var(--cyan); font-size: 13px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+
+.intro { max-width: 1040px; margin-bottom: 40px; }
+.intro h1 { max-width: 980px; margin-bottom: 20px; font-size: clamp(38px, 5.4vw, 64px); line-height: 1.05; letter-spacing: -.045em; }
+.intro-copy { max-width: 940px; margin-bottom: 16px; color: var(--text); font-size: 19px; line-height: 1.75; }
 .intro-copy em { color: #ffb4bd; font-style: normal; font-weight: 700; }
-.concept-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-.concept-tags span { padding: 7px 11px; border: 1px solid var(--line); border-radius: 999px; color: #d5dde2; background: var(--panel); font-size: 12px; font-weight: 700; }
+.concept-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.concept-tags span { padding: 8px 13px; border: 1px solid var(--line); border-radius: 999px; color: #d5dde2; background: var(--panel); font-size: 13px; font-weight: 700; }
 
+.teaching-block,
 .walkthrough,
 .architecture-explanation,
 .next-lesson { border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--panel) 96%, var(--cyan)); box-shadow: 0 24px 70px rgb(0 0 0 / 20%); }
-.walkthrough { padding: clamp(22px, 3vw, 38px); }
-.workspace-heading { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
-.workspace-heading h2,
+.teaching-block { margin-bottom: 22px; padding: clamp(24px, 3.4vw, 42px); }
+.teaching-block h2,
+.walkthrough h2,
 .architecture-explanation h2,
-.next-lesson h2 { margin-bottom: 8px; font-size: clamp(23px, 2.8vw, 30px); letter-spacing: -.03em; }
-.workspace-heading p,
-.next-lesson p { max-width: 760px; margin-bottom: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.next-lesson h2 { margin-bottom: 14px; font-size: clamp(25px, 3vw, 34px); line-height: 1.2; letter-spacing: -.03em; }
+.teaching-block > p { max-width: 1000px; margin-bottom: 18px; color: var(--text); font-size: 17px; line-height: 1.8; }
+.teaching-block > p.lead { color: var(--muted); font-size: 18px; }
+.teaching-block em { color: #ffb4bd; font-style: normal; font-weight: 700; }
+.teaching-block code { color: var(--cyan); font-size: .92em; }
 
-/* Request-path diagram: two stacked groups (open internet, then Silicon Lanes) joined by a
-   labeled divider, each a horizontal row of lesson-node-lite boxes and arrow connectors. */
-.path-diagram { display: grid; gap: 18px; padding: 24px; border: 1px solid var(--line); border-radius: 15px; background: rgb(9 12 15 / 48%); }
-.path-group { display: grid; gap: 12px; justify-items: center; }
-.group-label { color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-.path-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
-.step-arrow { color: var(--connector); font-size: 18px; }
+/* Question-led sections get a rose accent bar so the three "your question" blocks read as a set. */
+.question-block { border-left: 3px solid var(--rose); }
+
+/* Four foundational definitions, before any of them get used in prose. */
+.plain-terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 26px 0 8px; }
+.term-card { padding: 20px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel-raised); }
+.term-card h3 { margin-bottom: 8px; color: var(--cyan); font-size: 17px; }
+.term-card p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.65; }
+.term-card code { color: var(--lime); }
+
+/* Small three-box illustration of the ordinary one-name-one-server case. */
+.mini-flow { display: flex; align-items: stretch; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 26px 0; padding: 26px 20px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
+.mini-node { min-width: 190px; flex: 0 1 auto; display: grid; align-content: center; gap: 6px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-raised); text-align: center; }
+.mini-node.accent { border-color: color-mix(in srgb, var(--lime) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 82%, var(--lime)); }
+.mini-node strong { font-size: 16px; }
+.mini-node small { color: var(--muted); font-size: 13px; }
+.mini-arrow { align-self: center; color: var(--connector); font-size: 22px; }
+
+/* GeoDNS vs anycast, side by side. */
+.approach-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 26px 0; }
+.approach-card { padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
+.approach-card.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
+.approach-tag { display: inline-block; margin-bottom: 12px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.approach-card h3 { margin-bottom: 12px; font-size: 20px; }
+.approach-card p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.72; }
+.approach-note { margin: 0 !important; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted) !important; font-size: 15px !important; }
+
+/* Numbered long-form answers to the "isn't that a conflict?" question. */
+.answer-list { display: grid; gap: 16px; margin: 26px 0 8px; }
+.answer-card { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 20px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
+.answer-number { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #4a1620; background: var(--rose); font: 900 17px ui-monospace, Consolas, monospace; }
+.answer-card h3 { margin-bottom: 12px; font-size: 20px; line-height: 1.35; }
+.answer-card p { margin-bottom: 13px; color: var(--text); font-size: 16px; line-height: 1.78; }
+.answer-punch { margin: 14px 0 0 !important; padding: 14px 16px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); font-size: 16px !important; }
+
+/* Unicast vs VIP vs anycast, with a small live/standby box illustration in each card. */
+.ip-kind-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 26px 0; }
+.ip-kind-card { padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
+.ip-kind-card.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
+.ip-kind-card h3 { margin-bottom: 16px; font-size: 19px; }
+.ip-kind-card > p { margin: 0; color: var(--text); font-size: 15px; line-height: 1.7; }
+.kind-visual { display: grid; justify-items: center; gap: 0; margin-bottom: 18px; padding: 16px 12px; border: 1px solid var(--line); border-radius: 11px; background: rgb(9 12 15 / 55%); }
+.kind-ip { padding: 5px 10px; border: 1px solid color-mix(in srgb, var(--cyan) 40%, var(--line)); border-radius: 7px; color: var(--cyan); background: #0b0f13; font: 800 12px ui-monospace, Consolas, monospace; }
+.kind-line { width: 2px; height: 18px; background: var(--connector); }
+.kind-boxes { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.kind-box { padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; }
+.kind-box.live { border: 1px solid color-mix(in srgb, var(--lime) 50%, var(--line)); color: #d6f4a0; background: color-mix(in srgb, var(--panel-raised) 72%, var(--lime)); }
+.kind-box.standby { border: 1px dashed var(--connector); color: var(--muted); background: transparent; }
+
+/* Three scale tiers answering "do real apps have one IP?" */
+.tier-list { display: grid; gap: 14px; margin: 26px 0 8px; }
+.tier-row { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 22px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
+.tier-row.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
+.tier-label { align-self: start; padding-top: 3px; color: var(--cyan); font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.tier-row h3 { margin-bottom: 10px; font-size: 19px; line-height: 1.35; }
+.tier-row p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.76; }
+.tier-row p:last-child { margin-bottom: 0; }
+.tier-note { padding: 13px 15px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); }
+
+/* The anycast picture: two client callouts above three simultaneously-live PoPs. */
+.anycast-diagram { display: grid; gap: 16px; margin: 26px 0 22px; padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
+.anycast-clients,
+.anycast-pops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.anycast-client { grid-column: var(--slot); padding: 13px 14px; border: 1px dashed color-mix(in srgb, var(--lime) 45%, var(--line)); border-radius: 11px; text-align: center; }
+.anycast-client strong { display: block; margin-bottom: 4px; font-size: 15px; }
+.anycast-client span { color: var(--muted); font-size: 13px; }
+.anycast-pop { grid-column: var(--slot); padding: 16px 14px; border: 1px solid color-mix(in srgb, var(--rose) 42%, var(--line)); border-radius: 11px; background: color-mix(in srgb, var(--panel-raised) 80%, var(--rose)); text-align: center; }
+.anycast-pop strong { display: block; margin-bottom: 5px; font-size: 16px; }
+.anycast-pop small { color: var(--muted); font: 12px ui-monospace, Consolas, monospace; }
+.anycast-caption { grid-column: 1 / -1; padding-top: 4px; color: var(--muted); font-size: 14px; line-height: 1.6; text-align: center; }
+
+.caveat-note { margin: 24px 0 0; padding: 22px; border-left: 3px solid var(--amber); border-radius: 0 12px 12px 0; background: color-mix(in srgb, var(--panel-raised) 82%, var(--amber)); }
+.caveat-note h3 { margin-bottom: 9px; font-size: 19px; }
+.caveat-note p { margin: 0; color: var(--text); font-size: 16px; line-height: 1.76; }
+
+.walkthrough { margin-bottom: 22px; padding: clamp(24px, 3.4vw, 42px); }
+.workspace-heading { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
+.workspace-heading p { max-width: 860px; margin-bottom: 0; color: var(--muted); font-size: 17px; line-height: 1.7; }
+
+.path-diagram { display: grid; gap: 20px; padding: 26px; border: 1px solid var(--line); border-radius: 15px; background: rgb(9 12 15 / 48%); }
+.path-group { display: grid; gap: 14px; justify-items: center; }
+.group-label { color: var(--muted); font-size: 12px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.path-row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; }
+.step-arrow { color: var(--connector); font-size: 20px; }
 .path-divider { position: relative; display: flex; align-items: center; justify-content: center; height: 2px; background: var(--connector); }
-.path-divider span { padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-raised); color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.path-divider span { padding: 5px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel-raised); color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .03em; white-space: nowrap; }
 .tagged-node { position: relative; width: fit-content; }
-.layer-tag { position: absolute; z-index: 2; top: -8px; right: -10px; padding: 5px 7px; border-radius: 999px; font: 900 8px ui-monospace, Consolas, monospace; letter-spacing: .08em; }
+.layer-tag { position: absolute; z-index: 2; top: -8px; right: -10px; padding: 5px 7px; border-radius: 999px; font: 900 9px ui-monospace, Consolas, monospace; letter-spacing: .08em; }
 .layer-tag.l4 { border: 1px solid rgb(232 121 249 / 45%); color: #f1b6f7; background: #2a162d; }
 .layer-tag.l7 { border: 1px solid rgb(129 140 248 / 45%); color: #cbd0ff; background: #181a39; }
 
-.step-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 24px; }
+.step-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 26px; }
 .primary-action,
-.secondary-action { min-height: 44px; padding: 0 20px; border-radius: 11px; font-weight: 850; }
-.primary-action { border: 0; color: #4a1620; background: #fb7185; }
+.secondary-action { min-height: 46px; padding: 0 22px; border-radius: 11px; font-size: 14px; font-weight: 850; }
+.primary-action { border: 0; color: #4a1620; background: var(--rose); }
 .secondary-action { border: 1px solid var(--line); color: var(--text); background: transparent; }
-.step-status { display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
-.step-dots { display: flex; gap: 6px; }
-.step-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
-.step-dots i.active { background: #fb7185; }
-.step-panel { margin-top: 20px; padding: 20px 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-raised); }
-.step-panel h3 { margin-bottom: 8px; font-size: 19px; }
-.step-panel p { margin: 0; color: var(--text); font-size: 15px; line-height: 1.7; }
+.step-status { display: flex; flex-direction: column; align-items: center; gap: 9px; color: var(--muted); font-size: 13px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.step-dots { display: flex; gap: 7px; }
+.step-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.step-dots i.active { background: var(--rose); }
+.step-panel { margin-top: 22px; padding: 24px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-raised); }
+.step-panel h3 { margin-bottom: 10px; font-size: 21px; line-height: 1.3; }
+.step-panel p { margin: 0; color: var(--text); font-size: 17px; line-height: 1.78; }
 .step-panel code { color: var(--cyan); }
 
-.architecture-explanation { margin-top: 26px; padding: clamp(26px, 4vw, 46px); }
-.explanation-copy { max-width: 1060px; }
-.explanation-copy > p:not(.eyebrow) { margin-bottom: 17px; color: var(--text); font-size: 16px; line-height: 1.8; }
-.explanation-copy h3 { margin: 30px 0 12px; font-size: 19px; }
+.architecture-explanation { padding: clamp(26px, 4vw, 46px); }
+.explanation-copy { max-width: 1120px; }
+.explanation-copy > p:not(.eyebrow) { margin-bottom: 18px; color: var(--text); font-size: 17px; line-height: 1.82; }
 .explanation-copy em { color: #ffb4bd; font-style: normal; font-weight: 700; }
+.explanation-copy code { color: var(--cyan); }
 
-/* Anycast diagram: two client annotations above three PoP boxes, all announcing one IP. */
-.anycast-diagram { display: grid; gap: 14px; margin: 24px 0 20px; padding: 24px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
-.anycast-clients,
-.anycast-pops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.anycast-client { grid-column: var(--slot); padding: 10px 12px; border: 1px dashed color-mix(in srgb, var(--lime) 45%, var(--line)); border-radius: 10px; text-align: center; }
-.anycast-client strong { display: block; margin-bottom: 3px; font-size: 13px; }
-.anycast-client span { color: var(--muted); font-size: 11px; }
-.anycast-pop { grid-column: var(--slot); padding: 14px 12px; border: 1px solid rgb(251 113 133 / 40%); border-radius: 10px; background: color-mix(in srgb, var(--panel-raised) 80%, #fb7185); text-align: center; }
-.anycast-pop strong { display: block; margin-bottom: 4px; font-size: 14px; }
-.anycast-pop small { color: var(--muted); font: 11px ui-monospace, Consolas, monospace; }
-.anycast-caption { grid-column: 1 / -1; color: var(--muted); font-size: 12px; text-align: center; }
+.glossary { margin-top: 36px; padding-top: 32px; border-top: 1px solid var(--line); }
+.glossary-title { margin-bottom: 18px; color: var(--text); font-size: 17px; font-weight: 800; }
+.glossary dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.glossary dl > div { padding: 17px 19px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-raised); }
+.glossary dt { margin-bottom: 7px; color: var(--cyan); font-size: 15px; font-weight: 800; }
+.glossary dd { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.62; }
+.glossary code { color: var(--lime); font-size: .92em; }
 
-.analogy-callout,
-.setup-example { margin: 26px 0; padding: 22px; background: color-mix(in srgb, var(--panel-raised) 78%, transparent); }
-.analogy-callout { border-left: 3px solid var(--amber); }
-.setup-example { border-left: 3px solid #60a5fa; }
-.analogy-callout h3,
-.setup-example h3 { margin-bottom: 8px; font-size: 19px; }
-.analogy-callout > p:last-child,
-.setup-example > p:last-child { margin: 0; color: var(--text); font-size: 15px; line-height: 1.75; }
-.setup-example code { color: var(--cyan); font-weight: 700; }
-
-.comparison-table { display: grid; margin: 18px 0 22px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-.comparison-row { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr) minmax(0, .6fr); gap: 12px; padding: 13px 16px; }
-.comparison-row:not(:last-child) { border-bottom: 1px solid var(--line); }
-.comparison-row span { font-size: 13px; line-height: 1.5; }
-.comparison-head { background: var(--panel-raised); color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
-.comparison-row:not(.comparison-head) { color: var(--text); }
-.comparison-row:not(.comparison-head) strong { color: var(--cyan); }
-
-.glossary { margin-top: 34px; padding-top: 30px; border-top: 1px solid var(--line); }
-.glossary .tradeoff-label,
-.glossary > p { margin-bottom: 16px; color: var(--text); font-size: 15px; font-weight: 800; }
-.glossary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; }
-.glossary dl > div { padding: 16px 18px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel-raised); }
-.glossary dt { margin-bottom: 6px; color: var(--cyan); font-size: 14px; font-weight: 800; }
-.glossary dd { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
-
-.next-lesson { display: flex; align-items: center; justify-content: space-between; gap: 40px; margin-top: 26px; padding: clamp(26px, 4vw, 42px); border-color: color-mix(in srgb, var(--lime) 38%, var(--line)); }
+.next-lesson { display: flex; align-items: center; justify-content: space-between; gap: 40px; margin-top: 22px; padding: clamp(26px, 4vw, 42px); border-color: color-mix(in srgb, var(--lime) 38%, var(--line)); }
+.next-lesson p { max-width: 760px; margin-bottom: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
 .journey-links { display: flex; flex-wrap: wrap; gap: 10px; }
-.next-lesson a { min-height: 50px; display: inline-flex; flex: 0 0 auto; align-items: center; gap: 12px; padding: 0 18px; border: 1px solid color-mix(in srgb, var(--lime) 45%, var(--line)); border-radius: 11px; color: var(--text); background: rgb(183 237 98 / 9%); font-size: 13px; font-weight: 800; text-decoration: none; }
+.next-lesson a { min-height: 52px; display: inline-flex; flex: 0 0 auto; align-items: center; gap: 12px; padding: 0 20px; border: 1px solid color-mix(in srgb, var(--lime) 45%, var(--line)); border-radius: 11px; color: var(--text); background: rgb(183 237 98 / 9%); font-size: 14px; font-weight: 800; text-decoration: none; }
 .next-lesson a:hover { background: rgb(183 237 98 / 15%); }
 .next-lesson a span { color: var(--lime); font-size: 20px; }
 
+html[data-theme="light"] .teaching-block,
 html[data-theme="light"] .walkthrough,
 html[data-theme="light"] .architecture-explanation,
 html[data-theme="light"] .next-lesson { color: var(--text); background: #fff; box-shadow: 0 18px 48px rgb(25 42 50 / 10%); }
 html[data-theme="light"] .concept-tags span,
-html[data-theme="light"] .path-diagram,
+html[data-theme="light"] .term-card,
+html[data-theme="light"] .mini-flow,
+html[data-theme="light"] .mini-node,
+html[data-theme="light"] .approach-card,
+html[data-theme="light"] .answer-card,
+html[data-theme="light"] .ip-kind-card,
+html[data-theme="light"] .kind-visual,
+html[data-theme="light"] .tier-row,
 html[data-theme="light"] .anycast-diagram,
+html[data-theme="light"] .path-diagram,
 html[data-theme="light"] .step-panel,
 html[data-theme="light"] .path-divider span,
-html[data-theme="light"] .analogy-callout,
-html[data-theme="light"] .setup-example,
-html[data-theme="light"] .glossary dl > div,
-html[data-theme="light"] .comparison-row { border-color: var(--line); color: var(--text); background: #f6f9fa; }
-html[data-theme="light"] .comparison-head { background: #eef3f5; }
-html[data-theme="light"] .anycast-pop { border-color: rgb(251 113 133 / 40%); background: #ffeef1; }
+html[data-theme="light"] .caveat-note,
+html[data-theme="light"] .glossary dl > div { border-color: var(--line); color: var(--text); background: #f6f9fa; }
+html[data-theme="light"] .approach-card.highlight,
+html[data-theme="light"] .ip-kind-card.highlight,
+html[data-theme="light"] .tier-row.highlight,
+html[data-theme="light"] .anycast-pop { border-color: rgb(251 113 133 / 42%); background: #fff0f2; }
+html[data-theme="light"] .mini-node.accent { border-color: #a9d85c; background: #f2f9e7; }
+html[data-theme="light"] .kind-box.live { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
+html[data-theme="light"] .answer-punch,
+html[data-theme="light"] .tier-note { background: #f2f9e7; }
+html[data-theme="light"] .caveat-note { background: #fff8e6; }
 html[data-theme="light"] .secondary-action { color: var(--text); background: var(--panel-raised); }
 html[data-theme="light"] .next-lesson a { color: var(--text); background: rgb(118 169 41 / 10%); }
-html[data-theme="light"] .intro-copy em { color: #b3223f; }
+html[data-theme="light"] .intro-copy em,
+html[data-theme="light"] .teaching-block em,
 html[data-theme="light"] .explanation-copy em { color: #b3223f; }
+html[data-theme="light"] .term-card code,
+html[data-theme="light"] .glossary code { color: #4f7a12; }
+
+@media (max-width: 1180px) {
+  .plain-terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .glossary dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ip-kind-grid { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 900px) {
-  .anycast-clients,
-  .anycast-pops { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .comparison-row { grid-template-columns: 1fr; gap: 4px; }
-  .comparison-row:not(.comparison-head) span:first-child { color: var(--cyan); font-weight: 800; }
-  .comparison-head { display: none; }
+  .approach-grid { grid-template-columns: 1fr; }
+  .tier-row { grid-template-columns: 1fr; gap: 12px; }
 }
 
 @media (max-width: 760px) {
   .site-header { padding-inline: 16px; }
-  main { width: min(100% - 24px, 1180px); padding-top: 42px; }
-  .intro h1 { font-size: 36px; }
-  .intro-copy { font-size: 15px; }
+  main { width: min(100% - 24px, 1320px); padding-top: 42px; }
+  .intro h1 { font-size: 34px; }
+  .intro-copy { font-size: 17px; }
+  .teaching-block > p,
+  .teaching-block > p.lead { font-size: 16px; }
+  .plain-terms { grid-template-columns: 1fr; }
+  .glossary dl { grid-template-columns: 1fr; }
+  .answer-card { grid-template-columns: 1fr; gap: 14px; }
   .step-controls { flex-wrap: wrap; }
   .step-status { order: -1; width: 100%; }
-  .glossary dl { grid-template-columns: 1fr; }
   .next-lesson { align-items: flex-start; flex-direction: column; }
   .next-lesson a { width: 100%; justify-content: space-between; }
   .anycast-clients,

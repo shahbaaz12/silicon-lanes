@@ -5,33 +5,33 @@
 const steps = [
   {
     nodeIds: ["step-client"],
-    title: "Your browser knows a name, not an address.",
-    body: "It knows <code>yourapp.com</code>. It has no idea what IP address that is, or which of the (possibly many) computers behind it should answer. That's the very first thing that has to be resolved, before a single packet aimed at your application goes anywhere."
+    title: "You type a name. Your browser has no idea what that means yet.",
+    body: "It has <code>yourapp.com</code>, which is a word, and words don't work on a network. Before a single byte can be sent anywhere, that word has to become a number."
   },
   {
     nodeIds: ["step-dns"],
-    title: "DNS hands back one address — the same one, for everyone.",
-    body: "The resolver walks the DNS hierarchy and returns an IP. If that IP belongs to a CDN using anycast, every client on the planet gets back the identical address. DNS is not choosing a nearby server here — it can't. There's only one answer to give."
+    title: "DNS turns the name into a number — the same number for everyone.",
+    body: "The lookup comes back with an address like <code>203.0.113.10</code>. If that address belongs to a provider using anycast, then every person on Earth asking this same question gets this same answer. DNS isn't picking somewhere near you. It only has one answer to give, and it doesn't know where you are."
   },
   {
     nodeIds: ["step-bgp"],
-    title: "Now a completely different system decides where that address actually leads.",
-    body: "Your device sends a packet toward that IP. Because the very same address is announced from multiple physical locations at once, the routers between you and the internet — your ISP, transit providers — use BGP to independently agree on the best path to it. This is a network-layer decision, made hop by hop, with no awareness that DNS was ever involved."
+    title: "Now something completely different decides where that number leads.",
+    body: "Your data sets off toward that address. Because many locations are all announcing it at once, the networks along the way compare the paths they know about and forward you down whichever looks cheapest. This is happening in the routers, long after DNS finished, with no knowledge that DNS was ever involved."
   },
   {
     nodeIds: ["step-pop"],
-    title: "You arrive at whichever location BGP chose.",
-    body: "Usually, though not guaranteed, that's the topologically nearest one — BGP optimizes for network cost, not the map. A TCP handshake happens, then TLS. This is exactly where Lesson 7 begins: from here, it's a cache lookup at the CDN edge."
+    title: "You arrive wherever the routing decided.",
+    body: "Usually that's the nearest location, though it counts networks crossed rather than kilometres, so it's occasionally a surprise. Your connection gets established here — and this is precisely where Lesson 7 picks up the story, with a cache lookup at the edge."
   },
   {
     nodeIds: ["step-edge", "step-gateway", "step-l7lb"],
-    title: "On a MISS or BYPASS, it's the exact chain you already built.",
-    body: "The CDN forwards to its configured origin. In Lessons 6 and 7 that's an L4 Edge Load Balancer, spreading connections across API Gateway instances, one of which routes Products onward to an L7 Catalog Load Balancer — the same three boxes, doing the same jobs, as everywhere else in this project."
+    title: "If the cache doesn't have it, it's the chain you already built.",
+    body: "The CDN forwards the request to its origin. In Lessons 6 and 7, that's the L4 Edge Load Balancer spreading connections across API Gateways, one of which sends Product requests onward to the L7 Catalog Load Balancer — the same boxes doing the same jobs you've already watched work."
   },
   {
     nodeIds: ["step-client", "step-dns", "step-bgp", "step-pop", "step-edge", "step-gateway", "step-l7lb"],
-    title: "Same request, two worlds.",
-    body: "The first half — DNS, anycast, BGP — happens on the open internet, outside anything you control, before your infrastructure ever sees a packet. The second half is everything you've spent seven lessons building by hand. Both halves are doing the same kind of work: deciding, one hop at a time, exactly which machine should answer."
+    title: "One request, two worlds.",
+    body: "The first half runs on the open internet, on infrastructure nobody at your company operates, before your servers know a request exists. The second half is entirely yours. But both halves are doing the same thing: narrowing down, one decision at a time, exactly which machine ends up answering."
   }
 ];
 
@@ -70,7 +70,7 @@ function render() {
   el.body.innerHTML = step.body;
   dotEls.forEach((dot, index) => dot.classList.toggle("active", index === current));
   el.prev.disabled = current === 0;
-  el.next.textContent = current === steps.length - 1 ? "Restart from the top →" : "Next →";
+  el.next.textContent = current === steps.length - 1 ? "Start over →" : "Next →";
   highlight(current);
 }
 
