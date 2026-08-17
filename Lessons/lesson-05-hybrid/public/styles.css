@@ -107,7 +107,7 @@ main { width: min(1360px, calc(100% - 40px)); margin: 0 auto; padding: 68px 0 78
 .lane-heading code { overflow: hidden; color: var(--cyan); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 .lane-path { position: relative; width: 2px; height: 82px; flex: 0 0 82px; background: var(--connector); }
 .lane-path::after { position: absolute; right: -4px; bottom: 0; width: 8px; height: 8px; border-right: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); content: ""; transform: rotate(45deg); }
-.lane-path span { position: absolute; top: 50%; left: 13px; width: max-content; max-width: 105px; color: var(--muted); font-size: 7px; font-weight: 800; letter-spacing: .06em; line-height: 1.4; text-transform: uppercase; transform: translateY(-50%); }
+.lane-path span { position: absolute; top: 50%; left: 50%; width: max-content; max-width: 130px; color: var(--muted); font-size: 7px; font-weight: 800; letter-spacing: .06em; line-height: 1.4; text-align: center; text-transform: uppercase; transform: translate(-50%, -50%); }
 .lane-path .lane-packet { top: -6px; left: -4px; }
 .route-lane.active .lane-path .lane-packet { animation: flowVertical .8s ease-in-out; }
 .route-lane.active::before { background: var(--lime); box-shadow: 0 0 10px rgb(183 237 98 / 40%); }
