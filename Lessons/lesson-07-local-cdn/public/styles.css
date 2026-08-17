@@ -1,21 +1,63 @@
-.lab { grid-template-columns:350px minmax(540px,1fr) 340px; }
-.client-card,.trace,.flow { min-height:1010px; }
-.flow { padding-top:16px; }
-.flow #cdn-node,.flow #edge-node { width:108px; }
-.cdn-link { height:28px; flex-basis:28px; }
-.cache-tag { min-width:38px; border-color:rgb(244 201 93 / 55%); color:var(--amber)!important; background:#241f11; }
-.cache-result { display:flex; align-items:center; justify-content:space-between; margin-top:8px; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#090c0f; }
-.cache-result span { color:var(--muted); font-size:7px; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
-.cache-result strong { color:var(--muted); font:900 9px ui-monospace,Consolas,monospace; }
-.cache-result strong.hit { color:var(--lime); }.cache-result strong.miss { color:var(--amber); }.cache-result strong.bypass { color:var(--cyan); }
-.policy-note { margin:0 0 11px; padding:10px 13px; border:1px solid rgb(251 146 60 / 35%); border-radius:9px; color:#c8d0d5; background:rgb(251 146 60 / 7%); font-size:10px; line-height:1.55; }.policy-note b { color:var(--amber); }.policy-note code { color:#ffd19a; }
-.response pre { height:210px; }
-.trace section pre { height:91px; }
+/* Extends /lessons/lesson-06-advanced/styles.css: shared tokens, .site-header, .intro,
+   .lesson-workspace, .architecture-flow, .node-card, .routing-stage, .edge-row, .tagged-node,
+   .layer-tag, .edge-branches, .gateway-tier/.gateway-merge, .service-tier, .observation,
+   .request-trace, .log-grid, .architecture-explanation, .tradeoffs, .next-lesson, and toasts
+   all come from there. This file only adds what is specific to the CDN layer. */
+
+.layer-tag.cache { border: 1px solid rgb(251 113 133 / 45%); color: #ffc2c9; background: #2a1418; }
+
+.policy-note { margin: 0 0 24px; padding: 12px 15px; border: 1px solid rgb(251 146 60 / 35%); border-radius: 10px; color: #d5dde2; background: rgb(251 146 60 / 7%); font-size: 12px; line-height: 1.6; }
+.policy-note b { color: var(--amber); }
+.policy-note code { color: #ffd19a; }
+
+/* Second status row: CDN infrastructure state, cache result, and the live journey string. */
+.cdn-summary { width: min(620px, 100%); display: grid; grid-template-columns: 150px 110px minmax(0, 1fr); gap: 8px; }
+.cdn-summary > div { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel-raised); }
+.cdn-summary span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 8px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.cdn-summary strong { color: var(--muted); font: 900 10px ui-monospace, Consolas, monospace; }
+.cdn-summary strong[data-tone="ready"] { color: var(--lime); }
+.cdn-summary strong[data-tone="warning"] { color: var(--amber); }
+.cdn-summary strong[data-tone="hit"] { color: var(--lime); }
+.cdn-summary strong[data-tone="miss"] { color: var(--amber); }
+.cdn-summary strong[data-tone="bypass"] { color: var(--cyan); }
+.cdn-summary strong[data-tone="failed"] { color: var(--danger); }
+.cdn-summary code { display: block; overflow: auto; color: var(--cyan); font-size: 9px; white-space: nowrap; }
+
+/* Single-line connector from the CDN row down to the Edge/L4 row (no branching). */
+.cdn-descend { position: relative; width: 2px; height: 40px; margin: 0 auto; background: var(--connector); }
+.cdn-descend::after { position: absolute; right: -4px; bottom: 0; width: 8px; height: 8px; border-right: 2px solid var(--cyan); border-bottom: 2px solid var(--cyan); content: ""; transform: rotate(45deg); }
+.cdn-descend .cdn-packet { position: absolute; top: -5px; left: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 15px var(--lime); opacity: 0; }
+.cdn-descend.flowing .cdn-packet { animation: flowVertical .8s ease-in-out; }
+
+.last-route[data-tone="info"] strong { color: var(--cyan); }
+
+.log-grid .log-span { grid-column: 1 / -1; }
+
+.connection-note { border-left-color: var(--amber); background: rgb(244 201 93 / 7%); }
+
 .cache-hit-flow { border-color: color-mix(in srgb, var(--lime) 55%, var(--line)); background: color-mix(in srgb, var(--panel) 82%, var(--lime)); }
-.origin-routing-note { display:grid; gap:12px; margin-top:5px; padding:20px; border-left:3px solid var(--amber); background:color-mix(in srgb,var(--panel) 82%,var(--amber)); }
-.origin-routing-note h3 { margin:0; font-size:18px; }
-.read-more-link { width:fit-content; color:var(--cyan); font-size:14px; font-weight:700; text-underline-offset:4px; }
-.read-more-link:hover { color:var(--text); }
-.setup-example code { color:var(--cyan); font-weight:700; }
-@media(max-width:1320px){.lab{grid-template-columns:340px minmax(520px,1fr)}}
-@media(max-width:900px){.lab{grid-template-columns:1fr}.client-card,.flow{min-height:0}}
+
+.origin-routing-note { display: grid; gap: 12px; margin: 28px 0; padding: 22px; border-left: 3px solid var(--amber); background: color-mix(in srgb, var(--panel-raised) 82%, var(--amber)); }
+.origin-routing-note h3 { margin: 0; font-size: 18px; }
+.read-more-link { width: fit-content; color: var(--cyan); font-size: 14px; font-weight: 700; text-underline-offset: 4px; }
+.read-more-link:hover { color: var(--text); }
+.setup-example code { color: var(--cyan); font-weight: 700; }
+
+.layer-pill.cache { color: #ffc2c9; background: rgb(251 113 133 / 14%); }
+.layer-pill.origin { color: #9fe4ec; background: rgb(85 217 232 / 14%); }
+
+.journey-complete { border-color: color-mix(in srgb, var(--lime) 40%, var(--line)); }
+.journey-links { display: flex; flex-wrap: wrap; gap: 10px; }
+
+html[data-theme="light"] .layer-tag.cache { border-color: rgb(251 113 133 / 45%); color: #9f1d38; background: #ffe3e7; }
+html[data-theme="light"] .policy-note { color: #4a5259; background: #fff3e6; }
+html[data-theme="light"] .cdn-summary > div { border-color: var(--line); color: var(--text); background: #f6f9fa; }
+html[data-theme="light"] .connection-note { background: #fff8e6; }
+html[data-theme="light"] .origin-routing-note { background: #fff8e6; }
+html[data-theme="light"] .layer-pill.cache { color: #9f1d38; background: #ffe3e7; }
+html[data-theme="light"] .layer-pill.origin { color: #075f70; background: #e6f3f5; }
+
+@media (max-width: 780px) {
+  .cdn-summary { grid-template-columns: 1fr; }
+  .journey-complete .journey-links a { width: 100%; justify-content: space-between; }
+}

@@ -21,3 +21,12 @@ The Clear CDN cache control removes cached Product files. The UI glows only the
 client and CDN on a hit; misses and bypasses illuminate the complete real path.
 This lesson reuses the Lesson 6 origin runtime so the difference between edge
 caching and origin load is directly visible.
+
+The "Clear cache, then request twice" control automates the teaching moment: it
+clears the cache and fires two sequential Product requests, so a MISS followed
+immediately by a HIT is visible without manually timing requests inside the
+15-second TTL. It is only enabled while the Product route is selected, since
+User and Order never populate the cache. The page follows the same
+`architecture-flow` / `observation` / `architecture-explanation` layout as
+Lessons 5 and 6, with the CDN and its cache result rendered above the reused
+Edge, Gateway, and Catalog Load Balancer topology.
