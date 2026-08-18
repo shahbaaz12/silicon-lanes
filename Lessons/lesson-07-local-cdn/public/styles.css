@@ -44,11 +44,9 @@
 
 .origin-routing-note { display: grid; gap: 12px; margin: 28px 0; padding: 22px; border-left: 3px solid var(--amber); background: color-mix(in srgb, var(--panel-raised) 82%, var(--amber)); }
 .origin-routing-note h3 { margin: 0; font-size: 18px; }
-.read-more-link { width: fit-content; color: var(--cyan); font-size: 14px; font-weight: 700; text-underline-offset: 4px; }
 .cross-ref { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .cross-ref a { color: var(--cyan); font-weight: 700; text-underline-offset: 3px; }
 .cross-ref em { color: var(--text); font-style: normal; font-weight: 700; }
-.read-more-link:hover { color: var(--text); }
 .setup-example code { color: var(--cyan); font-weight: 700; }
 
 .layer-pill.cache { color: #ffc2c9; background: rgb(251 113 133 / 14%); }
