@@ -14,7 +14,9 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       flex-wrap: wrap;
       align-items: baseline;
       gap: 0.35rem 0.75rem;
-      padding: 0.55rem 1.25rem;
+      /* The shared theme toggle is position:fixed at the top right with z-index 100.
+         Without this reserved space it sits on top of the link and swallows the click. */
+      padding: 0.55rem 7.5rem 0.55rem 1.25rem;
       font-size: 0.82rem;
       line-height: 1.45;
       background: color-mix(in srgb, currentColor 6%, transparent);
@@ -32,8 +34,14 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     }
     .sim-banner a:hover { opacity: 0.75; }
     @media (max-width: 640px) {
+      /* Three wrapped lines cost too much of a small screen, so the long
+         explanation gives way to the short one. */
+      .sim-banner { padding-right: 6rem; }
       .sim-banner a { margin-left: 0; }
+      .sim-banner .sim-banner-long { display: none; }
+      .sim-banner .sim-banner-short { display: inline; }
     }
+    .sim-banner .sim-banner-short { display: none; }
   `;
 
   function render() {
@@ -47,7 +55,8 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     banner.className = "sim-banner";
     banner.innerHTML = `
       <strong>Simulated demo.</strong>
-      <span>Every container, request, and log line is generated in your browser, so it runs on GitHub Pages with no Docker.</span>
+      <span class="sim-banner-long">Every container, request, and log line is generated in your browser, so it runs on GitHub Pages with no Docker.</span>
+      <span class="sim-banner-short">No Docker &mdash; it all runs in your browser.</span>
       <a href="${sim.repositoryUrl}" target="_blank" rel="noopener">Try it for real &rarr;</a>
     `;
     document.body.prepend(banner);
