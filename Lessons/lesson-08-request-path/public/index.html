@@ -78,7 +78,12 @@
       <section class="teaching-block" aria-labelledby="anycast-title">
         <p class="eyebrow">The fix</p>
         <h2 id="anycast-title">Many locations, all answering to the same address.</h2>
-        <p class="lead">This is <strong>anycast</strong>, and it's the whole idea in one line: the same address is announced from lots of places at once, and BGP delivers each person to whichever one is nearest them.</p>
+        <p class="lead">This is <strong>anycast</strong>, and it's the whole idea in one line: <strong>one single address</strong> is announced from lots of places at once, and BGP delivers each person to whichever of those places is nearest them.</p>
+
+        <div class="mixup-note">
+          <p class="mixup-wrong"><span>Not this</span> DNS hands out a list of different addresses, and something picks the closest one.</p>
+          <p class="mixup-right"><span>This</span> DNS hands out <strong>one</strong> address. That one address genuinely exists in many cities at once. BGP picks the shortest route to it.</p>
+        </div>
 
         <div class="anycast-diagram" aria-label="One address announced from three locations; two people are routed to different ones">
           <div class="anycast-clients">
@@ -99,8 +104,10 @@
           <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; BGP is what sends them to different buildings.</div>
         </div>
 
-        <p>Each of those locations is a <strong>Point of Presence</strong>, or PoP &mdash; just a site where a provider accepts connections from the public. A large CDN runs hundreds of them.</p>
+        <p>Each of those locations is a <strong>Point of Presence</strong>, or PoP &mdash; just a site where a provider accepts connections from the public.</p>
+        <p><strong>Anycast is not a CDN feature.</strong> It's a general internet technique, and plenty of things use it that have nothing to do with caching. The clearest example is public DNS: <code>8.8.8.8</code> and <code>1.1.1.1</code> are each a single address served from hundreds of locations worldwide. CDNs lean on anycast heavily, but they didn't invent it and they don't own it &mdash; it just happens to be how our Lesson 7 CDN would work in the real world.</p>
         <p>Notice what DNS did here: nothing clever. It handed the same number to everyone and had no idea where anybody was. All the routing intelligence lives one layer down, in BGP, and happens after DNS has already finished.</p>
+        <p>And note what BGP is choosing between. It is never picking an address &mdash; it only ever has the one. It's picking a <strong>route</strong>: of all the paths it knows toward that single address, which is shortest from here?</p>
       </section>
 
       <section class="teaching-block spof-block" aria-labelledby="spof-title">
