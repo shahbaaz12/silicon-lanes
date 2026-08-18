@@ -59,29 +59,61 @@
       </section>
 
       <section class="teaching-block" aria-labelledby="simple-title">
-        <p class="eyebrow">The normal case</p>
-        <h2 id="simple-title">One name, one address, one server.</h2>
-        <p class="lead">Before anything clever, here's the setup most applications actually run.</p>
+        <p class="eyebrow">Step one</p>
+        <h2 id="simple-title">What actually happens when you visit a website.</h2>
+        <p class="lead">Someone types <code>yourapp.com</code> and hits enter. Before anything else can happen, that name has to become a number.</p>
 
-        <div class="mini-flow" aria-label="Browser asks DNS for an address, then connects to a single server">
-          <div class="mini-node"><strong>Your browser</strong><small>wants yourapp.com</small></div>
+        <div class="mini-flow" aria-label="Browser asks DNS for an address, gets one back, and connects to that server">
+          <div class="mini-node"><strong>Browser</strong><small>&ldquo;where is yourapp.com?&rdquo;</small></div>
           <span class="mini-arrow" aria-hidden="true">&rarr;</span>
-          <div class="mini-node"><strong>DNS</strong><small>&ldquo;that's 203.0.113.10&rdquo;</small></div>
+          <div class="mini-node"><strong>DNS</strong><small>&ldquo;it's 203.0.113.10&rdquo;</small></div>
           <span class="mini-arrow" aria-hidden="true">&rarr;</span>
-          <div class="mini-node accent"><strong>One server</strong><small>in one building, London</small></div>
+          <div class="mini-node accent"><strong>Your server</strong><small>203.0.113.10, London</small></div>
         </div>
 
-        <p>Ask for a name, get back one number, connect to the one machine that has it. Simple, and genuinely how a great many real applications work.</p>
-        <p>But look at what it is: <strong>one address, one building.</strong> Slow for anyone far away, and gone entirely if that building has a bad day. It's the exact shape of problem you've been removing layer by layer since Lesson 1 &mdash; only now it's the whole site, not one container.</p>
+        <p>That's it. The browser asks DNS, DNS gives back <strong>one simple address</strong>, and the browser opens a connection to it. Every website visit you have ever made started with those two steps.</p>
+        <p>Whoever is asking &mdash; Bengaluru, Berlin, Boston &mdash; DNS returns that same number, and everybody's traffic converges on that one machine in London.</p>
+      </section>
+
+      <section class="teaching-block problem-block" aria-labelledby="problem-title">
+        <p class="eyebrow">The problem</p>
+        <h2 id="problem-title">One machine. So one bad day takes down everything.</h2>
+        <p class="lead">Look closely at what we just built, because it's the same shape you've spent seven lessons trying to eliminate.</p>
+
+        <div class="failover-demo" aria-label="When the single London server goes down, the entire website is unreachable for everyone">
+          <div class="failover-row">
+            <span class="failover-state ok">Server healthy</span>
+            <div class="failover-path">
+              <span class="fo-node">Everyone</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">London</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site loads</span>
+            </div>
+          </div>
+          <div class="failover-row">
+            <span class="failover-state down">Server down</span>
+            <div class="failover-path">
+              <span class="fo-node">Everyone</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node dead">London</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result out">Nothing. For everybody.</span>
+            </div>
+          </div>
+        </div>
+
+        <p>DNS is still cheerfully handing out <code>203.0.113.10</code> to every person who asks. It has no idea the machine behind it is on fire. Everyone dutifully connects to an address where nobody is answering.</p>
+        <p>This is a <strong>single point of failure</strong>, and it's the biggest one yet. In Lesson 3 a dead Catalog replica was survivable &mdash; the load balancer just used another one. Here there is no &ldquo;another one.&rdquo; One address, one machine, one outage, whole site gone.</p>
       </section>
 
       <section class="teaching-block" aria-labelledby="anycast-title">
         <p class="eyebrow">The fix</p>
-        <h2 id="anycast-title">Many locations, all answering to the same address.</h2>
-        <p class="lead">Here's the trick, and it sounds wrong the first time you hear it: you don't give each location its own address. You give every one of them <strong>the same address</strong>.</p>
-        <p><code>203.0.113.10</code> in Mumbai. The same <code>203.0.113.10</code> in Frankfurt. The same one again in Virginia &mdash; all three live at the same time. So DNS has exactly one number to hand out, and it hands it to everybody on Earth. Someone in Bengaluru and someone in Berlin ask the same question and get back an identical answer.</p>
+        <h2 id="anycast-title">Serve that same address from many places at once.</h2>
+        <p class="lead">Here's the trick, and it sounds wrong the first time you hear it: you don't give each location its own address. You give every one of them <strong>the same address</strong>. This is called <strong>anycast</strong>.</p>
+        <p><code>203.0.113.10</code> in Mumbai. The same <code>203.0.113.10</code> in Frankfurt. The same one again in Virginia &mdash; all three running at the same time, all three genuinely answering to that number. DNS still has exactly one address to hand out, and still hands the identical one to everybody.</p>
 
-        <div class="anycast-diagram" aria-label="One address announced from three locations; two people are routed to different ones">
+        <div class="anycast-diagram" aria-label="One address served from three locations; two people reach different ones">
           <div class="anycast-clients">
             <div class="anycast-client" style="--slot: 1;">
               <strong>Someone in Bengaluru</strong>
@@ -97,19 +129,25 @@
             <div class="anycast-pop" style="--slot: 2;"><strong>Frankfurt</strong><small>203.0.113.10</small></div>
             <div class="anycast-pop" style="--slot: 3;"><strong>Virginia</strong><small>203.0.113.10</small></div>
           </div>
-          <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; BGP is what sends them to different buildings.</div>
+          <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; the network is what sends them to different buildings.</div>
         </div>
 
-        <p>What separates those two people is everything that happens <em>after</em> DNS is finished. Their data sets off toward the same address, and the networks in between forward each of them along the shortest route they know of &mdash; which from Bengaluru ends at Mumbai, and from Berlin ends at Frankfurt. That's anycast: one address, many places, and the network quietly sorting out who ends up where.</p>
-        <p>It's worth being precise about BGP's job here, because it's tempting to picture it shopping around between options. It isn't. It only ever has the one destination address &mdash; what it compares is the available <strong>routes</strong> to it.</p>
-        <p>Each of those locations is a <strong>Point of Presence</strong>, or PoP &mdash; just a site where a provider accepts connections from the public.</p>
-        <p><strong>Anycast is not a CDN feature.</strong> It's a general internet technique, and plenty of things use it that have nothing to do with caching. The clearest example is public DNS: <code>8.8.8.8</code> and <code>1.1.1.1</code> are each a single address served from hundreds of locations worldwide. CDNs lean on anycast heavily, but they didn't invent it and they don't own it &mdash; it just happens to be how our Lesson 7 CDN would work in the real world.</p>
+        <p>So how does anyone end up anywhere in particular? That's <strong>BGP</strong> &mdash; <strong>Border Gateway Protocol</strong> &mdash; the system networks use to tell each other which addresses they can reach. Each location advertises &ldquo;I can serve <code>203.0.113.10</code>,&rdquo; that message spreads outward network by network, and every router along the way ends up knowing several routes to that one address. When your data arrives, each router simply forwards it down the shortest route it knows.</p>
+        <p>From Bengaluru the shortest route ends at Mumbai. From Berlin it ends at Frankfurt. Nobody configured that per person &mdash; it falls out of the routing.</p>
+        <p>Which gets us two things at once, from a single change:</p>
+
+        <div class="benefit-pair">
+          <article><h3>Redundancy</h3><p>Several machines now stand behind one address, in different cities, on different power grids and different networks.</p></article>
+          <article><h3>Geographic performance</h3><p>Everyone is served from whichever of those is closest to them, so the distance problem shrinks at the same time.</p></article>
+        </div>
+
+        <p class="footnote">Anycast is not a CDN feature &mdash; it's a general internet technique. Public DNS is the clearest example: <code>8.8.8.8</code> and <code>1.1.1.1</code> are each one address served from hundreds of locations worldwide. CDNs lean on it heavily, but they didn't invent it.</p>
       </section>
 
       <section class="teaching-block spof-block" aria-labelledby="spof-title">
         <p class="eyebrow">The payoff</p>
-        <h2 id="spof-title">And that's the single point of failure, gone.</h2>
-        <p class="lead">Here's why this matters for everything you've built. A PoP announces the address only while it's healthy. If it stops being healthy, it stops announcing &mdash; and the routes to it simply disappear.</p>
+        <h2 id="spof-title">And there's the single point of failure, finally gone.</h2>
+        <p class="lead">A location advertises that address only while it is healthy. The moment it isn't, it stops advertising &mdash; and every route pointing at it quietly disappears.</p>
 
         <div class="failover-demo" aria-label="When the Mumbai location goes offline, traffic from Bengaluru routes to Frankfurt instead">
           <div class="failover-row">
@@ -118,6 +156,8 @@
               <span class="fo-node">Bengaluru</span>
               <span class="fo-arrow" aria-hidden="true">&rarr;</span>
               <span class="fo-node target">Mumbai</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site loads</span>
             </div>
           </div>
           <div class="failover-row">
@@ -128,13 +168,57 @@
               <span class="fo-node dead">Mumbai</span>
               <span class="fo-arrow" aria-hidden="true">&rarr;</span>
               <span class="fo-node target">Frankfurt</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site still loads</span>
             </div>
           </div>
         </div>
 
-        <p>Nobody changes a DNS record. Nobody edits a config file. Nobody gets paged at 3am to fail something over. The announcement stops, every router quietly recalculates, and traffic starts arriving at the next-nearest location instead &mdash; usually within seconds.</p>
-        <p>That's the answer to Lesson 7's open question. Our local CDN really was one container and really was a SPOF. A real one isn't a box at all &mdash; it's an address that hundreds of buildings answer to, where losing any one of them is a routing update rather than an outage.</p>
-        <p class="footnote">The honest caveat: connections already open to the failed location do break and have to be re-established. Users typically see a blip, not a failure.</p>
+        <p>Compare that with the outage two sections ago. Same failure &mdash; a location dies &mdash; but now the address survives it, because the address was never tied to that one building in the first place. Nobody changes a DNS record. Nobody edits a config. Nobody gets paged at 3am. Routers recalculate, traffic lands somewhere else, usually within seconds.</p>
+        <p>This is what makes the availability numbers people quote actually achievable:</p>
+
+        <div class="uptime-grid" role="table" aria-label="Uptime percentages and the downtime each allows per year">
+          <div class="uptime-row uptime-head" role="row">
+            <span role="columnheader">Uptime</span>
+            <span role="columnheader">Downtime allowed per year</span>
+            <span role="columnheader">Roughly what it takes</span>
+          </div>
+          <div class="uptime-row" role="row">
+            <span role="cell"><strong>99%</strong></span><span role="cell">about 3.7 days</span><span role="cell">One machine, and some luck</span>
+          </div>
+          <div class="uptime-row" role="row">
+            <span role="cell"><strong>99.9%</strong></span><span role="cell">about 8.8 hours</span><span role="cell">Redundancy inside one location</span>
+          </div>
+          <div class="uptime-row highlight" role="row">
+            <span role="cell"><strong>99.99%</strong></span><span role="cell">about 53 minutes</span><span role="cell">Multiple locations, automatic failover</span>
+          </div>
+          <div class="uptime-row highlight" role="row">
+            <span role="cell"><strong>99.999%</strong></span><span role="cell">about 5 minutes</span><span role="cell">Many locations, rerouting in seconds</span>
+          </div>
+        </div>
+
+        <p>Those bottom two rows are effectively unreachable with one machine in one building &mdash; 53 minutes a year is less than a single reboot plus one bad deploy. Published CDN service-level agreements sit in the <strong>99.9% to 99.99%</strong> range, some vendors advertise a <strong>100% uptime SLA</strong> on their top tiers, and independent measurements of the major providers cluster close to <strong>99.999%</strong>. Anycast is a large part of why any of that is possible.</p>
+        <p>That's also the answer to Lesson 7's open question. Our local CDN really was one container, and really was a SPOF. A real one isn't a box at all &mdash; it's an address that hundreds of buildings answer to, where losing any one of them is a routing update rather than an outage.</p>
+        <p class="footnote">Two honest caveats. Connections already open to the failed location do break and have to be re-established, so people see a blip rather than a clean handover. And a &ldquo;100% uptime&rdquo; SLA is a commercial promise backed by service credits &mdash; not a claim that nothing ever fails.</p>
+      </section>
+
+      <section class="teaching-block" aria-labelledby="unicast-title">
+        <p class="eyebrow">Worth knowing</p>
+        <h2 id="unicast-title">Anycast isn't the only way to do this.</h2>
+        <p class="lead">The same goal &mdash; many locations behind one front door &mdash; can be reached from the opposite direction: keep ordinary addresses, and put something in charge of choosing between them.</p>
+
+        <div class="benefit-pair compare-pair">
+          <article>
+            <h3>Anycast, via BGP</h3>
+            <p>Every location shares <strong>one</strong> address, and the network decides who reaches which, through routing. No device is in charge &mdash; the choice falls out of BGP.</p>
+          </article>
+          <article>
+            <h3>Unicast, via a traffic manager</h3>
+            <p>Every location keeps its <strong>own distinct</strong> address. A device such as an <strong>F5 BIG-IP</strong> watches their health and load, and hands out whichever address it wants you to use. The choice is made by an appliance you control.</p>
+          </article>
+        </div>
+
+        <p>Roughly, the trade is control versus reach. A traffic manager gives you precise, tunable rules and a dashboard to watch them in &mdash; but it's a system you have to run, and it becomes one more thing that can fail. Anycast needs no such device, but it does need address space and routing arrangements you almost certainly don't have unless you're a provider.</p>
       </section>
 
       <section class="teaching-block" aria-labelledby="enterprise-title">
