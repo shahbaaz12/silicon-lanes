@@ -78,12 +78,8 @@
       <section class="teaching-block" aria-labelledby="anycast-title">
         <p class="eyebrow">The fix</p>
         <h2 id="anycast-title">Many locations, all answering to the same address.</h2>
-        <p class="lead">This is <strong>anycast</strong>, and it's the whole idea in one line: <strong>one single address</strong> is announced from lots of places at once, and BGP delivers each person to whichever of those places is nearest them.</p>
-
-        <div class="mixup-note">
-          <p class="mixup-wrong"><span>Not this</span> DNS hands out a list of different addresses, and something picks the closest one.</p>
-          <p class="mixup-right"><span>This</span> DNS hands out <strong>one</strong> address. That one address genuinely exists in many cities at once. BGP picks the shortest route to it.</p>
-        </div>
+        <p class="lead">Here's the trick, and it sounds wrong the first time you hear it: you don't give each location its own address. You give every one of them <strong>the same address</strong>.</p>
+        <p><code>203.0.113.10</code> in Mumbai. The same <code>203.0.113.10</code> in Frankfurt. The same one again in Virginia &mdash; all three live at the same time. So DNS has exactly one number to hand out, and it hands it to everybody on Earth. Someone in Bengaluru and someone in Berlin ask the same question and get back an identical answer.</p>
 
         <div class="anycast-diagram" aria-label="One address announced from three locations; two people are routed to different ones">
           <div class="anycast-clients">
@@ -104,10 +100,10 @@
           <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; BGP is what sends them to different buildings.</div>
         </div>
 
+        <p>What separates those two people is everything that happens <em>after</em> DNS is finished. Their data sets off toward the same address, and the networks in between forward each of them along the shortest route they know of &mdash; which from Bengaluru ends at Mumbai, and from Berlin ends at Frankfurt. That's anycast: one address, many places, and the network quietly sorting out who ends up where.</p>
+        <p>It's worth being precise about BGP's job here, because it's tempting to picture it shopping around between options. It isn't. It only ever has the one destination address &mdash; what it compares is the available <strong>routes</strong> to it.</p>
         <p>Each of those locations is a <strong>Point of Presence</strong>, or PoP &mdash; just a site where a provider accepts connections from the public.</p>
         <p><strong>Anycast is not a CDN feature.</strong> It's a general internet technique, and plenty of things use it that have nothing to do with caching. The clearest example is public DNS: <code>8.8.8.8</code> and <code>1.1.1.1</code> are each a single address served from hundreds of locations worldwide. CDNs lean on anycast heavily, but they didn't invent it and they don't own it &mdash; it just happens to be how our Lesson 7 CDN would work in the real world.</p>
-        <p>Notice what DNS did here: nothing clever. It handed the same number to everyone and had no idea where anybody was. All the routing intelligence lives one layer down, in BGP, and happens after DNS has already finished.</p>
-        <p>And note what BGP is choosing between. It is never picking an address &mdash; it only ever has the one. It's picking a <strong>route</strong>: of all the paths it knows toward that single address, which is shortest from here?</p>
       </section>
 
       <section class="teaching-block spof-block" aria-labelledby="spof-title">

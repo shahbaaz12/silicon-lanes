@@ -31,12 +31,13 @@ Page structure, in order:
 1. **Four plain-English terms** — IP address, domain name, DNS, BGP. Defined before use.
 2. **The normal case** — one name, one address, one server, framed as the familiar
    single-point-of-failure shape the course has been dismantling since Lesson 1.
-3. **The fix** — anycast in one line, with a diagram: same address in three cities, all live,
-   BGP picks the nearest. Two things are stated explicitly here because readers get both
-   wrong: anycast is **one** address announced from many places (not a list of addresses
-   handed out by DNS — BGP chooses between *routes*, never between addresses), and anycast
-   is a general internet technique rather than a CDN feature, with public DNS resolvers as
-   the canonical non-CDN example.
+3. **The fix** — anycast, introduced through the surprise itself: you give every location
+   *the same* address. Two points are carried by the prose here, both of which readers get
+   wrong, and both of which are better made by explanation than by a "you might think X,
+   actually Y" callout (that was tried and read as forced): anycast is **one** address in
+   many places, so BGP compares *routes* rather than addresses; and anycast is a general
+   internet technique rather than a CDN feature, with public DNS resolvers as the canonical
+   non-CDN example.
 4. **The payoff** — a before/after failover strip showing traffic rerouting when a location
    drops, plus the honest caveat that in-flight connections do break and reconnect.
 5. **"Do real apps have one IP?"** — three scale tiers, with the practical point that most

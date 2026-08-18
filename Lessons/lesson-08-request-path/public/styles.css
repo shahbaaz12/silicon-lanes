@@ -80,16 +80,6 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .mini-node small { color: var(--muted); font-size: 13px; }
 .mini-arrow { align-self: center; color: var(--connector); font-size: 22px; }
 
-/* Wrong-model / right-model contrast. The "many addresses" misreading is the single most
-   common way this topic gets misunderstood, so it is named and dismissed explicitly. */
-.mixup-note { display: grid; gap: 10px; margin: 22px 0; padding: 20px 22px; border: 1px solid var(--line); border-radius: 13px; background: rgb(9 12 15 / 48%); }
-.mixup-note p { margin: 0; font-size: 16px; line-height: 1.7; }
-.mixup-note span { display: inline-block; min-width: 78px; margin-right: 10px; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 900; letter-spacing: .05em; text-align: center; text-transform: uppercase; }
-.mixup-wrong { color: var(--muted); }
-.mixup-wrong span { border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); color: #ffd7dc; background: color-mix(in srgb, var(--panel-raised) 74%, var(--danger)); }
-.mixup-right { color: var(--text); }
-.mixup-right span { border: 1px solid color-mix(in srgb, var(--lime) 45%, var(--line)); color: #d6f4a0; background: color-mix(in srgb, var(--panel-raised) 74%, var(--lime)); }
-
 /* The anycast picture: two client callouts above three simultaneously-live locations. */
 .anycast-diagram { display: grid; gap: 16px; margin: 26px 0 22px; padding: 26px; border: 1px solid var(--line); border-radius: 14px; background: rgb(9 12 15 / 48%); }
 .anycast-clients,
@@ -183,7 +173,6 @@ html[data-theme="light"] .concept-tags span,
 html[data-theme="light"] .term-card,
 html[data-theme="light"] .mini-flow,
 html[data-theme="light"] .mini-node,
-html[data-theme="light"] .mixup-note,
 html[data-theme="light"] .anycast-diagram,
 html[data-theme="light"] .failover-demo,
 html[data-theme="light"] .fo-node,
@@ -197,9 +186,7 @@ html[data-theme="light"] .anycast-pop { border-color: rgb(251 113 133 / 42%); ba
 html[data-theme="light"] .mini-node.accent,
 html[data-theme="light"] .fo-node.target { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
 html[data-theme="light"] .fo-node.dead { border-color: #d98b96; color: var(--muted); background: transparent; }
-html[data-theme="light"] .mixup-right span,
 html[data-theme="light"] .failover-state.ok { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
-html[data-theme="light"] .mixup-wrong span { border-color: #d98b96; color: #8e2333; background: #fff0f2; }
 html[data-theme="light"] .failover-state.down { border-color: #d98b96; color: #8e2333; background: #fff0f2; }
 html[data-theme="light"] .tier-note { background: #f2f9e7; }
 html[data-theme="light"] .secondary-action { color: var(--text); background: var(--panel-raised); }
@@ -228,7 +215,6 @@ html[data-theme="light"] .term-card code { color: #4f7a12; }
   .plain-terms { grid-template-columns: 1fr; }
   .glossary dl { grid-template-columns: 1fr; }
   .failover-row { align-items: flex-start; flex-direction: column; gap: 10px; }
-  .mixup-note span { display: block; width: fit-content; margin-bottom: 6px; }
   .step-controls { flex-wrap: wrap; }
   .step-status { order: -1; width: 100%; }
   .next-lesson { align-items: flex-start; flex-direction: column; }
