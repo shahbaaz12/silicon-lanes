@@ -33,6 +33,9 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       color: inherit;
     }
     .sim-banner a:hover { opacity: 0.75; }
+    /* Declared before the media query: these rules have equal specificity, so
+       whichever comes last would otherwise win at every width. */
+    .sim-banner .sim-banner-short { display: none; }
     @media (max-width: 640px) {
       /* Three wrapped lines cost too much of a small screen, so the long
          explanation gives way to the short one. */
@@ -41,7 +44,6 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       .sim-banner .sim-banner-long { display: none; }
       .sim-banner .sim-banner-short { display: inline; }
     }
-    .sim-banner .sim-banner-short { display: none; }
   `;
 
   function render() {
