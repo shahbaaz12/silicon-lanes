@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn what happens when a client calls an application service directly.">
+    <title>Lesson 1 &middot; Direct to service &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css">
+    <link rel="stylesheet" href="../../lessons/lesson-01-direct-service/styles.css">
+    <link rel="stylesheet" href="../../theme.css">
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 01</span> Foundation</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 1 &middot; Foundation</p>
+        <h1 id="lesson-title">The client calls the application server directly.</h1>
+        <p class="intro-copy">The client knows the Catalog Service address and sends <code>GET /api/products</code> straight to it. There is no proxy, gateway, or load balancer between them.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>Direct request</span>
+          <span>Single server</span>
+          <span>No intermediary</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive architecture lab</p>
+            <h2 id="lab-title">Send one request directly to one server.</h2>
+            <p>Start the lesson, execute the request, and watch which server receives it.</p>
+          </div>
+          <div class="lesson-controls">
+            <button class="primary-action start" id="start-service" type="button">Start Lesson</button>
+            <button class="secondary-action" id="stop-service" type="button" disabled>Stop Lesson</button>
+          </div>
+        </div>
+
+        <div class="lab" aria-label="Direct service request lab">
+          <lesson-client-card class="node-card client-card" icon="C" kicker="Request origin" heading="Browser Client" status="ready">
+            <div class="endpoint-box">
+              <span>Known destination</span>
+              <code id="direct-url">http://localhost:6212/api/products</code>
+            </div>
+
+            <button class="primary-action request-action" id="get-products" type="button" disabled>
+              <span>GET</span> Execute request
+            </button>
+
+            <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
+              <div class="products" id="products" data-response-body>
+                <p class="empty-copy">Start the lesson, then execute the direct request.</p>
+              </div>
+              <pre id="response-json" data-response-json>Execute a request to inspect the original response.</pre>
+              <pre id="response-headers" data-response-headers>Execute a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connection" aria-label="Direct HTTP request from client to Catalog Service">
+            <div class="connection-label">Direct HTTP</div>
+            <div class="wire">
+              <span class="packet packet-one"></span>
+              <span class="packet packet-two"></span>
+            </div>
+            <code class="address-label" id="address-label">:6212</code>
+            <p>No intermediary</p>
+          </div>
+
+          <lesson-service-card class="node-card service-card" kind="catalog" icon="CS" kicker="Request destination" heading="Catalog Service" title-id="instance-name" status="stopped" status-id="service-status">
+            <div class="server-identity">
+              <span>Port</span>
+              <code id="port-route">:6212</code>
+            </div>
+
+            <div class="request-log">
+              <div class="section-heading">
+                <span>Request log &middot; time / method / URL</span>
+                <button id="clear-logs" type="button" disabled>Clear</button>
+              </div>
+              <pre id="logs">Start the lesson to see the Catalog Service request log.</pre>
+            </div>
+          </lesson-service-card>
+        </div>
+      </section>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">What happened?</p>
+          <h2 id="observation-title">Follow the request through the server.</h2>
+          <p>The diagram shows the network path. This trace reveals the work that happens along it.</p>
+        </div>
+        <ol class="request-trace" id="request-trace">
+          <li data-trace-step="connection"><span>1</span><div><strong>Client opened a connection</strong><small>Directly to <code id="trace-address">localhost:6212</code></small></div></li>
+          <li data-trace-step="request"><span>2</span><div><strong><code>GET /api/products</code> was sent directly</strong><small>No intermediary inspected or forwarded it</small></div></li>
+          <li data-trace-step="route"><span>3</span><div><strong>Express matched the endpoint</strong><small>The application selected its products handler</small></div></li>
+          <li data-trace-step="database"><span>4</span><div><strong>Catalog Service queried PostgreSQL</strong><small>The service performed its data-access work</small></div></li>
+          <li data-trace-step="response"><span>5</span><div><strong><span id="trace-server">catalogService1</span> returned JSON</strong><small>The response travelled back on the same path</small></div></li>
+        </ol>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="lesson-note-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Simple to start. Harder to scale.</h2>
+          <p>Suppose you create a simple server and host it on the internet.</p>
+          <p>A client can interact with your service using its <strong>hostname or IP address</strong>, and the incoming requests are handled directly by your server.</p>
+          <p>This is a simple and fast setup, but it puts more responsibility on the server. Along with your application’s <strong>business logic</strong>, the server may also handle tasks such as:</p>
+          <ul class="responsibility-list">
+            <li><span class="defined-term" tabindex="0">SSL/TLS termination<span class="term-definition" role="tooltip">The server completes the HTTPS handshake and turns encrypted traffic into a request the application can process.</span></span></li>
+            <li><span class="defined-term" tabindex="0">Encryption and decryption<span class="term-definition" role="tooltip">Data is converted between readable form and a protected form while it travels across the network.</span></span></li>
+            <li><span class="defined-term" tabindex="0">Compression and decompression<span class="term-definition" role="tooltip">Payloads are made smaller before transfer and expanded again when received.</span></span></li>
+            <li><span class="defined-term" tabindex="0">Connection handling<span class="term-definition" role="tooltip">The server opens, maintains, reuses, and closes network connections from clients.</span></span></li>
+          </ul>
+          <p>For low traffic, this usually isn't a problem. Even a standard server can comfortably handle hundreds of requests depending on the workload.</p>
+          <p>So while this setup works well for small applications, it becomes harder to scale and maintain as traffic grows.</p>
+        </div>
+
+        <div class="tradeoffs" aria-label="Benefits and limitations of direct service access">
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>Simple request path</li>
+              <li>Minimal infrastructure</li>
+              <li>Easy local development</li>
+              <li>Low operational cost</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What becomes a problem</p>
+            <ul>
+              <li><strong>Single point of failure</strong></li>
+              <li>Limited capacity</li>
+              <li>No automatic failover</li>
+              <li>Client knows the server address</li>
+              <li>Scaling exposes more server addresses</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">The design pressure</p>
+          <h2 id="next-lesson-title">What should we improve first?</h2>
+          <p>The application server should not need to expose its address or handle every infrastructure concern itself.</p>
+        </div>
+        <a href="../../lessons/lesson-02-reverse-proxy/index.html">Next: place a Reverse Proxy in front of it <span>→</span></a>
+      </section>
+    </main>
+
+    <div class="toast-region" id="toasts" aria-live="polite"></div>
+    <script type="module" src="../../lessons/lesson-01-direct-service/app.js"></script>
+  </body>
+</html>

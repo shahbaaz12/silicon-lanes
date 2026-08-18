@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn how an API Gateway routes one public endpoint to multiple backend services.">
+    <title>Lesson 4 &middot; API Gateway &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css">
+    <link rel="stylesheet" href="../../lessons/lesson-04-api-gateway/styles.css">
+    <link rel="stylesheet" href="../../theme.css">
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 04</span> Service routing</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 4 &middot; Service routing</p>
+        <h1 id="lesson-title">One API address. Multiple backend services.</h1>
+        <p class="intro-copy">The client always calls <code>localhost:7412</code>. The API Gateway reads the HTTP path and decides whether User, Catalog, Inventory, Cart, Order, or Payment Service should handle the request.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>Single entry point</span>
+          <span>Path-based routing</span>
+          <span>Multiple services</span>
+          <span>Hidden service addresses</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive architecture lab</p>
+            <h2 id="lab-title">Change the path, not the destination.</h2>
+            <p>Select different APIs and watch the same gateway route each request to exactly one responsible service.</p>
+          </div>
+          <div class="lesson-controls">
+            <button class="primary-action" id="start-lesson" type="button">Start Lesson</button>
+            <button class="secondary-action" id="stop-lesson" type="button" disabled>Stop Lesson</button>
+            <button class="secondary-action" id="clear-logs" type="button" disabled>Clear Logs</button>
+          </div>
+        </div>
+
+        <div class="architecture-flow" aria-label="Browser Client to API Gateway to a path-selected service">
+          <lesson-client-card class="node-card client-card" icon="C" kicker="Request origin" heading="Browser Client" status="ready">
+            <div class="route-picker-heading"><span>Choose an API</span><small>Destination stays the same</small></div>
+            <div class="route-picker" id="route-picker"></div>
+
+            <div class="endpoint-box">
+              <span>Gateway URL</span>
+              <code id="selected-url">http://localhost:7412/api/users</code>
+            </div>
+
+            <button class="primary-action request-action" id="send-request" type="button" disabled><span>GET</span> Execute request</button>
+            <div class="client-tooling">
+              <span>You can run the same request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+
+            <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
+              <pre id="response-pretty" data-response-body>Start the lesson, then execute a request through the API Gateway.</pre>
+              <pre id="response-json" data-response-json>Execute a request to inspect the original response.</pre>
+              <pre id="response-headers" data-response-headers>Execute a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector connector-client" aria-label="Request sent to the API Gateway">
+            <span>One public address</span><b class="packet"></b>
+          </div>
+
+          <div class="gateway-stage">
+            <lesson-api-gateway-card class="node-card gateway-card" icon="GW" kicker="Layer 7 entry point" heading="API Gateway" status="stopped" status-id="gateway-status">
+              <div class="gateway-actions">
+                <span class="layer-badge">L7</span>
+                <button class="secondary-action compact" id="details-button" type="button" aria-expanded="false" aria-controls="gateway-details">Configuration</button>
+              </div>
+
+              <div class="gateway-route">
+                <div><span>Client-facing address</span><code id="published-route">localhost:7412</code></div>
+                <b>inspect path</b>
+                <div><span>Routing decision</span><code id="route-decision">/api/users &rarr; User Service</code></div>
+              </div>
+
+              <div class="gateway-details" id="gateway-details" hidden>
+                <div><span>Published address</span><code>localhost:7412</code><small>The only API address known by the client.</small></div>
+                <div><span>Container listener</span><code>apiGateway1:80</code><small>Nginx accepts requests here inside Docker.</small></div>
+                <div><span>Routing input</span><code>HTTP request path</code><small>The path selects a service type, not a replica.</small></div>
+                <div><span>Implementation</span><code>Nginx location rules</code><small>Each location forwards to one private upstream.</small></div>
+                <pre id="config-snippet">location /api/users    { proxy_pass http://user_service; }
+location /api/products { proxy_pass http://catalog_service; }
+location /api/orders   { proxy_pass http://order_service; }</pre>
+              </div>
+
+              <div class="gateway-log">
+                <div class="section-heading"><span>API Gateway log &middot; path &rarr; service / server</span></div>
+                <pre id="gateway-logs">Start the lesson to see routing decisions.</pre>
+              </div>
+            </lesson-api-gateway-card>
+
+            <div class="connector connector-services" aria-hidden="true"><span>Matched route only</span><b class="packet"></b></div>
+
+            <section class="service-stage" aria-labelledby="service-stage-title">
+              <div class="service-stage-heading">
+                <div><p class="eyebrow">Private upstreams</p><h3 id="service-stage-title">E-commerce services</h3></div>
+                <strong id="pool-status" data-tone="waiting">0 / 6 running</strong>
+              </div>
+              <div class="service-grid" id="service-grid"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">Observe the routing decision</p>
+          <h2 id="observation-title">Which service handled the selected API?</h2>
+          <p>The gateway selects a service from the request path. It is not choosing among replicas of the same service.</p>
+          <div class="last-route" id="last-route" data-tone="waiting">
+            <span>Latest route</span>
+            <strong id="last-route-value">WAITING</strong>
+            <small id="last-route-message">Execute a request to reveal the path decision.</small>
+          </div>
+        </div>
+        <div class="observation-content">
+          <div class="route-summary">
+            <div><span>Client destination</span><strong>localhost:7412</strong></div>
+            <div><span>Selected path</span><strong id="selected-path">/api/users</strong></div>
+            <div><span>Selected service</span><strong id="selected-service">User Service</strong></div>
+          </div>
+          <ol class="request-trace" id="request-trace">
+            <li class="pending"><span>1</span><div><strong>Start the lesson</strong><small>The trace will show how a path becomes a service decision.</small></div></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="lesson-note-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Use one entry point for many services.</h2>
+          <p>An API Gateway sits in front of backend services and acts as a <strong>single entry point</strong> for client requests. It examines the request and routes it to the correct service.</p>
+
+          <div class="flow-summary" aria-label="Client to API Gateway to appropriate service">
+            <strong>Client</strong><b>&rarr;</b><strong>API Gateway</strong><b>&rarr;</b><strong>Appropriate Service</strong>
+          </div>
+
+          <aside class="analogy-callout">
+            <p class="eyebrow">A useful analogy</p>
+            <h3>Think of the gateway like a shopkeeper.</h3>
+            <p>You tell the shopkeeper what you need. Instead of knowing where every item is stored, the shopkeeper interprets your request and gets it from the right place.</p>
+          </aside>
+
+          <p>Without an API Gateway, the client may need to know the address of every service. With a gateway, the client knows one endpoint while paths such as <code>/api/users</code>, <code>/api/products</code>, and <code>/api/orders</code> select the appropriate backend.</p>
+
+          <h3>Common gateway responsibilities</h3>
+          <ul class="responsibility-list">
+            <li>Authentication and authorization</li>
+            <li>Rate limiting</li>
+            <li>Request routing</li>
+            <li>Request and response transformation</li>
+            <li>Logging and monitoring</li>
+            <li>API versioning</li>
+          </ul>
+
+          <aside class="setup-example">
+            <p class="eyebrow">In our setup</p>
+            <h3>Nginx is a deliberately simple API Gateway.</h3>
+            <p>It reads the HTTP path and routes to one of six services: User, Catalog, Inventory, Cart, Order, or Payment. The client never needs their individual addresses.</p>
+          </aside>
+        </div>
+
+        <div class="gateway-versus-lb" aria-labelledby="comparison-title">
+          <div>
+            <p class="eyebrow">Different decisions</p>
+            <h3 id="comparison-title">API Gateway vs Load Balancer</h3>
+            <p>They are often used together, not as replacements for each other.</p>
+          </div>
+          <article>
+            <span class="comparison-label load-balancer">Load Balancer</span>
+            <h4>Which instance?</h4>
+            <p>Distributes traffic among multiple instances of the <strong>same service</strong> to improve scalability and availability.</p>
+          </article>
+          <article>
+            <span class="comparison-label api-gateway">API Gateway</span>
+            <h4>Which service?</h4>
+            <p>Routes requests among <strong>different services and APIs</strong>, with API-level policies around that routing.</p>
+          </article>
+          <div class="flow-summary combined-flow" aria-label="Client to API Gateway to Load Balancer to service instance">
+            <strong>Client</strong><b>&rarr;</b><strong>API Gateway</strong><b>&rarr;</b><strong>Load Balancer</strong><b>&rarr;</b><strong>Service Instance</strong>
+          </div>
+        </div>
+
+        <div class="tradeoffs" aria-label="Benefits and remaining limitations of the API Gateway">
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>One stable API address for clients</li>
+              <li>Clients are decoupled from service locations</li>
+              <li>Internal service addresses remain hidden</li>
+              <li>Central routing and cross-cutting policies</li>
+              <li>Services can evolve behind the gateway</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What still remains</p>
+            <ul>
+              <li class="spof-warning"><strong>The single API Gateway is now a Single Point of Failure (SPOF)</strong></li>
+              <li>Each service has only one instance in this lesson</li>
+              <li>A gateway route does not distribute load among service replicas</li>
+              <li>Gateway capacity and availability must eventually scale too</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">The next design pressure</p>
+          <h2 id="next-lesson-title">Should every service scale in the same way?</h2>
+          <p>Some services receive more traffic than others. The next lesson adds a Load Balancer only where multiple replicas are needed.</p>
+        </div>
+        <a href="../../lessons/lesson-05-hybrid/index.html">Next: combine the Gateway and Load Balancer <span>&rarr;</span></a>
+      </section>
+    </main>
+
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="../../lessons/lesson-04-api-gateway/app.js"></script>
+  </body>
+</html>

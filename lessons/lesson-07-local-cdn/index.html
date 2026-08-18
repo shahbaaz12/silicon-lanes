@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn how a local CDN caches responses at the edge and skips the full origin chain entirely on a cache hit.">
+    <title>Lesson 7 &middot; Local CDN &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css">
+    <link rel="stylesheet" href="../../lessons/lesson-06-advanced/styles.css">
+    <link rel="stylesheet" href="../../lessons/lesson-07-local-cdn/styles.css">
+    <link rel="stylesheet" href="../../theme.css">
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 07</span> Local CDN</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 7 &middot; Cache at the edge</p>
+        <h1 id="lesson-title">Sometimes, skip the origin entirely.</h1>
+        <p class="intro-copy">A <strong>local CDN</strong> sits in front of the complete Lesson 6 origin. Product reads are cached for 15 seconds; a cache hit returns straight from the CDN and never reaches the Edge Load Balancer, an API Gateway, or a service.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>Content Delivery Network</span>
+          <span>Edge caching</span>
+          <span>Cache TTL</span>
+          <span>HIT / MISS / BYPASS</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive caching lab</p>
+            <h2 id="lab-title">Watch a MISS populate the cache, then a HIT skip everything downstream.</h2>
+            <p>Request Products twice inside 15 seconds. The first response is stored at the CDN; the second returns from that cache alone.</p>
+          </div>
+          <div class="lesson-controls">
+            <button class="primary-action" id="start" type="button">Start Lesson</button>
+            <button class="secondary-action" id="stop" type="button" disabled>Stop Lesson</button>
+            <button class="secondary-action" id="clear-cache" type="button" disabled>Clear CDN Cache</button>
+            <button class="secondary-action" id="clear" type="button" disabled>Clear Logs</button>
+          </div>
+        </div>
+
+        <div class="policy-note"><b>Demo cache policy:</b> only <code>GET /api/products</code> is cached, for 15 seconds. User and Order routes always bypass the cache. This rule lives in the CDN configuration and is intentionally changeable.</div>
+
+        <div class="architecture-flow" aria-label="Browser Client to Local CDN, then the Lesson 6 origin on a cache miss or bypass">
+          <lesson-client-card class="node-card client-card" icon="C" kicker="Request origin" heading="Browser Client" status="ready">
+            <div class="route-picker-heading"><span>Choose an API</span><small>Only Products is cached</small></div>
+            <div class="route-picker" id="routes"></div>
+
+            <div class="endpoint-box">
+              <span>Only known address</span>
+              <code id="url">http://127.0.0.1:7712/api/products</code>
+            </div>
+
+            <div class="request-actions">
+              <button class="primary-action request-action" id="send" type="button" disabled><span>GET</span> Execute request</button>
+              <button class="secondary-action experiment-action" id="cache-demo" type="button" disabled>Clear cache, then request twice</button>
+            </div>
+            <div class="client-tooling">
+              <span>You can run the selected request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+
+            <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
+              <pre data-response-body id="pretty">Start the lesson, then request Products twice.</pre>
+              <pre data-response-json id="json">Execute a request to inspect the original response.</pre>
+              <pre data-response-headers id="headers">Execute a request to inspect the response headers, including X-Cache-Status.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector connector-client" aria-label="Only public connection, from the client to the local CDN"><span>Only known address</span><b class="packet"></b></div>
+
+          <div class="routing-stage">
+            <div class="edge-row">
+              <div class="tagged-node">
+                <span class="layer-tag cache">CACHE</span>
+                <lesson-node-lite id="cdn-node" kind="cdn" heading="Local CDN" configuration="Published: 127.0.0.1:7712&#10;Origin: advancedEdgeLoadBalancer1:80&#10;Caches only GET /api/products&#10;TTL: 15 seconds&#10;Cache lock: enabled&#10;Policy is intentionally changeable"></lesson-node-lite>
+              </div>
+              <div class="cdn-summary">
+                <div><span>Infrastructure status</span><strong id="infrastructure-status" data-tone="stopped">STOPPED</strong></div>
+                <div><span>Cache result</span><strong id="cache-result" data-tone="waiting">WAITING</strong></div>
+                <div><span>Current journey</span><code id="decision">CDN &rarr; waiting</code></div>
+              </div>
+            </div>
+
+            <div class="cdn-descend" aria-hidden="true"><b class="cdn-packet"></b></div>
+
+            <div class="edge-row">
+              <div class="tagged-node">
+                <span class="layer-tag l4">L4</span>
+                <lesson-node-lite id="edge-node" kind="load-balancer" layer="4" heading="Edge Load Balancer" configuration="Layer: L4&#10;Private origin entry point&#10;Pool: advancedApiGateway1, advancedApiGateway2&#10;Reached only on a cache MISS or BYPASS&#10;Does not inspect HTTP paths"></lesson-node-lite>
+              </div>
+            </div>
+
+            <div class="edge-branches" aria-hidden="true"><i></i><i></i></div>
+            <section class="gateway-tier" aria-labelledby="gateway-tier-title">
+              <div class="tier-heading"><span>Stateless gateway tier</span><strong id="gateway-tier-title">Two identical L7 routers</strong></div>
+              <div class="gateway-grid">
+                <div class="gateway-slot" data-gateway-slot="advancedApiGateway1">
+                  <lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway1" heading="API Gateway 1" configuration="Private listener: advancedApiGateway1:80&#10;Layer: L7 HTTP path routing&#10;Configuration matches API Gateway 2&#10;Routes User and Order directly&#10;Routes Products through the Catalog Load Balancer"></lesson-node-lite>
+                </div>
+                <div class="gateway-slot" data-gateway-slot="advancedApiGateway2">
+                  <lesson-node-lite kind="api-gateway" data-gateway="advancedApiGateway2" heading="API Gateway 2" configuration="Private listener: advancedApiGateway2:80&#10;Layer: L7 HTTP path routing&#10;Configuration matches API Gateway 1&#10;Routes User and Order directly&#10;Routes Products through the Catalog Load Balancer"></lesson-node-lite>
+                </div>
+              </div>
+            </section>
+
+            <div class="gateway-merge" aria-hidden="true"><i></i><i></i></div>
+            <section class="service-tier" aria-labelledby="service-tier-title">
+              <div class="tier-heading"><span>Internal routing</span><strong id="service-tier-title">Service destinations</strong></div>
+              <div class="service-grid">
+                <article class="service-path" data-service-path="user">
+                  <div class="path-heading"><span>Direct &middot; always BYPASS</span><code>/api/users</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <lesson-service-lite data-key="user" service-key="user" heading="User Service" configuration="Target: userService1:6112&#10;Route: GET /api/users&#10;CDN policy: BYPASS"></lesson-service-lite>
+                </article>
+
+                <article class="service-path catalog-path" data-service-path="catalog">
+                  <div class="path-heading"><span>Cached for 15s</span><code>/api/products</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <div class="tagged-node">
+                    <span class="layer-tag l7">L7</span>
+                    <lesson-node-lite id="catalog-lb-node" kind="load-balancer" layer="7" heading="Catalog Load Balancer" configuration="Layer: L7&#10;Private listener: advancedCatalogLoadBalancer1:80&#10;Reached only on a cache MISS&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2"></lesson-node-lite>
+                  </div>
+                  <div class="catalog-branches" aria-hidden="true"><i></i><i></i></div>
+                  <div class="catalog-replicas">
+                    <lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                    <lesson-service-lite data-key="catalog-2" service-key="catalog" heading="Catalog Service 2" configuration="Target: catalogService2:6212&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                  </div>
+                </article>
+
+                <article class="service-path" data-service-path="order">
+                  <div class="path-heading"><span>Direct &middot; always BYPASS</span><code>/api/orders</code></div>
+                  <div class="path-arrow"><b class="path-packet"></b></div>
+                  <lesson-service-lite data-key="order" service-key="order" heading="Order Service" configuration="Target: orderService1:6512&#10;Route: GET /api/orders&#10;CDN policy: BYPASS"></lesson-service-lite>
+                </article>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">Observe the cache</p>
+          <h2 id="observation-title">Did this request reach the origin?</h2>
+          <p>A HIT answers from the CDN alone. A MISS or BYPASS travels the complete Lesson 6 path before the CDN can respond.</p>
+          <div class="last-route" id="last-route" data-tone="waiting">
+            <span>Latest cache outcome</span>
+            <strong id="last-route-value">WAITING</strong>
+            <small id="last-route-message">Execute a request to reveal every component it touched.</small>
+          </div>
+        </div>
+
+        <div class="observation-content">
+          <div class="route-summary">
+            <div><span>Requested route</span><strong id="summary-route">Waiting</strong></div>
+            <div><span>Cache result</span><strong id="summary-cache">Waiting</strong></div>
+            <div><span>Final server</span><strong id="summary-server">Waiting</strong></div>
+          </div>
+
+          <ol class="request-trace" id="request-trace">
+            <li class="pending"><span>1</span><div><strong>Start the lesson</strong><small>The trace will separate a cache answer from a full origin round trip.</small></div></li>
+          </ol>
+
+          <div class="connection-note">
+            <strong>Why request twice?</strong>
+            <p>The first Product request after a start or a cleared cache is always a MISS: nothing is stored yet, so the CDN forwards it to the origin and keeps a copy. A second request inside the 15-second TTL is a HIT and never leaves the CDN.</p>
+          </div>
+
+          <div class="log-grid">
+            <section class="log-span"><div class="log-heading"><span>Local CDN log</span><b>every request &rarr; cache result</b></div><pre id="cdn-log">Start Lesson 7.</pre></section>
+            <section><div class="log-heading"><span>Edge/L4 log</span><b>MISS / BYPASS only</b></div><pre id="edge-log">Origin is skipped on HIT.</pre></section>
+            <section><div class="log-heading"><span>API Gateway 1 log</span><b>path &rarr; service</b></div><pre id="gateway-1-log">Origin is skipped on HIT.</pre></section>
+            <section><div class="log-heading"><span>API Gateway 2 log</span><b>path &rarr; service</b></div><pre id="gateway-2-log">Origin is skipped on HIT.</pre></section>
+            <section><div class="log-heading"><span>Catalog L7 log</span><b>Products only, MISS only</b></div><pre id="catalog-log">Origin is skipped on HIT.</pre></section>
+          </div>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="lesson-note-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Cache responses closer to the client.</h2>
+          <p>This is a good point to introduce a <strong>CDN (Content Delivery Network)</strong> and response caching. A CDN sits closer to the client than any part of the origin and can answer frequently requested, cacheable content directly.</p>
+
+          <div class="flow-summary" aria-label="Client to CDN to Edge Load Balancer to API Gateway to Services">
+            <strong>Client</strong><b>&rarr;</b><strong>CDN</strong><b>&rarr;</b><strong>Edge Load Balancer</strong><b>&rarr;</b><strong>API Gateway</strong><b>&rarr;</b><strong>Services</strong>
+          </div>
+          <p>If the requested content is already cached, it returns directly and the request never reaches the origin:</p>
+          <div class="flow-summary cache-hit-flow" aria-label="Client to CDN cache to response">
+            <strong>Client</strong><b>&rarr;</b><strong>CDN cache</strong><b>&rarr;</b><strong>Response</strong>
+          </div>
+          <p>On a <strong>cache miss</strong>, the CDN forwards the request through the full origin chain and may store the response so future requests can be served directly.</p>
+
+          <div class="advantage-grid">
+            <article><h3>Reduced origin traffic</h3><p>A HIT never reaches the Edge Load Balancer, a Gateway, or a service.</p></article>
+            <article><h3>Reduced backend load</h3><p>The Catalog tier answers fewer requests during traffic spikes.</p></article>
+            <article><h3>Faster responses</h3><p>One cache lookup replaces several internal routing decisions.</p></article>
+            <article><h3>Serves from the edge</h3><p>In production, requests are answered from a location closer to the client.</p></article>
+          </div>
+
+          <div class="responsibility-stack">
+            <article><span class="layer-pill cache">CACHE</span><div><h3>Local CDN</h3><p>Answers cacheable reads directly and forwards everything else to its configured origin.</p></div></article>
+            <article><span class="layer-pill origin">ORIGIN</span><div><h3>Lesson 6 infrastructure</h3><p>The full Edge Load Balancer, API Gateway, and Catalog Load Balancer chain, reached only on a MISS or BYPASS.</p></div></article>
+          </div>
+
+          <div class="origin-routing-note" id="cdn-origin-routing">
+            <h3>Note: real systems usually have several load balancers</h3>
+            <p>A CDN does not discover its destination automatically. Its distribution is configured with an <strong>origin hostname</strong> or an <strong>origin group</strong>.</p>
+            <p>Cache behaviors can map request paths to the desired origin. DNS, Anycast, or a global traffic manager can then resolve that origin hostname to the appropriate regional or edge load balancer. From there, internal load balancers continue routing traffic to the correct gateway and service instances.</p>
+            <p>Origin groups can also define a primary and secondary origin so the CDN can fail over when the primary origin is unavailable.</p>
+            <p class="cross-ref">Anycast gets a proper explanation in <a href="../../lessons/lesson-08-request-path/index.html">Lesson 8</a> — though note it is used in the opposite direction there. This note is about how the CDN finds <em>its origin</em>; Lesson 8 is about how a client finds <em>the CDN</em>.</p>
+          </div>
+
+          <aside class="setup-example">
+            <p class="eyebrow">In our setup</p>
+            <h3>The Local CDN has one configured origin.</h3>
+            <p>An <strong>Nginx cache proxy</strong> forwards every miss or bypass to <code>advancedEdgeLoadBalancer1:80</code>, the Lesson 6 Edge Load Balancer. Only <code>GET /api/products</code> is cached, for 15 seconds; a MISS stores the response, a HIT returns it immediately, and User and Order requests always report <strong>BYPASS</strong>. Every response carries <code>X-Cache-Status</code>.</p>
+          </aside>
+        </div>
+
+        <div class="tradeoffs" aria-label="Benefits and remaining limitations of edge caching">
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>Cache hits skip the entire origin chain</li>
+              <li>Lower backend load during traffic spikes</li>
+              <li>Faster responses for cached content</li>
+              <li>An explicit, per-route cache policy</li>
+              <li>The origin remains authoritative on a MISS</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What still remains</p>
+            <ul>
+              <li class="spof-warning"><strong>This single CDN container is now a SPOF of its own</strong> — if it stops, everything stops, cached or not. Lesson 8 (bonus) shows why that worry mostly dissolves in the real world, where a CDN is one address served from many locations at once.</li>
+              <li>Cached content can be stale for up to the TTL window</li>
+              <li>Every non-cached route still crosses the full origin chain</li>
+              <li>Cache policy must be chosen deliberately per endpoint</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">One question this lesson leaves open</p>
+          <h2 id="next-lesson-title">We just put a single box in front of everything. Isn't that a step backwards?</h2>
+          <p>Seven lessons spent removing single points of failure, and then this one puts a single container in front of the whole system. The bonus lesson explains why that isn't the problem it looks like — a real CDN is one address answered by many locations at once, so losing any one of them is a routing update rather than an outage.</p>
+        </div>
+        <a href="../../lessons/lesson-08-request-path/index.html">Bonus: Why a real CDN isn't one box <span>&rarr;</span></a>
+      </section>
+    </main>
+
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="../../lessons/lesson-07-local-cdn/app.js"></script>
+  </body>
+</html>

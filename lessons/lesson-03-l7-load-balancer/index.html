@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Learn Layer 7 round-robin load balancing across multiple Catalog Service replicas."
+    />
+    <title>Lesson 3 &middot; L7 Load Balancer &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css" />
+    <link
+      rel="stylesheet"
+      href="../../lessons/lesson-03-l7-load-balancer/styles.css"
+    />
+    <link rel="stylesheet" href="../../theme.css" />
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 03</span> Horizontal scaling</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 3 &middot; Horizontal scaling</p>
+        <h1 id="lesson-title">
+          One service address. Three interchangeable replicas.
+        </h1>
+        <p class="intro-copy">
+          The client sends <code>GET /api/products</code> to
+          <code>localhost:7312</code>. Nginx understands the HTTP path and
+          distributes requests across healthy Catalog Service instances.
+        </p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>Layer 7 routing</span>
+          <span>Round robin</span>
+          <span>Horizontal scaling</span>
+          <span>No cache</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive architecture lab</p>
+            <h2 id="lab-title">Distribute traffic, then remove a replica.</h2>
+            <p>
+              Run six requests to reveal round robin, stop one instance, and
+              verify that the healthy replicas keep answering.
+            </p>
+          </div>
+          <div class="lesson-controls">
+            <button
+              class="primary-action start"
+              id="start-lesson"
+              type="button"
+            >
+              Start Lesson
+            </button>
+            <button
+              class="primary-action repair"
+              id="repair-pool"
+              type="button"
+              hidden
+            >
+              Restore 3 Replicas
+            </button>
+            <button
+              class="secondary-action"
+              id="stop-lesson"
+              type="button"
+              disabled
+            >
+              Stop Lesson
+            </button>
+            <button
+              class="secondary-action"
+              id="clear-logs"
+              type="button"
+              disabled
+            >
+              Clear Logs
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="architecture-flow"
+          aria-label="Client to L7 Load Balancer to three Catalog Service replicas"
+        >
+          <lesson-client-card
+            class="node-card client-card"
+            icon="C"
+            kicker="Request origin"
+            heading="Browser Client"
+            status="ready"
+          >
+            <div class="endpoint-box">
+              <span>Known destination</span>
+              <code id="load-balancer-url"
+                >http://localhost:7312/api/products</code
+              >
+            </div>
+
+            <div class="request-actions">
+              <button
+                class="primary-action request-action"
+                id="send-one"
+                type="button"
+                disabled
+              >
+                <span>GET</span> Execute request
+              </button>
+              <button
+                class="secondary-action experiment-action"
+                id="send-six"
+                type="button"
+                disabled
+              >
+                Run 6-request experiment
+              </button>
+            </div>
+
+            <div class="client-tooling">
+              <span>You can run the same request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+
+            <lesson-response-panel
+              class="client-response"
+              heading="Response at the client"
+              meta-id="response-meta"
+              time-id="response-time"
+              server-id="response-server"
+              aria-live="polite"
+            >
+              <div class="products" id="products" data-response-body>
+                <p>
+                  Start the lesson, then execute a request through the Load
+                  Balancer.
+                </p>
+              </div>
+              <pre id="response-json" data-response-json>
+Execute a request to inspect the original response.</pre
+              >
+              <pre id="response-headers" data-response-headers>
+Execute a request to inspect the response headers.</pre
+              >
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div
+            class="connector connector-client"
+            aria-label="Client request to L7 Load Balancer"
+          >
+            <span>One stable address</span><b class="packet"></b>
+          </div>
+
+          <lesson-load-balancer-card
+            class="node-card load-balancer-card"
+            layer="7"
+            icon="LB"
+            kicker="Application-aware infrastructure"
+            heading="L7 Load Balancer"
+            title-id="load-balancer-name"
+            status="stopped"
+            status-id="load-balancer-status"
+          >
+            <div class="load-balancer-actions">
+              <span class="layer-badge">L7</span>
+              <button
+                class="secondary-action compact"
+                id="details-button"
+                type="button"
+                aria-expanded="false"
+                aria-controls="lb-details"
+              >
+                Configuration
+              </button>
+            </div>
+
+            <div class="load-balancer-route">
+              <div>
+                <span>Client-facing address</span
+                ><code id="published-route">localhost:7312</code>
+              </div>
+              <b>round robin</b>
+              <div><span>Upstream group</span><code>catalog_pool</code></div>
+            </div>
+
+            <div class="load-balancer-details" id="lb-details" hidden>
+              <div>
+                <span>Published address</span><code>localhost:7312</code
+                ><small>The only address known by the client.</small>
+              </div>
+              <div>
+                <span>Container listener</span><code>loadBalancer1:80</code
+                ><small>Nginx accepts requests here inside Docker.</small>
+              </div>
+              <div>
+                <span>Selection strategy</span><code>Round robin</code
+                ><small>Nginx uses this strategy by default.</small>
+              </div>
+              <div>
+                <span>Application rule</span><code>HTTP path /api/products</code
+                ><small
+                  >This is why the balancer is operating at Layer 7.</small
+                >
+              </div>
+              <pre id="config-snippet">
+upstream catalog_pool {
+  server catalogService1:6212;
+  server catalogService2:6212;
+  server catalogService3:6212;
+}</pre
+              >
+            </div>
+
+            <div class="load-balancer-log">
+              <div class="section-heading">
+                <span
+                  >Load Balancer log &middot; request → selected server</span
+                >
+              </div>
+              <pre id="load-balancer-logs">
+Start the lesson to see distributed requests.</pre
+              >
+            </div>
+          </lesson-load-balancer-card>
+
+          <div class="replica-stage">
+            <div class="pool-heading">
+              <div>
+                <p class="eyebrow">Healthy upstream pool</p>
+                <h3>Catalog Service replicas</h3>
+              </div>
+              <strong id="pool-status">0 / 3 running</strong>
+            </div>
+
+            <div class="branch-map" aria-hidden="true">
+              <svg viewBox="0 0 900 104" preserveAspectRatio="none">
+                <defs>
+                  <marker
+                    id="branch-arrow"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="7"
+                    markerHeight="7"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                  </marker>
+                </defs>
+                <path
+                  class="branch-line"
+                  data-branch-index="0"
+                  d="M450 0 V26 H150 V96"
+                  marker-end="url(#branch-arrow)"
+                ></path>
+                <path
+                  class="branch-line"
+                  data-branch-index="1"
+                  d="M450 0 V96"
+                  marker-end="url(#branch-arrow)"
+                ></path>
+                <path
+                  class="branch-line"
+                  data-branch-index="2"
+                  d="M450 0 V26 H750 V96"
+                  marker-end="url(#branch-arrow)"
+                ></path>
+              </svg>
+              <span>Next healthy replica</span>
+            </div>
+
+            <div class="replica-grid" id="replica-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">Observe the distribution</p>
+          <h2 id="observation-title">Which replica handled each request?</h2>
+          <p>
+            Every request reaches exactly one healthy Catalog instance. Nothing
+            is served from cache in this lesson.
+          </p>
+          <div class="last-result" id="last-result" data-tone="waiting">
+            <span>Latest selection</span>
+            <strong id="last-selected-server">WAITING</strong>
+            <small id="last-selection-message"
+              >Execute a request to begin.</small
+            >
+          </div>
+        </div>
+
+        <div class="observation-content">
+          <div class="experiment-stats">
+            <div>
+              <span>Total requests</span
+              ><strong id="total-request-count">0</strong>
+            </div>
+            <div>
+              <span>Healthy replicas</span
+              ><strong id="healthy-replica-count">0 / 3</strong>
+            </div>
+            <div class="routing-history">
+              <span>Routing history</span
+              ><code id="routing-history">No requests yet</code>
+            </div>
+          </div>
+
+          <ol class="request-trace" id="request-trace">
+            <li class="pending">
+              <span>1</span>
+              <div>
+                <strong>Start the lesson</strong
+                ><small
+                  >The trace will reveal how the Load Balancer selects a
+                  replica.</small
+                >
+              </div>
+            </li>
+          </ol>
+
+          <div class="failure-experiment">
+            <p class="eyebrow">Availability experiment</p>
+            <div>
+              <span>1</span>
+              <p>Run six requests and observe an even distribution.</p>
+            </div>
+            <div>
+              <span>2</span>
+              <p>Kill any replica from its compact card.</p>
+            </div>
+            <div>
+              <span>3</span>
+              <p>Send more requests; healthy replicas continue answering.</p>
+            </div>
+            <div>
+              <span>4</span>
+              <p>Restore the pool and return to three instances.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="architecture-explanation"
+        aria-labelledby="lesson-note-title"
+      >
+        <div class="explanation-copy">
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">
+            Distribute traffic across multiple servers.
+          </h2>
+          <p>
+            A load balancer sits in front of multiple application servers and
+            distributes incoming traffic between them.
+          </p>
+
+          <div
+            class="layer-comparison"
+            aria-label="Layer 4 and Layer 7 comparison"
+          >
+            <article>
+              <span class="layer-badge muted">L4</span>
+              <h3>Transport Layer</h3>
+              <p>
+                Uses IP addresses, ports, and transport protocols. It sees less
+                of the request, allowing simple and fast routing decisions.
+              </p>
+            </article>
+            <article>
+              <span class="layer-badge">L7</span>
+              <h3>Application Layer</h3>
+              <p>
+                Understands HTTP methods, paths, headers, hostnames, and
+                cookies. It can make content-aware routing decisions with
+                additional processing.
+              </p>
+            </article>
+          </div>
+
+          <p>
+            A Load balancer behaves much like a specialized reverse proxy. In
+            this lesson, Nginx can see the <code>/api/products</code> path
+            before selecting a Catalog replica.
+          </p>
+
+          <ul class="responsibility-list">
+            <li>
+              <span class="defined-term" tabindex="0"
+                >Round robin<span class="term-definition" role="tooltip"
+                  >Requests are assigned to healthy servers in a repeating
+                  sequence, giving each one a turn.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="defined-term" tabindex="0"
+                >Horizontal scaling<span class="term-definition" role="tooltip"
+                  >Capacity is increased by adding more server instances rather
+                  than making one server larger.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="defined-term" tabindex="0"
+                >Health check<span class="term-definition" role="tooltip"
+                  >A periodic test determines whether a server is available to
+                  receive traffic.</span
+                ></span
+              >
+            </li>
+            <li>
+              <span class="defined-term" tabindex="0"
+                >Failover<span class="term-definition" role="tooltip"
+                  >Traffic is sent to another healthy server when the preferred
+                  server cannot answer.</span
+                ></span
+              >
+            </li>
+          </ul>
+
+          <aside class="setup-example">
+            <p class="eyebrow">Same technology, different purpose</p>
+            <h3>Nginx now balances rather than caches.</h3>
+            <p>
+              Lesson 2 forwarded to one application server and demonstrated
+              response caching. Lesson 3 runs
+              <strong>three Catalog Service instances</strong> and uses Nginx
+              round robin to distribute every request. There is no response
+              cache here.
+            </p>
+          </aside>
+        </div>
+
+        <div
+          class="tradeoffs"
+          aria-label="Benefits and remaining limitations of the Load Balancer"
+        >
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>Traffic distributed across replicas</li>
+              <li>Horizontal scaling</li>
+              <li>Better resource utilization</li>
+              <li>Service availability when one replica fails</li>
+              <li>One stable address for the Catalog Service</li>
+              <li>Selection of a healthy application instance</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What still remains</p>
+            <ul>
+              <li class="spof-warning">
+                <strong
+                  >The Load Balancer is now a Single Point of Failure
+                  (SPOF)</strong
+                >
+              </li>
+              <li>It handles only the Catalog Service</li>
+              <li>
+                The client still needs different addresses for User, Order, and
+                other services
+              </li>
+              <li>
+                Authentication and rate limiting remain distributed concerns
+              </li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">The next design pressure</p>
+          <h2 id="next-lesson-title">
+            How does the client reach different services?
+          </h2>
+          <p>
+            The Load Balancer selects an instance of one service, but a growing
+            application exposes many different services and APIs.
+          </p>
+        </div>
+        <a href="../../lessons/lesson-04-api-gateway/index.html"
+          >Next: route APIs through an API Gateway <span>→</span></a
+        >
+      </section>
+    </main>
+
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
+    <script
+      type="module"
+      src="../../lessons/lesson-03-l7-load-balancer/app.js"
+    ></script>
+  </body>
+</html>

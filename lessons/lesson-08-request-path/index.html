@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Bonus reading: how a request finds a CDN in the first place, and why that finally removes the single point of failure.">
+    <title>Lesson 8 &middot; Request Path &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css">
+    <link rel="stylesheet" href="../../lessons/lesson-08-request-path/styles.css">
+    <link rel="stylesheet" href="../../theme.css">
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 08</span> Bonus reading</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Bonus lesson &middot; Optional &middot; No Docker required</p>
+        <h1 id="lesson-title">How did your request even find Silicon Lanes?</h1>
+        <p class="intro-copy">Every lesson so far started the moment a request arrived at one of our containers. This one rewinds back onto the open internet &mdash; and answers the question Lesson 7 left hanging: our CDN was a single box, so wasn't that just one more single point of failure?</p>
+        <p class="intro-copy">Short version: in the real world it isn't one box, and the reason why is genuinely clever.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>IP addresses</span>
+          <span>DNS</span>
+          <span>Anycast</span>
+          <span>BGP routing</span>
+        </div>
+      </section>
+
+      <section class="teaching-block" aria-labelledby="vocab-title">
+        <p class="eyebrow">Start here</p>
+        <h2 id="vocab-title">Four words, in plain English.</h2>
+        <p class="lead">Everything below is built out of these. Nothing fancy yet.</p>
+
+        <div class="plain-terms">
+          <article class="term-card">
+            <h3>IP address</h3>
+            <p>A number that identifies a machine on a network, like <code>203.0.113.10</code>. To send data anywhere, this is what you actually need &mdash; names don't work at this level.</p>
+          </article>
+          <article class="term-card">
+            <h3>Domain name</h3>
+            <p>The human-friendly name, like <code>yourapp.com</code>. Easy to remember, useless to the network on its own. It has to become an IP address first.</p>
+          </article>
+          <article class="term-card">
+            <h3>DNS</h3>
+            <p>The system that turns a domain name into an IP address. The internet's phone book: look up a name, get back a number.</p>
+          </article>
+          <article class="term-card">
+            <h3>BGP</h3>
+            <p>How networks tell each other which addresses they can reach. Once you have a number, this is what decides the route your data actually takes to get there.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="teaching-block" aria-labelledby="simple-title">
+        <p class="eyebrow">Step one</p>
+        <h2 id="simple-title">What actually happens when you visit a website.</h2>
+        <p class="lead">Someone types <code>yourapp.com</code> and hits enter. Before anything else can happen, that name has to become a number.</p>
+
+        <div class="mini-flow" aria-label="Browser asks DNS for an address, gets one back, and connects to that server">
+          <div class="mini-node"><strong>Browser</strong><small>&ldquo;where is yourapp.com?&rdquo;</small></div>
+          <span class="mini-arrow" aria-hidden="true">&rarr;</span>
+          <div class="mini-node"><strong>DNS</strong><small>&ldquo;it's 203.0.113.10&rdquo;</small></div>
+          <span class="mini-arrow" aria-hidden="true">&rarr;</span>
+          <div class="mini-node accent"><strong>Your server</strong><small>203.0.113.10, London</small></div>
+        </div>
+
+        <p>That's it. The browser asks DNS, DNS gives back <strong>one simple address</strong>, and the browser opens a connection to it. Every website visit you have ever made started with those two steps.</p>
+        <p>Whoever is asking &mdash; Bengaluru, Berlin, Boston &mdash; DNS returns that same number, and everybody's traffic converges on that one machine in London.</p>
+      </section>
+
+      <section class="teaching-block problem-block" aria-labelledby="problem-title">
+        <p class="eyebrow">The problem</p>
+        <h2 id="problem-title">One machine. So one bad day takes down everything.</h2>
+        <p class="lead">Look closely at what we just built, because it's the same shape you've spent seven lessons trying to eliminate.</p>
+
+        <div class="failover-demo" aria-label="When the single London server goes down, the entire website is unreachable for everyone">
+          <div class="failover-row">
+            <span class="failover-state ok">Server healthy</span>
+            <div class="failover-path">
+              <span class="fo-node">Everyone</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">London</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site loads</span>
+            </div>
+          </div>
+          <div class="failover-row">
+            <span class="failover-state down">Server down</span>
+            <div class="failover-path">
+              <span class="fo-node">Everyone</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node dead">London</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result out">Nothing. For everybody.</span>
+            </div>
+          </div>
+        </div>
+
+        <p>DNS is still cheerfully handing out <code>203.0.113.10</code> to every person who asks. It has no idea the machine behind it is on fire. Everyone dutifully connects to an address where nobody is answering.</p>
+        <p>This is a <strong>single point of failure</strong>, and it's the biggest one yet. In Lesson 3 a dead Catalog replica was survivable &mdash; the load balancer just used another one. Here there is no &ldquo;another one.&rdquo; One address, one machine, one outage, whole site gone.</p>
+      </section>
+
+      <section class="teaching-block" aria-labelledby="anycast-title">
+        <p class="eyebrow">The fix</p>
+        <h2 id="anycast-title">Serve that same address from many places at once.</h2>
+        <p class="lead">Instead of giving each location its own address, you give every one of them <strong>the same address</strong>. That is what <strong>anycast</strong> means.</p>
+        <p><code>203.0.113.10</code> in Mumbai. The same <code>203.0.113.10</code> in Frankfurt. The same one again in Virginia &mdash; all three running at the same time, all three genuinely answering to that number. DNS still has exactly one address to hand out, and still hands the identical one to everybody.</p>
+
+        <div class="anycast-diagram" aria-label="One address served from three locations; two people reach different ones">
+          <div class="anycast-clients">
+            <div class="anycast-client" style="--slot: 1;">
+              <strong>Someone in Bengaluru</strong>
+              <span>DNS says: 203.0.113.10</span>
+            </div>
+            <div class="anycast-client" style="--slot: 2;">
+              <strong>Someone in Berlin</strong>
+              <span>DNS says: 203.0.113.10</span>
+            </div>
+          </div>
+          <div class="anycast-pops">
+            <div class="anycast-pop" style="--slot: 1;"><strong>Mumbai</strong><small>203.0.113.10</small></div>
+            <div class="anycast-pop" style="--slot: 2;"><strong>Frankfurt</strong><small>203.0.113.10</small></div>
+            <div class="anycast-pop" style="--slot: 3;"><strong>Virginia</strong><small>203.0.113.10</small></div>
+          </div>
+          <div class="anycast-caption">Same address in all three cities, all live at once. DNS gave both people the identical answer &mdash; the network is what sends them to different buildings.</div>
+        </div>
+
+        <p>So how does anyone end up anywhere in particular? That's <strong>BGP</strong> &mdash; <strong>Border Gateway Protocol</strong> &mdash; the system networks use to tell each other which addresses they can reach. Each location advertises &ldquo;I can serve <code>203.0.113.10</code>,&rdquo; that message spreads outward network by network, and every router along the way ends up knowing several routes to that one address. When your data arrives, each router simply forwards it down the shortest route it knows.</p>
+        <p>From Bengaluru the shortest route ends at Mumbai. From Berlin it ends at Frankfurt. Nobody configured that per person &mdash; it falls out of the routing.</p>
+        <p>Which gets us two things at once, from a single change:</p>
+
+        <div class="benefit-pair">
+          <article><h3>Redundancy</h3><p>Several machines now stand behind one address, in different cities, on different power grids and different networks.</p></article>
+          <article><h3>Geographic performance</h3><p>Everyone is served from whichever of those is closest to them, so the distance problem shrinks at the same time.</p></article>
+        </div>
+
+        <p class="footnote">Anycast is not a CDN feature &mdash; it's a general internet technique. Public DNS is the clearest example: <code>8.8.8.8</code> and <code>1.1.1.1</code> are each one address served from hundreds of locations worldwide. CDNs lean on it heavily, but they didn't invent it.</p>
+      </section>
+
+      <section class="teaching-block spof-block" aria-labelledby="spof-title">
+        <p class="eyebrow">The payoff</p>
+        <h2 id="spof-title">And there's the single point of failure, finally gone.</h2>
+        <p class="lead">A location advertises that address only while it is healthy. The moment it isn't, it stops advertising &mdash; and every route pointing at it quietly disappears.</p>
+
+        <div class="failover-demo" aria-label="When the Mumbai location goes offline, traffic from Bengaluru routes to Frankfurt instead">
+          <div class="failover-row">
+            <span class="failover-state ok">Normally</span>
+            <div class="failover-path">
+              <span class="fo-node">Bengaluru</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">Mumbai</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site loads</span>
+            </div>
+          </div>
+          <div class="failover-row">
+            <span class="failover-state down">Mumbai offline</span>
+            <div class="failover-path">
+              <span class="fo-node">Bengaluru</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node dead">Mumbai</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-node target">Frankfurt</span>
+              <span class="fo-arrow" aria-hidden="true">&rarr;</span>
+              <span class="fo-result up">Site still loads</span>
+            </div>
+          </div>
+        </div>
+
+        <p>Compare that with the outage two sections ago. Same failure &mdash; a location dies &mdash; but now the address survives it, because the address was never tied to that one building in the first place. Nobody changes a DNS record. Nobody edits a config. Nobody has to do anything at all. Routers recalculate, traffic lands somewhere else, usually within seconds.</p>
+        <p>This is what makes the availability numbers people quote actually achievable:</p>
+
+        <div class="uptime-grid" role="table" aria-label="Uptime percentages and the downtime each allows per year">
+          <div class="uptime-row uptime-head" role="row">
+            <span role="columnheader">Uptime</span>
+            <span role="columnheader">Downtime allowed per year</span>
+            <span role="columnheader">Roughly what it takes</span>
+          </div>
+          <div class="uptime-row" role="row">
+            <span role="cell"><strong>99%</strong></span><span role="cell">about 3.7 days</span><span role="cell">One machine, and some luck</span>
+          </div>
+          <div class="uptime-row" role="row">
+            <span role="cell"><strong>99.9%</strong></span><span role="cell">about 8.8 hours</span><span role="cell">Redundancy inside one location</span>
+          </div>
+          <div class="uptime-row highlight" role="row">
+            <span role="cell"><strong>99.99%</strong></span><span role="cell">about 53 minutes</span><span role="cell">Multiple locations, automatic failover</span>
+          </div>
+          <div class="uptime-row highlight" role="row">
+            <span role="cell"><strong>99.999%</strong></span><span role="cell">about 5 minutes</span><span role="cell">Many locations, rerouting in seconds</span>
+          </div>
+        </div>
+
+        <p>Those bottom two rows are effectively unreachable with one machine in one building &mdash; 53 minutes a year is less than a single reboot plus one bad deploy. Published CDN service-level agreements sit in the <strong>99.9% to 99.99%</strong> range, some vendors advertise a <strong>100% uptime SLA</strong> on their top tiers, and independent measurements of the major providers cluster close to <strong>99.999%</strong>. Anycast is a large part of why any of that is possible.</p>
+        <p>That's also the answer to Lesson 7's open question. Our local CDN really was one container, and really was a SPOF. A real one isn't a box at all &mdash; it's an address that hundreds of buildings answer to, where losing any one of them is a routing update rather than an outage.</p>
+        <p class="footnote">Two honest caveats. Connections already open to the failed location do break and have to be re-established, so people see a blip rather than a clean handover. And a &ldquo;100% uptime&rdquo; SLA is a commercial promise backed by service credits &mdash; not a claim that nothing ever fails.</p>
+      </section>
+
+      <section class="teaching-block" aria-labelledby="unicast-title">
+        <p class="eyebrow">Worth knowing</p>
+        <h2 id="unicast-title">Anycast isn't the only way to do this.</h2>
+        <p class="lead">The same goal &mdash; many locations behind one front door &mdash; can be reached from the opposite direction: keep ordinary addresses, and put something in charge of choosing between them.</p>
+
+        <div class="benefit-pair compare-pair">
+          <article>
+            <h3>Anycast, via BGP</h3>
+            <p>Every location shares <strong>one</strong> address, and the network decides who reaches which, through routing. No device is in charge &mdash; the choice falls out of BGP.</p>
+          </article>
+          <article>
+            <h3>Unicast, via a traffic manager</h3>
+            <p>Every location keeps its <strong>own distinct</strong> address. A device such as an <strong>F5 BIG-IP</strong> watches their health and load, and hands out whichever address it wants you to use. The choice is made by an appliance you control.</p>
+          </article>
+        </div>
+
+        <p>Roughly, the trade is control versus reach. A traffic manager gives you precise, tunable rules and a dashboard to watch them in &mdash; but it's a system you have to run, and it becomes one more thing that can fail. Anycast needs no such device, but it does need address space and routing arrangements you almost certainly don't have unless you're a provider.</p>
+      </section>
+
+      <section class="walkthrough" aria-labelledby="walkthrough-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">The whole journey</p>
+            <h2 id="walkthrough-title">Step through it, start to finish.</h2>
+            <p>The complete trip &mdash; from typing a name, across the internet, into the architecture you built in Lessons 6 and 7. Click any box to see what it's doing.</p>
+          </div>
+        </div>
+
+        <div class="path-diagram" id="path-diagram" aria-label="Client to DNS to BGP routing to CDN, then the Silicon Lanes infrastructure from Lessons 6 and 7">
+          <div class="path-group internet-group">
+            <span class="group-label">Out on the open internet</span>
+            <div class="path-row">
+              <lesson-node-lite id="step-client" kind="client" heading="Browser" configuration="Knows a domain name, not an address.&#10;Has to ask DNS before it can send anything anywhere."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-dns" kind="infrastructure" heading="DNS Lookup" configuration="Turns the name into a number.&#10;Under anycast, hands the same number to everyone.&#10;Does not know or check where that address physically is."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-bgp" kind="infrastructure" heading="Network Routing" configuration="Your data travels toward that address.&#10;Many locations announce it, so routers compare paths using BGP and pick the nearest.&#10;This happens after DNS is completely finished."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-pop" kind="cdn" heading="CDN Location" configuration="Whichever site the routing landed on.&#10;If this one goes offline, routing shifts to the next nearest automatically.&#10;This is where Lesson 7 begins."></lesson-node-lite>
+            </div>
+          </div>
+
+          <div class="path-divider" aria-hidden="true"><span>if the CDN doesn't have it cached, it continues into&hellip;</span></div>
+
+          <div class="path-group silicon-lanes-group">
+            <span class="group-label">Your infrastructure (Lessons 6 &amp; 7)</span>
+            <div class="path-row">
+              <div class="tagged-node">
+                <span class="layer-tag l4">L4</span>
+                <lesson-node-lite id="step-edge" kind="load-balancer" layer="4" heading="Edge Load Balancer" configuration="The Lesson 6 edge tier.&#10;Spreads incoming connections across the API Gateways."></lesson-node-lite>
+              </div>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <lesson-node-lite id="step-gateway" kind="api-gateway" heading="API Gateway" configuration="Reads the request path.&#10;Sends User and Order straight to their service; sends Products onward."></lesson-node-lite>
+              <span class="step-arrow" aria-hidden="true">&rarr;</span>
+              <div class="tagged-node">
+                <span class="layer-tag l7">L7</span>
+                <lesson-node-lite id="step-l7lb" kind="load-balancer" layer="7" heading="L7 Load Balancer" configuration="The Lesson 6 Catalog Load Balancer.&#10;Picks one healthy Catalog replica, round robin."></lesson-node-lite>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="step-controls">
+          <button class="secondary-action" id="step-prev" type="button">&larr; Previous</button>
+          <div class="step-status">
+            <span id="step-counter">Step 1 of 6</span>
+            <div class="step-dots" id="step-dots" aria-hidden="true"></div>
+          </div>
+          <button class="primary-action" id="step-next" type="button">Next &rarr;</button>
+        </div>
+
+        <div class="step-panel" id="step-panel" aria-live="polite">
+          <h3 id="step-title">You type a name. Your browser has no idea what that means yet.</h3>
+          <p id="step-body">It has <code>yourapp.com</code>, which is a word, and words don't work on a network. Before a single byte goes anywhere, that word has to become a number.</p>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="closing-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">Bringing it home</p>
+          <h2 id="closing-title">Where this meets what you already built.</h2>
+          <p>Everything in this lesson happens <em>before</em> Lesson 7's first line of code runs. DNS and BGP decide <strong>which</strong> CDN location a person reaches. From the moment their connection lands there, it's the story you already know: check the cache, and on a miss, forward to the origin &mdash; the Edge Load Balancer, the API Gateways, the Catalog Load Balancer, the replicas.</p>
+          <p>Running locally, all of that collapses to <code>127.0.0.1</code>. One machine, no cities to choose between, no BGP in sight. But the shape is identical, and every decision still gets made &mdash; just by Nginx on your laptop instead of by routers spread across the planet.</p>
+
+          <div class="glossary" aria-label="Key terms">
+            <p class="glossary-title">The terms from this lesson</p>
+            <dl>
+              <div><dt>IP address</dt><dd>A number identifying a machine on a network. What your computer actually needs to send anything.</dd></div>
+              <div><dt>Domain name</dt><dd>The readable name for a site. Must become an IP address before it's usable.</dd></div>
+              <div><dt>DNS</dt><dd>The internet's phone book: give it a name, it gives back an address.</dd></div>
+              <div><dt>Anycast</dt><dd>The same address, live in many locations at once. Routing, not DNS, decides which one you reach.</dd></div>
+              <div><dt>BGP</dt><dd>How networks tell each other which addresses they can reach, and how routers pick between competing paths.</dd></div>
+              <div><dt>Point of Presence (PoP)</dt><dd>A physical site where a provider accepts public connections. Large CDNs run hundreds.</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">That's the whole path</p>
+          <h2 id="next-lesson-title">From typing a name to a Catalog replica answering.</h2>
+          <p>You've now seen both halves: the routing that gets a request to a CDN at all, and the architecture you built by hand to handle it from there.</p>
+        </div>
+        <div class="journey-links">
+          <a href="../../lessons/lesson-01-direct-service/index.html">Restart from Lesson 1 <span>&rarr;</span></a>
+          <a href="https://github.com/shahbaaz12/silicon-lanes">Open the Service Lab <span>&rarr;</span></a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="../../lessons/shared/components.js"></script>
+    <script type="module" src="../../lessons/lesson-08-request-path/app.js"></script>
+  </body>
+</html>

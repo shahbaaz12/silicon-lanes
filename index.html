@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Learn how application request paths evolve from one server to a scalable system.">
+    <title>Silicon Lanes &middot; System Design Journey</title>
+    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./theme.css">
+    <script src="./theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="./sim/fixtures.js"></script>
+    <script src="./sim/logs.js"></script>
+    <script src="./sim/lessons.js"></script>
+    <script src="./sim/lessons-advanced.js"></script>
+    <script src="./sim/fetch-shim.js"></script>
+    <script src="./sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="shell topbar-inner">
+        <a class="brand" href="./index.html" aria-label="Silicon Lanes home">
+          <span class="brand-mark">SL</span>
+          <span>Silicon Lanes</span>
+        </a>
+        <div class="system-status" id="system-status">
+          <span class="status-dot"></span>
+          <span>Checking Docker</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell landing-page">
+      <section class="hero landing-hero">
+        <div class="hero-content">
+          <div class="eyebrow">From one server to a scalable system</div>
+          <h1>Learn how applications scale, one layer at a time.</h1>
+          <p class="hero-copy">
+            Follow a request as the architecture evolves from one application server
+            to reverse proxies, load balancers, API gateways, and edge caching.
+          </p>
+          <div class="journey-summary" aria-label="Course summary">
+            <span><strong>7</strong> sequential lessons</span>
+            <span><strong>6</strong> application services</span>
+            <span><strong>1</strong> evolving request path</span>
+          </div>
+        </div>
+
+        <div class="scale-preview" aria-label="Scaling path preview">
+          <div class="preview-label">The request path evolves</div>
+          <div class="preview-step preview-client">Client</div>
+          <span class="preview-arrow" aria-hidden="true">&darr;</span>
+          <div class="preview-step preview-edge">CDN / Edge</div>
+          <span class="preview-arrow" aria-hidden="true">&darr;</span>
+          <div class="preview-step preview-routing">Gateway / Load Balancer</div>
+          <span class="preview-arrow" aria-hidden="true">&darr;</span>
+          <div class="preview-replicas">
+            <span>Service 1</span>
+            <span>Service 2</span>
+            <span>Service 3</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="service-lab-card" aria-labelledby="service-lab-heading">
+        <div class="service-lab-copy">
+          <div class="eyebrow">Your application services</div>
+          <h2 id="service-lab-heading">The application is built. Now make it ready to scale.</h2>
+          <p>
+            Starting replicas and executing requests against them needs real containers, so the Service Lab lives in the Docker project rather than in this simulated build.
+          </p>
+          <a class="button primary service-lab-cta" href="https://github.com/shahbaaz12/silicon-lanes">See the Service Lab on GitHub <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="service-pills" aria-label="Available application services">
+          <span>User</span>
+          <span>Catalog</span>
+          <span>Inventory</span>
+          <span>Cart</span>
+          <span>Order</span>
+          <span>Payment</span>
+        </div>
+      </section>
+
+      <div class="lessons-cue" aria-hidden="true">
+        <span>Lessons</span>
+        <span class="lessons-cue-arrow">&#128071;</span>
+      </div>
+
+      <section class="lessons-section journey-section" aria-labelledby="lessons-heading">
+        <div class="section-heading journey-heading">
+          <div>
+            <div class="eyebrow">The request journey</div>
+            <h2 id="lessons-heading">Build the path. Then scale it.</h2>
+            <p>Each lesson keeps what you learned and introduces one new infrastructure decision.</p>
+          </div>
+        </div>
+
+        <ol class="lessons-list request-journey">
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-01-direct-service/index.html">
+              <span class="lesson-number">01</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Foundation</span>
+                <strong>Hitting the service directly</strong>
+                <span>Understand the simplest possible request path and its limitations.</span>
+                <code class="lesson-topology">Client &rarr; Catalog Service</code>
+                <span class="lesson-tags"><span>Direct request</span><span>Single server</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-02-reverse-proxy/index.html">
+              <span class="lesson-number">02</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Traffic control</span>
+                <strong>Reverse Proxy and response caching</strong>
+                <span>Hide the origin, move connection work, and serve repeated responses faster.</span>
+                <code class="lesson-topology">Client &rarr; Nginx cache &rarr; Catalog Service</code>
+                <span class="lesson-tags"><span>Reverse proxy</span><span>Caching</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-03-l7-load-balancer/index.html">
+              <span class="lesson-number">03</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Horizontal scaling</span>
+                <strong>L7 Load Balancer</strong>
+                <span>Distribute HTTP requests across multiple instances of the same service.</span>
+                <code class="lesson-topology">Client &rarr; L7 Load Balancer &rarr; 3 Catalog replicas</code>
+                <span class="lesson-tags"><span>Round robin</span><span>Replicas</span><span>L7</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-04-api-gateway/index.html">
+              <span class="lesson-number">04</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Service routing</span>
+                <strong>API Gateway</strong>
+                <span>Give clients one entry point and route each API to its owning service.</span>
+                <code class="lesson-topology">Client &rarr; API Gateway &rarr; User / Catalog / Order</code>
+                <span class="lesson-tags"><span>Path routing</span><span>Single entry point</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-05-hybrid/index.html">
+              <span class="lesson-number">05</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Hybrid architecture</span>
+                <strong>Gateway + Load Balancer</strong>
+                <span>Scale only the busy service while routing quieter services directly.</span>
+                <code class="lesson-topology">Gateway &rarr; L7 Load Balancer &rarr; Catalog replicas</code>
+                <span class="lesson-tags"><span>Selective scaling</span><span>L7</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-06-advanced/index.html">
+              <span class="lesson-number">06</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">High availability</span>
+                <strong>Load-balanced API Gateways</strong>
+                <span>Remove the gateway SPOF by distributing connections across gateway replicas.</span>
+                <code class="lesson-topology">Edge L4 LB &rarr; 2 API Gateways &rarr; Services</code>
+                <span class="lesson-tags"><span>L4</span><span>Gateway replicas</span><span>Failover</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+          <li class="lesson-stop">
+            <a class="lesson-card" href="./lessons/lesson-07-local-cdn/index.html">
+              <span class="lesson-number">07</span>
+              <span class="lesson-copy">
+                <span class="lesson-level">Content delivery</span>
+                <strong>Local CDN</strong>
+                <span>Serve cacheable product responses before traffic reaches the origin.</span>
+                <code class="lesson-topology">Client &rarr; CDN &rarr; Edge &rarr; Gateway &rarr; Services</code>
+                <span class="lesson-tags"><span>Edge cache</span><span>Lower latency</span></span>
+              </span>
+              <span class="lesson-open">Explore lesson &rarr;</span>
+            </a>
+          </li>
+        </ol>
+      </section>
+
+      <div class="bonus-divider" role="separator" aria-label="Beyond the seven-lesson path"><span>Beyond the seven-lesson path</span></div>
+
+      <section class="bonus-section" aria-labelledby="bonus-heading">
+        <div class="section-heading">
+          <div>
+            <div class="eyebrow">Bonus &middot; advanced reading</div>
+            <h2 id="bonus-heading">How did the request even find Silicon Lanes?</h2>
+            <p>Lessons 1&ndash;7 all start once a request reaches one of our containers. This optional lesson backs up further, to the real internet: DNS, anycast, and BGP routing.</p>
+          </div>
+        </div>
+
+        <ol class="lessons-list">
+          <li class="lesson-stop">
+            <a class="lesson-card bonus-card" href="./lessons/lesson-08-request-path/index.html">
+              <span class="lesson-number bonus-number">08</span>
+              <span class="lesson-copy">
+                <span class="bonus-badges">
+                  <span class="badge-advanced">Advanced reading</span>
+                  <span class="badge-optional">Optional</span>
+                </span>
+                <strong>Request Path: DNS, Anycast &amp; BGP</strong>
+                <span>No Docker required &mdash; a visual walkthrough of how a client's request finds a CDN before any lesson here even begins.</span>
+                <code class="lesson-topology">Client &rarr; DNS (anycast) &rarr; BGP &rarr; CDN PoP &rarr; your L4/L7 chain</code>
+                <span class="lesson-tags"><span>DNS</span><span>Anycast</span><span>BGP</span></span>
+              </span>
+              <span class="lesson-open">Read lesson &rarr;</span>
+            </a>
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <div class="shell">A local, visual journey through high-level system design.</div>
+    </footer>
+    <script type="module" src="./home.js"></script>
+  </body>
+</html>

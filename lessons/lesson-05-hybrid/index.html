@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Learn how an API Gateway and an L7 Load Balancer combine to scale only a high-traffic service.">
+    <title>Lesson 5 &middot; Hybrid Architecture &middot; Silicon Lanes</title>
+    <link rel="stylesheet" href="../../lessons/shared/components.css">
+    <link rel="stylesheet" href="../../lessons/lesson-05-hybrid/styles.css">
+    <link rel="stylesheet" href="../../theme.css">
+    <script src="../../theme.js"></script>
+    <!-- Simulation layer: stands in for the Control Panel API and Docker containers. -->
+    <script src="../../sim/fixtures.js"></script>
+    <script src="../../sim/logs.js"></script>
+    <script src="../../sim/lessons.js"></script>
+    <script src="../../sim/lessons-advanced.js"></script>
+    <script src="../../sim/fetch-shim.js"></script>
+    <script src="../../sim/banner.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../index.html" aria-label="Return to Silicon Lanes home">
+        <span class="brand-mark">SL</span>
+        <span>Silicon Lanes</span>
+      </a>
+      <div class="lesson-chip"><span>Lesson 05</span> Hybrid architecture</div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="lesson-title">
+        <p class="eyebrow">Lesson 5 &middot; Selective scaling</p>
+        <h1 id="lesson-title">One entry point. Extra capacity only where needed.</h1>
+        <p class="intro-copy">The API Gateway routes every request by path. User and Order go directly to one service, while the busier Catalog path goes through an <strong>L7 Load Balancer</strong> and reaches one of two replicas.</p>
+        <div class="concept-tags" aria-label="Lesson concepts">
+          <span>API Gateway</span>
+          <span>Selective scaling</span>
+          <span>L7 Load Balancer</span>
+          <span>Catalog replicas</span>
+        </div>
+      </section>
+
+      <section class="lesson-workspace" aria-labelledby="lab-title">
+        <div class="workspace-heading">
+          <div>
+            <p class="eyebrow">Interactive architecture lab</p>
+            <h2 id="lab-title">Compare a direct route with a scaled route.</h2>
+            <p>Send User, Product, and Order requests through the same gateway. Only Product requests should enter the Load Balancer.</p>
+          </div>
+          <div class="lesson-controls">
+            <button class="primary-action" id="start" type="button">Start Lesson</button>
+            <button class="secondary-action" id="stop" type="button" disabled>Stop Lesson</button>
+            <button class="secondary-action" id="clear" type="button" disabled>Clear Logs</button>
+          </div>
+        </div>
+
+        <div class="architecture-flow" aria-label="Browser Client to API Gateway, then direct services or the Catalog Load Balancer">
+          <lesson-client-card class="node-card client-card" icon="C" kicker="Request origin" heading="Browser Client" status="ready">
+            <div class="route-picker-heading"><span>Choose an API</span><small>All use one gateway</small></div>
+            <div class="route-picker" id="routes"></div>
+
+            <div class="endpoint-box">
+              <span>Gateway URL</span>
+              <code id="url">http://localhost:7512/api/users</code>
+            </div>
+
+            <div class="request-actions">
+              <button class="primary-action request-action" id="send" type="button" disabled><span>GET</span> Execute request</button>
+              <button class="secondary-action experiment-action" id="run-products" type="button" disabled>Run 4 Product requests</button>
+            </div>
+            <div class="client-tooling">
+              <span>You can run the selected request in Postman.</span>
+              <button id="copy-curl" type="button">Copy cURL</button>
+            </div>
+
+            <lesson-response-panel class="client-response" heading="Response at the client" meta-id="response-meta" time-id="response-time" server-id="response-server" aria-live="polite">
+              <pre data-response-body id="pretty">Start the lesson, then execute a request.</pre>
+              <pre data-response-json id="json">Execute a request to inspect the original response.</pre>
+              <pre data-response-headers id="headers">Execute a request to inspect the response headers.</pre>
+            </lesson-response-panel>
+          </lesson-client-card>
+
+          <div class="connector connector-client" aria-label="One client-facing gateway address"><span>One public address</span><b class="packet"></b></div>
+
+          <div class="routing-stage">
+            <div class="gateway-row">
+              <lesson-node-lite id="gateway-node" kind="api-gateway" heading="API Gateway" configuration="Layer: L7&#10;Published address: localhost:7512&#10;User route: direct to userService1&#10;Product route: through hybridLoadBalancer1&#10;Order route: direct to orderService1"></lesson-node-lite>
+              <div class="gateway-summary">
+                <div><span>Gateway status</span><strong id="gateway-status" data-tone="stopped">STOPPED</strong></div>
+                <div><span>Current decision</span><code id="decision">/api/users &rarr; User Service</code></div>
+              </div>
+            </div>
+
+            <div class="route-lanes" id="route-lanes">
+              <article class="route-lane" data-lane="user">
+                <div class="lane-heading"><span>Direct route</span><code>/api/users</code></div>
+                <div class="lane-path direct-path"><b class="lane-packet"></b><span>Gateway forwards directly</span></div>
+                <lesson-service-lite data-key="user" service-key="user" heading="User Service" configuration="Target: userService1:6112&#10;Route: GET /api/users&#10;Selected directly by the API Gateway"></lesson-service-lite>
+              </article>
+
+              <article class="route-lane catalog-lane" data-lane="catalog">
+                <div class="lane-heading"><span>Scaled route</span><code>/api/products</code></div>
+                <div class="lane-path gateway-to-lb"><b class="lane-packet"></b><span>Gateway selects Catalog</span></div>
+                <lesson-node-lite id="lb-node" kind="load-balancer" layer="7" heading="L7 Load Balancer" configuration="Layer: L7&#10;Private listener: hybridLoadBalancer1:80&#10;Algorithm: round robin&#10;Pool: catalogService1, catalogService2&#10;Receives only /api/products"></lesson-node-lite>
+                <div class="catalog-branches" aria-hidden="true"><i></i><i></i></div>
+                <div class="catalog-replicas">
+                  <lesson-service-lite data-key="catalog-1" service-key="catalog" heading="Catalog Service 1" configuration="Target: catalogService1:6212&#10;Route: GET /api/products&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                  <lesson-service-lite data-key="catalog-2" service-key="catalog" heading="Catalog Service 2" configuration="Target: catalogService2:6212&#10;Route: GET /api/products&#10;Member of the Catalog replica pool"></lesson-service-lite>
+                </div>
+              </article>
+
+              <article class="route-lane" data-lane="order">
+                <div class="lane-heading"><span>Direct route</span><code>/api/orders</code></div>
+                <div class="lane-path direct-path"><b class="lane-packet"></b><span>Gateway forwards directly</span></div>
+                <lesson-service-lite data-key="order" service-key="order" heading="Order Service" configuration="Target: orderService1:6512&#10;Route: GET /api/orders&#10;Selected directly by the API Gateway"></lesson-service-lite>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="observation" aria-labelledby="observation-title">
+        <div class="observation-heading">
+          <p class="eyebrow">Observe the two decisions</p>
+          <h2 id="observation-title">Did this route need a Load Balancer?</h2>
+          <p>The gateway always chooses a service. Only the Catalog route requires a second decision to choose a replica.</p>
+          <div class="last-route" id="last-route" data-tone="waiting">
+            <span>Latest request path</span>
+            <strong id="last-route-value">WAITING</strong>
+            <small id="last-route-message">Execute a request to compare the paths.</small>
+          </div>
+        </div>
+
+        <div class="observation-content">
+          <div class="route-summary">
+            <div><span>Gateway selected</span><strong id="selected-service">User Service</strong></div>
+            <div><span>Load Balancer used</span><strong id="lb-used">No</strong></div>
+            <div><span>Catalog history</span><strong id="catalog-history">No requests yet</strong></div>
+          </div>
+
+          <ol class="request-trace" id="request-trace">
+            <li class="pending"><span>1</span><div><strong>Start the lesson</strong><small>The trace will reveal whether the request needs one routing decision or two.</small></div></li>
+          </ol>
+
+          <div class="log-grid">
+            <section><div class="log-heading"><span>API Gateway log</span><b>all requests</b></div><pre id="gateway-log">Start Lesson 5.</pre></section>
+            <section><div class="log-heading"><span>Load Balancer log</span><b>Products only</b></div><pre id="lb-log">Only Catalog requests enter this node.</pre></section>
+          </div>
+        </div>
+      </section>
+
+      <section class="architecture-explanation" aria-labelledby="lesson-note-title">
+        <div class="explanation-copy">
+          <p class="eyebrow">What this teaches</p>
+          <h2 id="lesson-note-title">Scale only the services that need it.</h2>
+          <p>We can use the <strong>API Gateway as the main entry point</strong> for all client requests. Not every service needs a Load Balancer, so we add one only in front of a service that receives high traffic or needs multiple instances.</p>
+
+          <div class="flow-pair">
+            <div class="flow-summary" aria-label="Client to API Gateway to User Service"><strong>Client</strong><b>&rarr;</b><strong>API Gateway</strong><b>&rarr;</b><strong>User Service</strong></div>
+            <div class="flow-summary scaled" aria-label="Client to API Gateway to Load Balancer to Catalog Service replicas"><strong>Client</strong><b>&rarr;</b><strong>API Gateway</strong><b>&rarr;</b><strong>L7 Load Balancer</strong><b>&rarr;</b><strong>Catalog Replicas</strong></div>
+          </div>
+
+          <aside class="tls-callout">
+            <p class="eyebrow">For HTTPS traffic</p>
+            <h3>TLS can terminate at the API Gateway.</h3>
+            <p>The gateway can handle SSL/TLS work such as encryption and decryption before forwarding requests over the internal network. This local lesson uses HTTP so it can focus on routing without certificate setup.</p>
+          </aside>
+
+          <div class="responsibility-grid">
+            <article><span>1</span><h3>API Gateway</h3><p>Owns the external entry point, selects a service, and can centralize authentication, rate limiting, TLS termination, and API policies.</p></article>
+            <article><span>2</span><h3>Load Balancer</h3><p>Exists only on the scaled Catalog path and distributes Product requests between its healthy replicas.</p></article>
+            <article><span>3</span><h3>Application Services</h3><p>Focus on business logic while infrastructure components handle external routing and traffic distribution.</p></article>
+          </div>
+
+          <aside class="setup-example">
+            <p class="eyebrow">In our setup</p>
+            <h3>Nginx performs both infrastructure roles.</h3>
+            <p>The API Gateway routes User and Order directly to one service instance each. Product requests go through a separate <strong>L7 Catalog Load Balancer</strong>, which uses round robin across <strong>two Catalog Service instances</strong>.</p>
+          </aside>
+        </div>
+
+        <div class="tradeoffs" aria-label="Benefits and remaining limitations of selective scaling">
+          <article class="tradeoff-card gives">
+            <p class="tradeoff-label">What this gives us</p>
+            <ul>
+              <li>One stable public API address</li>
+              <li>Independent scaling per service</li>
+              <li>No unnecessary Load Balancers</li>
+              <li>Catalog traffic distributed across replicas</li>
+              <li>Clear separation between service and instance selection</li>
+            </ul>
+          </article>
+          <article class="tradeoff-card problems">
+            <p class="tradeoff-label">What still remains</p>
+            <ul>
+              <li class="spof-warning"><strong>The single API Gateway remains a Single Point of Failure (SPOF)</strong></li>
+              <li>The Catalog Load Balancer is also one infrastructure instance</li>
+              <li>User and Order still have one application instance each</li>
+              <li>Gateway capacity cannot yet scale horizontally</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="next-lesson" aria-labelledby="next-lesson-title">
+        <div>
+          <p class="eyebrow">The next design pressure</p>
+          <h2 id="next-lesson-title">How do we remove the API Gateway SPOF?</h2>
+          <p>Run multiple API Gateway instances and place an Edge/L4 Load Balancer above them.</p>
+        </div>
+        <a href="../../lessons/lesson-06-advanced/index.html">Next: scale the API Gateway layer <span>&rarr;</span></a>
+      </section>
+    </main>
+
+    <div id="toasts" class="toast-region" aria-live="polite"></div>
+    <script type="module" src="../../lessons/lesson-05-hybrid/app.js"></script>
+  </body>
+</html>
