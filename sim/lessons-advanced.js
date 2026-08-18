@@ -12,15 +12,18 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
 (function (sim) {
   const { jsonResponse, connectionRefused } = sim;
 
-  // Only the Catalog service ships seed rows; the rest start with empty tables,
-  // which is what the real lessons show against a fresh database.
+  // Every service seeds three rows on first start, so each route returns real data.
   const serviceDefinitions = {
-    user: { key: "user", name: "User Service", basePort: 6112, rows: [] },
-    catalog: { key: "catalog", name: "Catalog Service", basePort: 6212, rows: null },
-    inventory: { key: "inventory", name: "Inventory Service", basePort: 6312, rows: [] },
-    cart: { key: "cart", name: "Cart Service", basePort: 6412, rows: null, single: true },
-    order: { key: "order", name: "Order Service", basePort: 6512, rows: [] },
-    payment: { key: "payment", name: "Payment Service", basePort: 6612, rows: [] }
+    user: { key: "user", name: "User Service", basePort: 6112, rows: () => sim.users },
+    catalog: { key: "catalog", name: "Catalog Service", basePort: 6212, rows: () => sim.products },
+    inventory: { key: "inventory", name: "Inventory Service", basePort: 6312, rows: () => sim.inventory },
+    cart: { key: "cart", name: "Cart Service", basePort: 6412, rows: (path) => {
+      // GET /api/carts/:userId -- the service returns only that user's items.
+      const userId = Number(path?.split("/").filter(Boolean).pop());
+      return sim.cartItems.filter((item) => item.user_id === userId);
+    } },
+    order: { key: "order", name: "Order Service", basePort: 6512, rows: () => sim.orders },
+    payment: { key: "payment", name: "Payment Service", basePort: 6612, rows: () => sim.payments }
   };
 
   const routePaths = {
@@ -32,10 +35,9 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     payment: "/api/payments"
   };
 
-  function payloadFor(serviceKey, server) {
+  function payloadFor(serviceKey, server, path) {
     const definition = serviceDefinitions[serviceKey];
-    const rows = serviceKey === "catalog" ? sim.products : definition.single ? null : definition.rows;
-    return { data: rows, servedBy: { service: definition.name, server } };
+    return { data: definition.rows(path), servedBy: { service: definition.name, server } };
   }
 
   function instance(serviceKey, sequence) {
@@ -68,13 +70,24 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     };
   }
 
-  // Resolves a request path to the service that owns it, longest prefix first so
-  // /api/carts/1 does not fall through to a shorter match.
+  // What the gateway actually matches on. These are the Nginx locations, which is
+  // why Cart is the collection prefix even though the lesson only ever links to
+  // one user's cart at /api/carts/1.
+  const routePrefixes = {
+    user: "/api/users",
+    catalog: "/api/products",
+    inventory: "/api/inventory",
+    cart: "/api/carts",
+    order: "/api/orders",
+    payment: "/api/payments"
+  };
+
+  // Longest prefix first, so a path cannot fall through to a shorter match.
   function serviceForPath(pathname, allowed) {
-    const match = Object.entries(routePaths)
+    const match = Object.entries(routePrefixes)
       .filter(([key]) => allowed.includes(key))
       .sort((left, right) => right[1].length - left[1].length)
-      .find(([, routePath]) => pathname === routePath || pathname.startsWith(`${routePath}/`));
+      .find(([, prefix]) => pathname === prefix || pathname.startsWith(`${prefix}/`));
     return match ? match[0] : null;
   }
 
@@ -178,7 +191,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       );
       sim.persist();
 
-      return jsonResponse(payloadFor(serviceKey, target.name), {
+      return jsonResponse(payloadFor(serviceKey, target.name, path), {
         headers: {
           "x-api-gateway": "apiGateway1",
           "x-service-name": serviceDefinitions[serviceKey].name,
@@ -296,7 +309,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       }
       sim.persist();
 
-      return jsonResponse(payloadFor(serviceKey, target.name), {
+      return jsonResponse(payloadFor(serviceKey, target.name, path), {
         headers: {
           "x-api-gateway": "hybridApiGateway1",
           "x-service-name": serviceDefinitions[serviceKey].name,
@@ -455,6 +468,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       return {
         serviceKey,
         target,
+        path,
         gateway: gatewayNames[gatewayIndex],
         viaLoadBalancer,
         latency: sim.latency.proxyHop() * (viaLoadBalancer ? 3 : 2) + sim.latency.serviceQuery()
@@ -469,7 +483,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       }
       await sim.delay(result.latency);
       sim.persist();
-      return jsonResponse(payloadFor(result.serviceKey, result.target.name), {
+      return jsonResponse(payloadFor(result.serviceKey, result.target.name, result.path), {
         headers: {
           "x-api-gateway": result.gateway,
           "x-service-name": serviceDefinitions[result.serviceKey].name,
@@ -580,7 +594,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       sim.pushLine(this.data.cdnLog, `${sim.isoTimestamp()}  GET  ${path}  ${cacheStatus}`);
       sim.persist();
 
-      return jsonResponse(payloadFor(result.serviceKey, result.target.name), {
+      return jsonResponse(payloadFor(result.serviceKey, result.target.name, result.path), {
         headers: {
           "x-cache-status": cacheStatus,
           "x-service-name": serviceDefinitions[result.serviceKey].name,

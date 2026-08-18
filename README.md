@@ -62,9 +62,10 @@ time, not a printed number.
 - **Timings are modelled.** Plausible, consistent, but not measurements of anything.
 - **Container ids and ports are synthetic.** Stable within a session, invented.
 - **Writes do not persist.** Nothing is stored; a reload resets everything.
-- **Only the Catalog service has data.** Users, orders, inventory, carts, and
-  payments return empty collections — which is exactly what the real services return
-  against a fresh database.
+- **Data is the seed set, frozen.** Every service returns the same three rows it
+  seeds on first start in the real project, so `/api/users`, `/api/orders`,
+  `/api/inventory`, `/api/carts/1`, and `/api/payments` all show real content. What
+  they will never show is a row somebody added.
 - **The cURL buttons produce real commands that will not work here.** They target
   container ports, so they only resolve against the Docker project.
 - **Docker failure states are absent.** Port conflicts, image build failures, and an
