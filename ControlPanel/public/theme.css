@@ -34,6 +34,52 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   cursor: pointer;
 }
 
+/* Global cleanup control, mounted by /kill-all.js on the home page and every lesson.
+   Bottom-left so it never collides with the fixed theme toggle (top-right) or with any
+   page's toast region (bottom-right). */
+.kill-all-button {
+  position: fixed;
+  z-index: 100;
+  bottom: 20px;
+  left: 20px;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid color-mix(in srgb, #ff6b78 42%, var(--line, #2a323b));
+  border-radius: 10px;
+  color: #ffd7dc;
+  background: color-mix(in srgb, var(--panel-raised, #171c22) 84%, #ff6b78);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 20%);
+  font: 800 11px var(--font-body);
+  cursor: pointer;
+}
+
+.kill-all-button:hover:not(:disabled) { border-color: #ff6b78; background: color-mix(in srgb, var(--panel-raised, #171c22) 68%, #ff6b78); }
+.kill-all-button:focus-visible { outline: 2px solid #ff6b78; outline-offset: 2px; }
+.kill-all-button:disabled { cursor: not-allowed; opacity: .65; }
+.kill-all-dot { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #ff6b78; }
+
+.kill-all-toasts { position: fixed; z-index: 101; bottom: 68px; left: 20px; display: grid; gap: 8px; }
+.kill-all-toast {
+  max-width: 320px;
+  padding: 10px 13px;
+  border: 1px solid rgb(255 107 120 / 38%);
+  border-radius: 9px;
+  color: var(--text, #f2f5f7);
+  background: var(--panel-raised, #171c22);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 30%);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.kill-all-toast.error { border-color: rgb(255 107 120 / 60%); color: #ffd7dc; }
+
+html[data-theme="light"] .kill-all-button { color: #8e2333; background: #fff0f2; }
+html[data-theme="light"] .kill-all-button:hover:not(:disabled) { background: #ffe3e7; }
+html[data-theme="light"] .kill-all-toast { color: var(--text); background: #fff; box-shadow: 0 12px 32px rgb(25 42 50 / 16%); }
+html[data-theme="light"] .kill-all-toast.error { color: #8e2333; background: #fff0f2; }
+
 .theme-toggle:hover { border-color: var(--cyan, #55d9e8); }
 .theme-toggle:focus-visible { outline: 2px solid var(--cyan, #55d9e8); outline-offset: 2px; }
 
@@ -181,6 +227,9 @@ html[data-theme="light"] .lesson-configuration-dialog {
 @media (max-width: 700px) {
   .theme-toggle { right: 12px; min-width: 40px; width: 40px; padding: 0; }
   .theme-toggle span:last-child { display: none; }
+  .kill-all-button { bottom: 12px; left: 12px; padding: 0 11px; font-size: 10px; }
+  .kill-all-toasts { right: 12px; bottom: 58px; left: 12px; }
+  .kill-all-toast { max-width: none; }
   .topbar-inner > :last-child,
   body > .topbar > :last-child:not(.topbar-inner),
   body > .site-header > :last-child { margin-right: 48px; }

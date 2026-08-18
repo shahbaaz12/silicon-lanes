@@ -105,5 +105,14 @@ For local development the database password defaults to `silicon_lanes`; set
 
 The Service Lab's global **Kill all** action removes every labeled lesson and
 application-service container while keeping PostgreSQL and its data volume. The
-light/dark theme toggle is available on the Control Panel and every lesson, and
-the selected theme is remembered in the browser.
+same action is also available everywhere else as a floating **Kill all
+containers** control in the bottom-left corner, mounted by `public/kill-all.js`
+on the home page and every lesson. That script follows the same pattern as
+`theme.js`: it is served from the Control Panel's public root, loaded with a
+plain script tag, and mounts itself into the page, so no page needs its own
+markup for it. It renders its own toasts rather than reusing a page's toast
+region, because those differ across the site. The Service Lab is the one page
+that does not load it, since it already has its own Kill all button.
+
+The light/dark theme toggle is available on the Control Panel and every lesson,
+and the selected theme is remembered in the browser.

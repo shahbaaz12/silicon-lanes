@@ -92,3 +92,18 @@ src/
 - `DATABASE_USER` and `DATABASE_PASSWORD` configure authentication.
 - `DATABASE_NAME` selects the logical database owned by the service.
 - `DATABASE_POOL_SIZE` controls the maximum connections per instance.
+
+## Sample data
+
+Every service seeds its table on first connection so that a freshly started system returns
+something meaningful from each endpoint rather than empty arrays. The sample rows
+cross-reference each other: three users, three products, inventory keyed to those product
+ids, a cart belonging to user 1, three orders, and a payment per order (order 1's total of
+24200 is two keyboards plus one desk lamp, matching that cart).
+
+Seeding is safe to run concurrently, which matters because lessons start two or three
+replicas of a service at once and they share one logical database. Tables with a natural
+unique key (`users.email`, `inventory.product_id`, `cart_items(user_id, product_id)`) insert
+with `ON CONFLICT DO NOTHING`, so they also fill in missing rows in a partially-populated
+database. The remaining tables have only a serial id, so they use an all-or-nothing
+`WHERE NOT EXISTS` guard inside a locked transaction instead.
