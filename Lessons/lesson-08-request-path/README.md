@@ -36,8 +36,8 @@ Page structure, in order. Each step carries a visual:
    single-point-of-failure shape the course has been dismantling since Lesson 1, and as the
    biggest one yet (unlike a dead Catalog replica in Lesson 3, there is no "another one").
    Visual: healthy/down strip ending in an outcome chip.
-4. **The fix** — anycast, introduced through the surprise itself: you give every location
-   *the same* address. Then BGP (spelled out as Border Gateway Protocol) as the thing that
+4. **The fix** — anycast, stated plainly: instead of one address per location, every location
+   shares one address. Then BGP (spelled out as Border Gateway Protocol) as the thing that
    decides who reaches which, followed by the two payoffs it buys at once — redundancy and
    geographic performance. Visuals: the three-city anycast diagram, plus a two-up benefit
    pair.
@@ -48,10 +48,8 @@ Page structure, in order. Each step carries a visual:
 6. **Worth knowing: anycast isn't the only way** — short note contrasting anycast/BGP (one
    shared address, network decides) with unicast plus a traffic manager such as an F5 BIG-IP
    (distinct addresses, an appliance you run decides). Visual: two-up comparison.
-7. **"Do real apps have one IP?"** — three scale tiers, with the practical point that most
-   teams never configure anycast themselves; they point a domain at a CDN that already has it.
-8. **The end-to-end stepper**, rejoining the Lesson 6/7 topology.
-9. **A six-term glossary.**
+7. **The end-to-end stepper**, rejoining the Lesson 6/7 topology.
+8. **A six-term glossary.**
 
 Two points readers reliably get wrong are carried by the prose rather than by a "you might
 think X, actually Y" callout — that was tried and read as forced. They are: anycast is **one**

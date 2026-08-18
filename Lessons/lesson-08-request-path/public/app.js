@@ -11,7 +11,7 @@ const steps = [
   {
     nodeIds: ["step-dns"],
     title: "DNS turns the name into a number — the same number for everyone.",
-    body: "The lookup comes back with an address like <code>203.0.113.10</code>. If that address belongs to a provider using anycast, then every person on Earth asking this same question gets this same answer. DNS isn't picking somewhere near you. It only has one answer to give, and it doesn't know where you are."
+    body: "The lookup comes back with an address like <code>203.0.113.10</code>. Ask from anywhere in the world and the answer is that same address every time — DNS has only one to give, and no idea where you are. It is not choosing something close to you. It cannot."
   },
   {
     nodeIds: ["step-bgp"],

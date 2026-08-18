@@ -110,7 +110,7 @@
       <section class="teaching-block" aria-labelledby="anycast-title">
         <p class="eyebrow">The fix</p>
         <h2 id="anycast-title">Serve that same address from many places at once.</h2>
-        <p class="lead">Here's the trick, and it sounds wrong the first time you hear it: you don't give each location its own address. You give every one of them <strong>the same address</strong>. This is called <strong>anycast</strong>.</p>
+        <p class="lead">Instead of giving each location its own address, you give every one of them <strong>the same address</strong>. That is what <strong>anycast</strong> means.</p>
         <p><code>203.0.113.10</code> in Mumbai. The same <code>203.0.113.10</code> in Frankfurt. The same one again in Virginia &mdash; all three running at the same time, all three genuinely answering to that number. DNS still has exactly one address to hand out, and still hands the identical one to everybody.</p>
 
         <div class="anycast-diagram" aria-label="One address served from three locations; two people reach different ones">
@@ -174,7 +174,7 @@
           </div>
         </div>
 
-        <p>Compare that with the outage two sections ago. Same failure &mdash; a location dies &mdash; but now the address survives it, because the address was never tied to that one building in the first place. Nobody changes a DNS record. Nobody edits a config. Nobody gets paged at 3am. Routers recalculate, traffic lands somewhere else, usually within seconds.</p>
+        <p>Compare that with the outage two sections ago. Same failure &mdash; a location dies &mdash; but now the address survives it, because the address was never tied to that one building in the first place. Nobody changes a DNS record. Nobody edits a config. Nobody has to do anything at all. Routers recalculate, traffic lands somewhere else, usually within seconds.</p>
         <p>This is what makes the availability numbers people quote actually achievable:</p>
 
         <div class="uptime-grid" role="table" aria-label="Uptime percentages and the downtime each allows per year">
@@ -219,37 +219,6 @@
         </div>
 
         <p>Roughly, the trade is control versus reach. A traffic manager gives you precise, tunable rules and a dashboard to watch them in &mdash; but it's a system you have to run, and it becomes one more thing that can fail. Anycast needs no such device, but it does need address space and routing arrangements you almost certainly don't have unless you're a provider.</p>
-      </section>
-
-      <section class="teaching-block" aria-labelledby="enterprise-title">
-        <p class="eyebrow">A fair question</p>
-        <h2 id="enterprise-title">So do real applications have just one IP address?</h2>
-        <p class="lead">Often yes &mdash; and that's completely fine. It depends on scale, and most teams never touch anycast directly at all.</p>
-
-        <div class="tier-list">
-          <article class="tier-row">
-            <span class="tier-label">Most applications</span>
-            <div>
-              <h3>One address, one region. No anycast anywhere.</h3>
-              <p>A single load balancer in one cloud region with one public address. This covers an enormous share of real production software. It isn't a design failure &mdash; it's the right call until distance actually becomes a problem worth paying to solve.</p>
-            </div>
-          </article>
-          <article class="tier-row highlight">
-            <span class="tier-label">Most that need global speed</span>
-            <div>
-              <h3>They rent someone else's anycast, by putting a CDN in front.</h3>
-              <p>This is the practical bit. When a team puts a CDN in front of their app, they point their domain at <em>the CDN's</em> addresses &mdash; and those are already anycast, already announced worldwide. The team fills in a hostname on a dashboard. They never own an address block or run a router.</p>
-              <p class="tier-note">So &ldquo;how does a company configure one address in many cities?&rdquo; usually resolves to: <strong>it doesn't. Its CDN provider already did.</strong></p>
-            </div>
-          </article>
-          <article class="tier-row">
-            <span class="tier-label">The giants</span>
-            <div>
-              <h3>They own the address blocks and run the anycast themselves.</h3>
-              <p>The CDN providers, the big cloud and search companies, the public DNS services. They hold their own address allocations and announce them from their own locations globally. Small club, serious operational commitment.</p>
-            </div>
-          </article>
-        </div>
       </section>
 
       <section class="walkthrough" aria-labelledby="walkthrough-title">

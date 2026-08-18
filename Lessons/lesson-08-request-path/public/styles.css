@@ -125,17 +125,6 @@ main { width: min(1320px, calc(100% - 40px)); margin: 0 auto; padding: 64px 0 78
 .uptime-head span { font-size: 12px; }
 .uptime-row.highlight { background: color-mix(in srgb, var(--panel-raised) 82%, var(--lime)); }
 
-/* Three scale tiers answering "do real apps have one IP?" */
-.tier-list { display: grid; gap: 14px; margin: 26px 0 8px; }
-.tier-row { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 22px; padding: 22px 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-raised); }
-.tier-row.highlight { border-color: color-mix(in srgb, var(--rose) 45%, var(--line)); background: color-mix(in srgb, var(--panel-raised) 88%, var(--rose)); }
-.tier-label { align-self: start; padding-top: 3px; color: var(--cyan); font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
-.tier-row h3 { margin-bottom: 10px; font-size: 19px; line-height: 1.35; }
-.tier-row p { margin-bottom: 12px; color: var(--text); font-size: 16px; line-height: 1.76; }
-.tier-row p:last-child { margin-bottom: 0; }
-.tier-row em { color: #ffb4bd; font-style: normal; font-weight: 700; }
-.tier-note { padding: 13px 15px; border-left: 3px solid var(--lime); border-radius: 0 9px 9px 0; background: color-mix(in srgb, var(--panel) 70%, var(--lime)); }
-
 .walkthrough { margin-bottom: 22px; padding: clamp(24px, 3.4vw, 42px); }
 .workspace-heading { margin-bottom: 26px; padding-bottom: 22px; border-bottom: 1px solid var(--line); }
 .workspace-heading p { max-width: 860px; margin-bottom: 0; color: var(--muted); font-size: 17px; line-height: 1.7; }
@@ -197,14 +186,12 @@ html[data-theme="light"] .mini-node,
 html[data-theme="light"] .anycast-diagram,
 html[data-theme="light"] .failover-demo,
 html[data-theme="light"] .fo-node,
-html[data-theme="light"] .tier-row,
 html[data-theme="light"] .benefit-pair article,
 html[data-theme="light"] .uptime-row,
 html[data-theme="light"] .path-diagram,
 html[data-theme="light"] .step-panel,
 html[data-theme="light"] .path-divider span,
 html[data-theme="light"] .glossary dl > div { border-color: var(--line); color: var(--text); background: #f6f9fa; }
-html[data-theme="light"] .tier-row.highlight,
 html[data-theme="light"] .compare-pair article:first-child,
 html[data-theme="light"] .anycast-pop { border-color: rgb(251 113 133 / 42%); background: #fff0f2; }
 html[data-theme="light"] .uptime-head { background: #eef3f5; }
@@ -216,11 +203,9 @@ html[data-theme="light"] .fo-result.out { border-color: #d98b96; color: #8e2333;
 html[data-theme="light"] .fo-node.dead { border-color: #d98b96; color: var(--muted); background: transparent; }
 html[data-theme="light"] .failover-state.ok { border-color: #a9d85c; color: #3d5a12; background: #f2f9e7; }
 html[data-theme="light"] .failover-state.down { border-color: #d98b96; color: #8e2333; background: #fff0f2; }
-html[data-theme="light"] .tier-note { background: #f2f9e7; }
 html[data-theme="light"] .secondary-action { color: var(--text); background: var(--panel-raised); }
 html[data-theme="light"] .next-lesson a { color: var(--text); background: rgb(118 169 41 / 10%); }
 html[data-theme="light"] .teaching-block em,
-html[data-theme="light"] .tier-row em,
 html[data-theme="light"] .explanation-copy em { color: #b3223f; }
 html[data-theme="light"] .term-card code { color: #4f7a12; }
 
@@ -230,7 +215,6 @@ html[data-theme="light"] .term-card code { color: #4f7a12; }
 }
 
 @media (max-width: 900px) {
-  .tier-row { grid-template-columns: 1fr; gap: 12px; }
   .benefit-pair { grid-template-columns: 1fr; }
 }
 
