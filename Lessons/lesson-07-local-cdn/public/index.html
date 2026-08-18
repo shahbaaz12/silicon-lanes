@@ -218,6 +218,7 @@
             <p>A CDN does not discover its destination automatically. Its distribution is configured with an <strong>origin hostname</strong> or an <strong>origin group</strong>.</p>
             <p>Cache behaviors can map request paths to the desired origin. DNS, Anycast, or a global traffic manager can then resolve that origin hostname to the appropriate regional or edge load balancer. From there, internal load balancers continue routing traffic to the correct gateway and service instances.</p>
             <p>Origin groups can also define a primary and secondary origin so the CDN can fail over when the primary origin is unavailable.</p>
+            <p class="cross-ref">Anycast gets a proper explanation in <a href="/lessons/lesson-08-request-path/">Lesson 8</a> — though note it is used in the opposite direction there. This note is about how the CDN finds <em>its origin</em>; Lesson 8 is about how a client finds <em>the CDN</em>.</p>
             <a class="read-more-link" href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html" target="_blank" rel="noreferrer">Read more: AWS CloudFront cache behaviors and origins &rarr;</a>
           </div>
 
@@ -242,7 +243,7 @@
           <article class="tradeoff-card problems">
             <p class="tradeoff-label">What still remains</p>
             <ul>
-              <li class="spof-warning"><strong>This CDN is one instance — but how did the client's request even find it, out of every CDN location in the world?</strong> Lesson 8 (bonus) walks through the DNS and routing layer that answers that.</li>
+              <li class="spof-warning"><strong>This single CDN container is now a SPOF of its own</strong> — if it stops, everything stops, cached or not. Lesson 8 (bonus) shows why that worry mostly dissolves in the real world, where a CDN is one address served from many locations at once.</li>
               <li>Cached content can be stale for up to the TTL window</li>
               <li>Every non-cached route still crosses the full origin chain</li>
               <li>Cache policy must be chosen deliberately per endpoint</li>
@@ -253,11 +254,11 @@
 
       <section class="next-lesson" aria-labelledby="next-lesson-title">
         <div>
-          <p class="eyebrow">One question this lesson skipped</p>
-          <h2 id="next-lesson-title">How did the request reach this CDN in the first place?</h2>
-          <p>Every lesson so far began the moment a request arrived at one of our containers. The bonus lesson backs up one step further, to DNS, anycast, and BGP — the real-world layer that decides which CDN a client even talks to.</p>
+          <p class="eyebrow">One question this lesson leaves open</p>
+          <h2 id="next-lesson-title">We just put a single box in front of everything. Isn't that a step backwards?</h2>
+          <p>Seven lessons spent removing single points of failure, and then this one puts a single container in front of the whole system. The bonus lesson explains why that isn't the problem it looks like — a real CDN is one address answered by many locations at once, so losing any one of them is a routing update rather than an outage.</p>
         </div>
-        <a href="/lessons/lesson-08-request-path/">Bonus: How the request finds you <span>&rarr;</span></a>
+        <a href="/lessons/lesson-08-request-path/">Bonus: Why a real CDN isn't one box <span>&rarr;</span></a>
       </section>
     </main>
 
