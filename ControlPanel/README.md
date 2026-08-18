@@ -114,5 +114,18 @@ markup for it. It renders its own toasts rather than reusing a page's toast
 region, because those differ across the site. The Service Lab is the one page
 that does not load it, since it already has its own Kill all button.
 
+Container lifecycle operations show a global progress indicator: a thin
+indeterminate bar at the top of the page plus a badge naming the operation and
+counting elapsed seconds, mounted by `public/progress.js` on every page where
+containers can be started (including the Service Lab). It wraps `window.fetch`
+rather than requiring each page to call start/stop helpers, so the lesson pages
+stay untouched and the indicator cannot drift out of sync with them. Only an
+explicit allowlist of container lifecycle calls is watched, so the log polling
+every lesson runs on a timer never triggers it, and nothing is shown for the
+first 400ms so quick calls do not flash. Progress is indeterminate on purpose —
+Docker reports no completion percentage, so a filling bar would be an invented
+number; after 20 seconds the badge adds a note that a first run is building
+images.
+
 The light/dark theme toggle is available on the Control Panel and every lesson,
 and the selected theme is remembered in the browser.

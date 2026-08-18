@@ -34,6 +34,81 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   cursor: pointer;
 }
 
+/* Global progress indicator, mounted by /progress.js wherever containers can be started.
+   The bar is indeterminate on purpose: Docker reports no completion percentage, so a
+   filling bar would be a made-up number. The badge carries the honest signal instead —
+   what is running and how long it has been going. */
+.op-progress-bar {
+  position: fixed;
+  z-index: 200;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--cyan, #55d9e8) 18%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+
+.op-progress-bar.visible { opacity: 1; }
+.op-progress-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, var(--cyan, #55d9e8), transparent);
+}
+.op-progress-bar.visible i { animation: op-progress-sweep 1.15s ease-in-out infinite; }
+
+.op-progress-badge {
+  position: fixed;
+  z-index: 200;
+  top: 14px;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 38%, var(--line, #2a323b));
+  border-radius: 999px;
+  color: var(--text, #f2f5f7);
+  background: var(--panel-raised, #171c22);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 30%);
+  font: 800 11px var(--font-body);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -8px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.op-progress-badge.visible { opacity: 1; transform: translate(-50%, 0); }
+.op-progress-spinner {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border: 2px solid color-mix(in srgb, var(--cyan, #55d9e8) 30%, transparent);
+  border-top-color: var(--cyan, #55d9e8);
+  border-radius: 50%;
+  animation: op-progress-spin .7s linear infinite;
+}
+
+@keyframes op-progress-sweep {
+  0% { left: -34%; }
+  100% { left: 100%; }
+}
+
+@keyframes op-progress-spin {
+  to { transform: rotate(360deg); }
+}
+
+html[data-theme="light"] .op-progress-badge { color: var(--text); background: #fff; box-shadow: 0 10px 30px rgb(25 42 50 / 16%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .op-progress-bar.visible i { left: 0; width: 100%; animation: none; }
+  .op-progress-spinner { animation-duration: 2.4s; }
+}
+
 /* Global cleanup control, mounted by /kill-all.js on the home page and every lesson.
    Bottom-left so it never collides with the fixed theme toggle (top-right) or with any
    page's toast region (bottom-right). */
@@ -228,6 +303,10 @@ html[data-theme="light"] .lesson-configuration-dialog {
   .theme-toggle { right: 12px; min-width: 40px; width: 40px; padding: 0; }
   .theme-toggle span:last-child { display: none; }
   .kill-all-button { bottom: 12px; left: 12px; padding: 0 11px; font-size: 10px; }
+  /* Full-width on small screens, so the slide-in transform is dropped for both states
+     rather than overridden per state. Only opacity animates here. */
+  .op-progress-badge,
+  .op-progress-badge.visible { right: 12px; left: 12px; justify-content: center; text-align: center; transform: none; }
   .kill-all-toasts { right: 12px; bottom: 58px; left: 12px; }
   .kill-all-toast { max-width: none; }
   .topbar-inner > :last-child,
