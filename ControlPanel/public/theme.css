@@ -34,6 +34,83 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   cursor: pointer;
 }
 
+/* Dismissible "browse without Docker" note, mounted by /browse-note.js. Both the note and its
+   collapsed pull tab sit in normal document flow — the fixed corners are already taken by the
+   theme toggle and the Kill all button. */
+.browse-note {
+  width: min(1320px, calc(100% - 40px));
+  margin: 18px auto 0;
+  border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 34%, var(--line, #2a323b));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel-raised, #171c22) 84%, var(--cyan, #55d9e8));
+}
+
+.browse-note-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 12px 16px;
+}
+
+.browse-note-text { flex: 1 1 320px; color: var(--text, #f2f5f7); font-size: 13px; line-height: 1.55; }
+.browse-note-text strong { color: var(--cyan, #55d9e8); }
+
+.browse-note-link {
+  flex: 0 0 auto;
+  padding: 7px 13px;
+  border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 45%, var(--line, #2a323b));
+  border-radius: 8px;
+  color: var(--cyan, #55d9e8);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.browse-note-link:hover { color: var(--text, #f2f5f7); background: color-mix(in srgb, var(--cyan, #55d9e8) 16%, transparent); }
+
+.browse-note-hide {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--line, #2a323b);
+  border-radius: 8px;
+  color: var(--muted, #8e99a5);
+  background: transparent;
+  font: 800 11px var(--font-body);
+  cursor: pointer;
+}
+
+.browse-note-hide:hover { color: var(--text, #f2f5f7); border-color: var(--muted, #8e99a5); }
+
+/* Collapsed state: a small tab tucked under the header, squared off at the top so it reads as
+   something pulled down rather than a free-floating button. */
+.browse-note-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: max(20px, calc((100% - 1320px) / 2));
+  padding: 5px 13px 6px;
+  border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 30%, var(--line, #2a323b));
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  color: var(--muted, #8e99a5);
+  background: color-mix(in srgb, var(--panel-raised, #171c22) 88%, var(--cyan, #55d9e8));
+  font: 800 10px var(--font-body);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.browse-note-tab:hover { color: var(--cyan, #55d9e8); }
+.browse-note-tab:focus-visible { outline: 2px solid var(--cyan, #55d9e8); outline-offset: 2px; }
+.browse-note[hidden],
+.browse-note-tab[hidden] { display: none !important; }
+
+html[data-theme="light"] .browse-note { background: #eef8fa; }
+html[data-theme="light"] .browse-note-tab { color: #29434d; background: #eef8fa; }
+html[data-theme="light"] .browse-note-hide { color: #53636d; }
+
 /* Global progress indicator, mounted by /progress.js wherever containers can be started.
    The bar is indeterminate on purpose: Docker reports no completion percentage, so a
    filling bar would be a made-up number. The badge carries the honest signal instead —
@@ -303,6 +380,9 @@ html[data-theme="light"] .lesson-configuration-dialog {
   .theme-toggle { right: 12px; min-width: 40px; width: 40px; padding: 0; }
   .theme-toggle span:last-child { display: none; }
   .kill-all-button { bottom: 12px; left: 12px; padding: 0 11px; font-size: 10px; }
+  .browse-note { width: calc(100% - 24px); margin-top: 12px; }
+  .browse-note-inner { padding: 11px 13px; }
+  .browse-note-tab { margin-left: 12px; }
   /* Full-width on small screens, so the slide-in transform is dropped for both states
      rather than overridden per state. Only opacity animates here. */
   .op-progress-badge,

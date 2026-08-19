@@ -135,5 +135,14 @@ Docker reports no completion percentage, so a filling bar would be an invented
 number; after 20 seconds the badge adds a note that a first run is building
 images.
 
+A dismissible note under the header points at the hosted, Docker-free walkthrough, mounted by
+`public/browse-note.js` on every page. Hiding it collapses it to a small pull tab tucked under
+the header, and the choice is remembered per browser, so dismissing it on one lesson dismisses
+it everywhere. Both states sit in normal document flow rather than being fixed-position, since
+the fixed corners are already taken by the theme toggle and the Kill all button. The script
+does not mount at all when the page is served from github.io, so the hosted copy never links
+to itself. The same link also appears in the footers of the home page and the Service Lab;
+lesson pages have no footer element.
+
 The light/dark theme toggle is available on the Control Panel and every lesson,
 and the selected theme is remembered in the browser.
