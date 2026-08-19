@@ -34,11 +34,35 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   cursor: pointer;
 }
 
+/* Site footer. The Control Panel pages already styled .page-footer in their own stylesheet
+   and wrap it in .shell; these rules repeat the same values so those pages are unchanged,
+   while giving the lesson pages — which do not load that stylesheet — the same footer. */
+.page-footer {
+  padding: 24px 0 42px;
+  border-top: 1px solid var(--line, #2a323b);
+  color: var(--muted, #8e99a5);
+  font-size: 12px;
+}
+
+.page-footer-inner {
+  width: min(var(--page-max, 1320px), calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.footer-browse-link {
+  color: var(--cyan, #55d9e8);
+  font-weight: 700;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.footer-browse-link:hover { color: var(--text, #f2f5f7); }
+
 /* Dismissible "browse without Docker" note, mounted by /browse-note.js. Both the note and its
    collapsed pull tab sit in normal document flow — the fixed corners are already taken by the
    theme toggle and the Kill all button. */
 .browse-note {
-  width: min(1320px, calc(100% - 40px));
+  width: min(var(--page-max, 1320px), calc(100% - 40px));
   margin: 18px auto 0;
   border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 34%, var(--line, #2a323b));
   border-radius: 12px;
@@ -90,7 +114,7 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-left: max(20px, calc((100% - 1320px) / 2));
+  margin-left: max(20px, calc((100% - var(--page-max, 1320px)) / 2));
   padding: 5px 13px 6px;
   border: 1px solid color-mix(in srgb, var(--cyan, #55d9e8) 30%, var(--line, #2a323b));
   border-top: 0;
@@ -381,6 +405,7 @@ html[data-theme="light"] .lesson-configuration-dialog {
   .theme-toggle span:last-child { display: none; }
   .kill-all-button { bottom: 12px; left: 12px; padding: 0 11px; font-size: 10px; }
   .browse-note { width: calc(100% - 24px); margin-top: 12px; }
+  .page-footer-inner { width: calc(100% - 24px); }
   .browse-note-inner { padding: 11px 13px; }
   .browse-note-tab { margin-left: 12px; }
   /* Full-width on small screens, so the slide-in transform is dropped for both states
