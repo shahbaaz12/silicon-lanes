@@ -46,6 +46,36 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     }
     .sim-banner p.sim-banner-lead { opacity: 1; }
     .sim-banner strong { font-weight: 700; }
+
+    /* Highlights use the site's own two accents, which every lesson stylesheet
+       defines and theme.css re-points for the light theme. Lime marks what the
+       reader can go and do; cyan marks the infrastructure they would be running.
+       The paragraphs are dimmed slightly, so highlighted runs go back to full
+       opacity to keep their contrast. */
+    .sim-banner .hl-do,
+    .sim-banner .hl-infra { opacity: 1; }
+    .sim-banner .hl-do { color: var(--lime, #c7f36b); font-weight: 700; }
+    .sim-banner .hl-infra { color: var(--cyan, #69d9ec); font-weight: 600; }
+    .sim-banner .hl-headline {
+      color: var(--lime, #c7f36b);
+      font-weight: 700;
+      padding: 0.12em 0.45em;
+      margin-left: -0.45em;
+      border-radius: 0.35em;
+      background: color-mix(in srgb, var(--lime, #c7f36b) 15%, transparent);
+    }
+    /* The site uses lime as a button fill, never as text on a pale background,
+       where it measures about 2.6:1. Darkened here so the light theme clears the
+       4.5:1 minimum; the tint behind the headline is left alone. */
+    html[data-theme="light"] .sim-banner .hl-do,
+    html[data-theme="light"] .sim-banner .hl-headline {
+      color: color-mix(in srgb, var(--lime, #76a929) 68%, #000);
+    }
+    /* Cyan lands at 4.37:1 on the pale background. A slight darkening clears 4.5
+       with no visible shift in hue. */
+    html[data-theme="light"] .sim-banner .hl-infra {
+      color: color-mix(in srgb, var(--cyan, #087f93) 90%, #000);
+    }
     .sim-banner code {
       padding: 0.1em 0.4em;
       border-radius: 0.3em;
@@ -122,16 +152,19 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
           closely enough to teach the same lessons, which is exactly why it should say so.
         </p>
         <p>
-          <strong>The real thing is one click away.</strong> Clone the repository, start the
-          control panel, and each lesson launches genuine Docker containers on demand &mdash;
-          Nginx reverse proxies, Layer&nbsp;4 and Layer&nbsp;7 load balancers, API gateways, a
-          local CDN, and six independent Express services backed by PostgreSQL. Kill a replica
-          and watch traffic actually fail over.
+          <span class="hl-headline">The real thing is one click away.</span> Clone the repository,
+          start the control panel, and each lesson launches
+          <span class="hl-infra">actual Docker containers</span> on demand &mdash;
+          <span class="hl-infra">Nginx reverse proxies</span>,
+          <span class="hl-infra">Layer&nbsp;4 and Layer&nbsp;7 load balancers</span>,
+          <span class="hl-infra">API gateways</span>, a <span class="hl-infra">local CDN</span>,
+          and <span class="hl-infra">six Express services on PostgreSQL</span>. Kill a replica and
+          watch traffic actually fail over.
         </p>
         <p>
-          Every lesson hands you a <strong>copyable cURL command</strong>, so you can hit the
-          running containers yourself from <strong>Postman</strong> or a terminal and read the
-          real response headers.
+          Every lesson hands you a <span class="hl-do">copyable cURL command</span>, so you can hit
+          the running containers yourself from <span class="hl-do">Postman</span> or a terminal and
+          read the real response headers.
         </p>
         <ul class="sim-banner-needs">
           <li><b>All you need:</b></li>
