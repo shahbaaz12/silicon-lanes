@@ -124,8 +124,15 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     .sim-banner { position: relative; }
     .sim-banner-hide {
       position: absolute;
+      /* On narrow screens the button sits over the tag line, which otherwise wins
+         the hit test and makes it untappable. */
+      z-index: 1;
       top: 0.75rem;
-      right: 0.9rem;
+      /* Tracks the theme toggle rather than guessing at a gap. The toggle is fixed
+         at right: max(20px, (100vw - 1440px) / 2) and is 88px wide, so on wide
+         screens it moves inward with the centred layout and a constant offset here
+         would collide again. 88px for the toggle, 12px of clearance. */
+      right: calc(max(20px, (100vw - 1440px) / 2) + 100px);
       display: inline-flex;
       align-items: center;
       gap: 0.35rem;
@@ -166,7 +173,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
 
     @media (max-width: 760px) {
       .sim-banner { padding: 1.35rem 1.15rem 1.5rem; }
-      .sim-banner-hide { top: 0.5rem; right: 0.6rem; }
+      .sim-banner-hide { top: 0.5rem; }
       .sim-banner-show { padding-right: 4rem; }
       .sim-banner-inner { padding-right: 3.5rem; }
       .sim-banner p { font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.7rem; }
