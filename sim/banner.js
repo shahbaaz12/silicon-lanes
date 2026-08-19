@@ -224,7 +224,8 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     banner.innerHTML = `
       <div class="sim-banner-inner">
         <button type="button" class="sim-banner-tag" aria-expanded="true" title="Collapse this note">
-          Simulated demo <span class="sim-banner-caret" aria-hidden="true">&uarr;</span>
+          <span class="sim-banner-caret" aria-hidden="true">&uarr;</span>
+          Simulated demo &mdash; hide the note
         </button>
         <h2>Every container, request, and log line here is generated in your browser.</h2>
         <p class="sim-banner-lead">

@@ -9,23 +9,23 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
 
   const styles = `
     .sim-footer {
-      margin-top: 3rem;
-      padding: 3rem 1.5rem 3.5rem;
+      margin-top: 2rem;
+      padding: 1.75rem 1.5rem 2rem;
       border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
       background: color-mix(in srgb, currentColor 5%, transparent);
       text-align: center;
     }
-    .sim-footer-inner { max-width: 40rem; margin: 0 auto; }
+    .sim-footer-inner { max-width: 32rem; margin: 0 auto; }
     .sim-footer h2 {
-      margin: 0 0 0.7rem;
-      font-size: clamp(1.2rem, 2.6vw, 1.55rem);
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.15rem, 2.4vw, 1.4rem);
       line-height: 1.25;
       font-weight: 700;
     }
     .sim-footer p {
-      margin: 0 0 1.6rem;
-      font-size: 0.95rem;
-      line-height: 1.65;
+      margin: 0 0 1.1rem;
+      font-size: 0.92rem;
+      line-height: 1.55;
       opacity: 0.85;
     }
     .sim-footer .sim-footer-warm {
@@ -42,7 +42,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       display: inline-flex;
       align-items: center;
       gap: 0.6rem;
-      padding: 0.8rem 1.5rem;
+      padding: 0.65rem 1.35rem;
       border: 2px solid currentColor;
       border-radius: 0.6rem;
       font-size: 1rem;
@@ -55,7 +55,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     .sim-footer-cta:hover { background: color-mix(in srgb, currentColor 15%, transparent); }
     .sim-footer-cta span { opacity: 0.7; font-weight: 600; }
     .sim-footer-note {
-      margin: 1.6rem 0 0;
+      margin: 1rem 0 0;
       font-size: 0.82rem;
       /* 0.6 would blend this small text to roughly 4.3:1 on the light theme.
          0.7 keeps it visibly secondary while clearing the minimum. */
@@ -64,7 +64,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     .sim-footer-note a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
 
     @media (max-width: 760px) {
-      .sim-footer { margin-top: 2rem; padding: 2.25rem 1.15rem 2.5rem; }
+      .sim-footer { margin-top: 1.5rem; padding: 1.5rem 1.15rem 1.75rem; }
       .sim-footer-cta { width: 100%; justify-content: center; }
     }
   `;
