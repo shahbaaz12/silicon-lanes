@@ -34,19 +34,50 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   cursor: pointer;
 }
 
-/* Site footer. The Control Panel pages already styled .page-footer in their own stylesheet
-   and wrap it in .shell; these rules repeat the same values so those pages are unchanged,
-   while giving the lesson pages — which do not load that stylesheet — the same footer. */
-.page-footer {
-  padding: 24px 0 42px;
-  border-top: 1px solid var(--line, #2a323b);
-  color: var(--muted, #8e99a5);
-  font-size: 12px;
+/* Closing note appended by /site-footer.js, ported from the published site's sim/footer.js.
+   The contrast notes below are carried over from there: the site's theme toggle is
+   independent of the OS, so colours are tinted rather than inverted. */
+.site-footer {
+  margin-top: 2rem;
+  padding: 1.75rem 1.5rem 2rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  text-align: center;
 }
 
-.page-footer-inner {
-  width: min(var(--page-max, 1320px), calc(100% - 40px));
-  margin: 0 auto;
+.site-footer-inner { max-width: 32rem; margin: 0 auto; }
+.site-footer h2 { margin: 0 0 .5rem; font-size: clamp(1.15rem, 2.4vw, 1.4rem); font-weight: 700; line-height: 1.25; }
+.site-footer p { margin: 0 0 1.1rem; font-size: .92rem; line-height: 1.55; opacity: .85; }
+.site-footer .site-footer-warm { color: var(--cyan, #69d9ec); font-weight: 600; opacity: 1; }
+
+/* Cyan sits at about 4.4:1 on the pale background, so it is nudged darker to clear the
+   4.5:1 minimum without a visible shift in hue. */
+html[data-theme="light"] .site-footer .site-footer-warm { color: color-mix(in srgb, var(--cyan, #087f93) 90%, #000); }
+
+.site-footer-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .65rem 1.35rem;
+  border: 2px solid currentColor;
+  border-radius: .6rem;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-footer-cta:hover { background: color-mix(in srgb, currentColor 15%, transparent); }
+.site-footer-cta span { font-weight: 600; opacity: .7; }
+
+/* 0.6 would blend this small text to roughly 4.3:1 on the light theme; 0.7 keeps it
+   visibly secondary while clearing the minimum. */
+.site-footer-note { margin: 1rem 0 0; font-size: .82rem; opacity: .7; }
+.site-footer-note a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }
+
+@media (max-width: 760px) {
+  .site-footer { margin-top: 1.5rem; padding: 1.5rem 1.15rem 1.75rem; }
+  .site-footer-cta { width: 100%; justify-content: center; }
 }
 
 /* Dismissible "browse without Docker" note, mounted by /browse-note.js. Both the note and its
@@ -396,7 +427,6 @@ html[data-theme="light"] .lesson-configuration-dialog {
   .theme-toggle span:last-child { display: none; }
   .kill-all-button { bottom: 12px; left: 12px; padding: 0 11px; font-size: 10px; }
   .browse-note { width: calc(100% - 24px); margin-top: 12px; }
-  .page-footer-inner { width: calc(100% - 24px); }
   .browse-note-inner { padding: 11px 13px; }
   .browse-note-tab { margin-left: 12px; }
   /* Full-width on small screens, so the slide-in transform is dropped for both states
