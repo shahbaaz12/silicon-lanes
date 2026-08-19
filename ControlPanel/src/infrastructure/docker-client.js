@@ -44,7 +44,34 @@ export function portIsAvailable(port) {
   });
 }
 
+// Every destructive call is scoped by a Docker label filter. An empty or missing label would
+// widen that filter, so it is rejected rather than passed to Docker.
+function requireLabelFilter(label) {
+  if (typeof label !== "string" || !label.trim()) {
+    throw new Error("A non-empty label filter is required before removing containers.");
+  }
+  return label;
+}
+
+// Read-only counterpart to removeContainersByLabel, used to show exactly which containers a
+// destructive action would affect before it runs.
+export async function listContainersByLabel(label) {
+  const output = await docker([
+    "ps",
+    "--all",
+    "--filter",
+    `label=${requireLabelFilter(label)}`,
+    "--format",
+    "{{.ID}}\t{{.Names}}"
+  ]);
+  return output.split(/\r?\n/).filter(Boolean).map((line) => {
+    const [id, name] = line.split("\t");
+    return { id, name };
+  });
+}
+
 export async function removeContainersByLabel(label) {
+  requireLabelFilter(label);
   const output = await docker([
     "ps",
     "--all",

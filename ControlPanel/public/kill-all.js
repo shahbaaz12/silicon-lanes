@@ -9,9 +9,15 @@
 // The Service Lab is the one page that does NOT load this, because it already has its own
 // "Kill all" button in its toolbar.
 
-const CONFIRM_MESSAGE =
-  "Stop and remove every Silicon Lanes service and lesson container?\n\n" +
-  "PostgreSQL and its stored data are kept.";
+// The confirmation names the exact containers that will be removed, read from the same two
+// label filters the delete itself uses, so what is shown cannot disagree with what happens.
+function confirmMessage(containers) {
+  const names = containers.map((container) => `  - ${container.name}`).join("\n");
+  return `Remove ${containers.length} Silicon Lanes container${containers.length === 1 ? "" : "s"}?\n\n` +
+    `${names}\n\n` +
+    "PostgreSQL and its stored data are kept.\n" +
+    "Nothing else running on your machine is touched.";
+}
 
 function mountToast(message, isError = false) {
   let region = document.querySelector("#kill-all-toasts");
@@ -44,7 +50,31 @@ function mountKillAll() {
   };
 
   button.addEventListener("click", async () => {
-    if (!window.confirm(CONFIRM_MESSAGE)) return;
+    // Ask the server what a global stop would actually remove, before asking to confirm it.
+    setBusy(true, "Checking...");
+    let containers;
+    try {
+      const preview = await fetch("/api/system", { headers: { "content-type": "application/json" } });
+      const previewBody = await preview.json().catch(() => ({}));
+      if (!preview.ok) throw new Error(previewBody?.error ?? `Request failed (${preview.status})`);
+      containers = previewBody.containers ?? [];
+    } catch (error) {
+      mountToast(error.message, true);
+      setBusy(false, "Kill all containers");
+      return;
+    }
+
+    if (containers.length === 0) {
+      mountToast("Nothing is running.");
+      setBusy(false, "Kill all containers");
+      return;
+    }
+
+    if (!window.confirm(confirmMessage(containers))) {
+      setBusy(false, "Kill all containers");
+      return;
+    }
+
     setBusy(true, "Stopping everything...");
     try {
       const response = await fetch("/api/system", {

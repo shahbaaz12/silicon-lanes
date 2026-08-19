@@ -139,7 +139,27 @@ Database/        Notes on the shared PostgreSQL setup
 
 ## Cleaning up
 
-Use **Kill all containers** on any page, or:
+> ### 🛑 Use the **Kill all containers** button
+>
+> It sits in the bottom-left corner of **every page** — the home page, the Service Lab, and
+> every lesson. It is the easiest and safest way to stop everything this project started.
+>
+> Before it removes anything it asks the server what would be affected and **lists those
+> containers by name in the confirmation**, so you can see exactly what is about to go.
+
+**Why it is safe.** It never removes containers by name pattern or with a blanket `docker rm`.
+It only ever acts on the two labels this project applies:
+
+| Label | Applied to |
+| --- | --- |
+| `com.silicon-lanes.managed=true` | The six application services and their replicas |
+| `com.silicon-lanes.lesson=<id>` | Lesson infrastructure — Nginx proxies, gateways, balancers |
+
+Anything else on your machine is invisible to it. PostgreSQL is deliberately excluded too: it
+carries a third label (`com.silicon-lanes.infrastructure=postgres`) that neither filter
+matches, so your sample data survives.
+
+Prefer the terminal? These are the same two filters:
 
 ```bash
 docker rm -f $(docker ps -aq --filter "label=com.silicon-lanes.lesson") $(docker ps -aq --filter "label=com.silicon-lanes.managed=true")

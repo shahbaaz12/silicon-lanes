@@ -114,6 +114,14 @@ markup for it. It renders its own toasts rather than reusing a page's toast
 region, because those differ across the site. The Service Lab is the one page
 that does not load it, since it already has its own Kill all button.
 
+Before removing anything, the floating control calls `GET /api/system`, a read-only preview
+that reports exactly which containers a global stop would affect, and names them in the
+confirmation dialog. The preview and the `DELETE` use the same two label filters, so what is
+shown cannot disagree with what happens. Both destructive helpers reject an empty or missing
+label filter rather than passing it to Docker, so no refactor can silently widen the blast
+radius. PostgreSQL carries a third label (`com.silicon-lanes.infrastructure=postgres`) that
+neither filter matches, which is why it and its data volume always survive.
+
 Container lifecycle operations show a global progress indicator: a thin
 indeterminate bar at the top of the page plus a badge naming the operation and
 counting elapsed seconds, mounted by `public/progress.js` on every page where
