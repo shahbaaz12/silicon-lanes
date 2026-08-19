@@ -173,3 +173,18 @@ Either way PostgreSQL and its named volume are left in place. To remove those to
 ```bash
 docker rm -f silicon-lanes-postgres && docker volume rm silicon-lanes-postgres-data
 ```
+
+---
+
+## Say hi 👋
+
+Got a suggestion, spotted something wrong, or just want to talk through one of the lessons?
+
+**[Find me on LinkedIn](https://www.linkedin.com/in/shabaaz12/)** — I reply to every message.
+
+Corrections are especially welcome. This project only works if the explanations actually land,
+and the quickest way to fix one that doesn't is for someone to tell me. No detail is too small
+— a confusing sentence, a diagram that reads the wrong way, a port that clashed on your
+machine. It all helps.
+
+If you learned something here, I'd genuinely love to hear it. Happy building. 🚀
