@@ -30,7 +30,7 @@ const lessons = [
 //   home.js                     replaced by our own copy, which reports simulated
 //                               mode instead of pinging Docker. Do not add it back
 //                               here or the sync will overwrite that file.
-const controlPanelFiles = ["index.html", "shared/ui.js", "styles.css", "theme.css", "theme.js", "404.html"];
+const controlPanelFiles = ["index.html", "progress.js", "kill-all.js", "shared/ui.js", "styles.css", "theme.css", "theme.js", "404.html"];
 
 // Wording that would be untrue in a build with no containers behind it. Applied to
 // the original text before URLs are rewritten.
@@ -81,7 +81,7 @@ function rewrite(contents, relativePath) {
 // The lesson pages are otherwise copied verbatim; the simulation is injected here
 // rather than edited into any app.js. These are classic scripts, so they run before
 // the lessons' deferred ES modules and window.fetch is replaced in time.
-const simulationScripts = ["fixtures.js", "logs.js", "lessons.js", "lessons-advanced.js", "fetch-shim.js", "banner.js"];
+const simulationScripts = ["fixtures.js", "logs.js", "lessons.js", "lessons-advanced.js", "fetch-shim.js", "banner.js", "footer.js"];
 
 function injectSimulation(contents, relativePath) {
   const prefix = prefixFor(relativePath);

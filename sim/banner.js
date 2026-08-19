@@ -119,8 +119,55 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     }
     .sim-banner-cta span { opacity: 0.7; font-weight: 600; }
 
+    /* Hide control, and the pull tab that brings the panel back. The choice is
+       remembered per browser, so the note does not reappear on every lesson. */
+    .sim-banner { position: relative; }
+    .sim-banner-hide {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+      border-radius: 2rem;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      opacity: 0.7;
+      cursor: pointer;
+    }
+    .sim-banner-hide:hover {
+      opacity: 1;
+      background: color-mix(in srgb, currentColor 10%, transparent);
+    }
+    .sim-banner-show {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      width: 100%;
+      padding: 0.4rem 1rem;
+      border: 0;
+      border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+      background: color-mix(in srgb, currentColor 7%, transparent);
+      color: inherit;
+      font: inherit;
+      font-size: 0.78rem;
+      font-weight: 600;
+      /* Sits clear of the theme toggle, which is fixed at the top right. */
+      padding-right: 7rem;
+      cursor: pointer;
+    }
+    .sim-banner-show:hover { background: color-mix(in srgb, currentColor 13%, transparent); }
+    .sim-banner-show .sim-banner-show-arrow { opacity: 0.7; }
+
     @media (max-width: 760px) {
       .sim-banner { padding: 1.35rem 1.15rem 1.5rem; }
+      .sim-banner-hide { top: 0.5rem; right: 0.6rem; }
+      .sim-banner-show { padding-right: 4rem; }
       .sim-banner-inner { padding-right: 3.5rem; }
       .sim-banner p { font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.7rem; }
       /* At full length this panel filled an entire phone screen, leaving no sign
@@ -134,6 +181,25 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     }
   `;
 
+  // Remembered across pages and visits: being told the same thing on all nine
+  // pages is worse than being told once. localStorage, not sessionStorage, so
+  // the choice survives a reload.
+  const hiddenKey = "silicon-lanes-note-hidden";
+  const isHidden = () => {
+    try {
+      return window.localStorage.getItem(hiddenKey) === "true";
+    } catch {
+      return false;
+    }
+  };
+  const remember = (hidden) => {
+    try {
+      window.localStorage.setItem(hiddenKey, String(hidden));
+    } catch {
+      // Private mode refuses writes; the toggle still works for this page view.
+    }
+  };
+
   function render() {
     if (document.querySelector(".sim-banner")) return;
 
@@ -141,9 +207,17 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     style.textContent = styles;
     document.head.append(style);
 
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = "sim-banner-show";
+    tab.hidden = true;
+    tab.innerHTML = `<span class="sim-banner-show-arrow" aria-hidden="true">&darr;</span>
+      <span>Simulated demo &mdash; show the note</span>`;
+
     const banner = document.createElement("aside");
     banner.className = "sim-banner";
     banner.innerHTML = `
+      <button type="button" class="sim-banner-hide">Hide <span aria-hidden="true">&uarr;</span></button>
       <div class="sim-banner-inner">
         <p class="sim-banner-tag">Simulated demo</p>
         <h2>Every container, request, and log line here is generated in your browser.</h2>
@@ -177,7 +251,24 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
         </a>
       </div>
     `;
+    function setHidden(hidden, { persist = true } = {}) {
+      banner.hidden = hidden;
+      tab.hidden = !hidden;
+      if (persist) remember(hidden);
+    }
+
+    banner.querySelector(".sim-banner-hide").addEventListener("click", () => {
+      setHidden(true);
+      tab.focus();
+    });
+    tab.addEventListener("click", () => {
+      setHidden(false);
+      banner.querySelector(".sim-banner-hide").focus();
+    });
+
     document.body.prepend(banner);
+    document.body.prepend(tab);
+    setHidden(isHidden(), { persist: false });
   }
 
   if (document.readyState === "loading") {

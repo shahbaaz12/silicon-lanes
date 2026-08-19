@@ -73,6 +73,35 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     return failure("API route not found.", 404);
   }
 
+  // Everything the simulation is currently "running", named the way the real
+  // containers are, so the kill-all confirmation lists the same things it removes.
+  function runningContainers() {
+    const containers = [];
+    for (const lesson of Object.values(sim.lessons)) {
+      const state = lesson.state();
+      if (!state.running) continue;
+      for (const node of [state.loadBalancer, state.gateway, state.proxy, state.edge, state.cdn,
+                          state.catalogLoadBalancer, ...(state.gateways ?? [])]) {
+        if (node?.name) containers.push({ name: node.name, kind: "lesson" });
+      }
+      for (const service of state.services ?? []) containers.push({ name: service.name, kind: "service" });
+      if (state.instance?.name) containers.push({ name: state.instance.name, kind: "service" });
+      if (state.service?.name) containers.push({ name: state.service.name, kind: "service" });
+    }
+    // Replicas are shared between lessons in the real project, so list each name once.
+    return [...new Map(containers.map((c) => [c.name, c])).values()];
+  }
+
+  async function handleSystem(method) {
+    if (method === "GET") return sim.jsonResponse({ containers: runningContainers() });
+    if (method === "DELETE") {
+      const stopped = runningContainers().map(({ name }) => name);
+      for (const lesson of Object.values(sim.lessons)) await lesson.stop();
+      return sim.jsonResponse({ stopped });
+    }
+    return failure("API route not found.", 404);
+  }
+
   window.fetch = async function simulatedFetch(input, init) {
     const url = requestUrl(input);
     const method = requestMethod(input, init);
@@ -84,6 +113,9 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
 
     // The Service Lab is not part of the static build; keep its probe from erroring.
     if (/\/api\/services(\?|$)/.test(url)) return sim.jsonResponse([]);
+
+    // Global kill-all: GET previews what would be removed, DELETE removes it.
+    if (/\/api\/system(\?|$)/.test(url)) return handleSystem(method);
 
     // The query string is kept: lesson 6 varies ?connectionExperiment= to force a
     // new TCP connection, which is how its L4 edge balancer picks a gateway.
