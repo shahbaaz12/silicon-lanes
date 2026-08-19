@@ -49,15 +49,6 @@ body { font-family: var(--font-body); color: var(--text); line-height: 1.6; }
   margin: 0 auto;
 }
 
-.footer-browse-link {
-  color: var(--cyan, #55d9e8);
-  font-weight: 700;
-  text-underline-offset: 3px;
-  white-space: nowrap;
-}
-
-.footer-browse-link:hover { color: var(--text, #f2f5f7); }
-
 /* Dismissible "browse without Docker" note, mounted by /browse-note.js. Both the note and its
    collapsed pull tab sit in normal document flow — the fixed corners are already taken by the
    theme toggle and the Kill all button. */
