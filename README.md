@@ -1,69 +1,155 @@
 # Silicon Lanes
 
-> A system-design journey.
+> A system-design journey — from one server to a scalable system, one layer at a time.
 
-An exploration of high-level system design, beginning with the infrastructure
-that receives, routes, and balances requests.
+Silicon Lanes is a hands-on way to learn how a web request actually gets from a browser to
+the right server. It starts with a browser calling one service directly, then adds a reverse
+proxy, a load balancer, an API gateway, and a CDN — one decision at a time, each in response
+to a problem the previous setup could not solve.
 
-## Topics
+Nothing here is a diagram of a system. Every lesson starts **real Docker containers** on your
+machine, and you send **real HTTP requests** through them.
 
-- Load balancers
-- API gateways
-- Reverse proxies
+## Just want to look?
 
-## E-commerce application
+If you'd rather browse the lessons without installing anything, there's a static simulation:
 
-The `Application` directory contains independent, container-ready Express
-services. Each service owns its runtime, API, business logic, and logical
-PostgreSQL database. Replicas share their service database while container
-instances and host-port mappings remain externally controlled.
+**[shahbaaz12.github.io/silicon-lanes](https://shahbaaz12.github.io/silicon-lanes/index.html)**
 
-See [`Application/README.md`](Application/README.md) for service ports, Docker
-commands, and API paths.
+It walks through the same material with no Docker, no downloads, and nothing running locally.
+To actually start containers and send live traffic through them, run the project below.
 
-## Control panel
+---
 
-`ControlPanel` is a local dashboard for starting one or more Docker instances,
-opening a service detail page, sending sample GET requests, and viewing the
-response and container logs.
+## Heads-up: this creates real containers
 
-```powershell
+When you start a lesson or a service, the Control Panel builds images and runs actual
+containers on your machine. They are yours to poke at — you can `docker ps` them, curl them
+directly, watch their logs, and kill them mid-request to see what breaks.
+
+To keep that safe and easy to undo:
+
+- Everything it creates is labelled: application services get
+  `com.silicon-lanes.managed=true`, and lesson infrastructure (the Nginx proxies, gateways
+  and balancers) gets `com.silicon-lanes.lesson=<lesson-id>`. It only ever touches containers
+  carrying one of those labels.
+- All ports bind to `127.0.0.1` only, so nothing is exposed to your network.
+- A **Kill all containers** button on every page removes everything it started.
+- PostgreSQL and its data volume are deliberately *kept* by Kill all, so your sample data
+  survives. Remove them yourself if you want a clean slate.
+
+## Requirements
+
+| Requirement | Notes |
+| --- | --- |
+| **Docker Desktop** | Must be running before you start. Images are built locally on first use. |
+| **Node.js 22+** | Only needed for the Control Panel itself. |
+| Free ports | `7012` for the panel, `6112–6614` for services, `7212–7712` for lessons. |
+
+The first start is the slow one — Docker has to build the service images, which can take a few
+minutes. Later starts reuse cached layers and take seconds. A progress bar with an elapsed
+timer shows you it's working rather than stuck.
+
+## Run the Control Panel
+
+```bash
 cd ControlPanel
 npm install
 npm start
 ```
 
-Open `http://localhost:7012` while Docker Desktop is running.
+Then open **<http://localhost:7012>** with Docker Desktop running.
 
-## Sequential lessons
+That single command is the whole thing — the panel serves the home page, every lesson, and the
+Service Lab, and manages all Docker work itself. There is no separate lesson server.
 
-`Lessons` introduces the architecture one layer at a time as pages inside the
-Control Panel website. Lesson 1 begins with a browser client calling one Catalog
-Service address directly, before a load balancer, reverse proxy, or API gateway
-is added.
+## The application services
 
-Lesson 2 then inserts an Nginx reverse proxy with a short response-cache TTL so
-cache misses, hits, expiry, and reduced Catalog Service work are visible.
+Behind the lessons is a small e-commerce app split into six independent Express services. Each
+owns its own code, Dockerfile, and logical PostgreSQL database, and each seeds sample data on
+first run so every endpoint returns something meaningful.
 
-Lesson 3 turns Nginx into a Layer 7 load balancer and distributes the same HTTP
-request across three Catalog Service replicas with simple round-robin routing.
+Each service gets a **port family**: replica 1 takes the base port, replica 2 the next, and so
+on (three replicas by default). Inside Docker they all listen on the base port; the family only
+applies to what's published on your machine.
 
-Lesson 4 introduces one API Gateway address and uses the request path to select
-the appropriate e-commerce service.
+| Service | Ports (replicas 1–3) | Endpoints |
+| --- | --- | --- |
+| **User** | `6112` `6113` `6114` | `GET /api/users` · `GET /api/users/:id` · `POST /api/users` |
+| **Catalog** | `6212` `6213` `6214` | `GET /api/products` · `GET /api/products/:id` · `POST /api/products` |
+| **Inventory** | `6312` `6313` `6314` | `GET /api/inventory` · `GET /api/inventory/:productId` · `PUT /api/inventory` |
+| **Cart** | `6412` `6413` `6414` | `GET /api/carts/:userId` · `POST /api/carts/:userId/items` · `DELETE /api/carts/:userId/items/:productId` |
+| **Order** | `6512` `6513` `6514` | `GET /api/orders` · `GET /api/orders/:id` · `POST /api/orders` |
+| **Payment** | `6612` `6613` `6614` | `GET /api/payments` · `GET /api/payments/:id` · `POST /api/payments` |
 
-Lesson 5 combines the layers: the gateway selects Catalog, then a Catalog Load
-Balancer selects one of two replicas; User and Order remain direct routes.
+Every service also exposes `GET /health`, and every response carries a `servedBy` field naming
+the exact replica that answered — which is what makes load balancing visible later on.
 
-Lesson 6 scales the entry tier: one public L4 edge Load Balancer selects between
-two stateless API Gateways, which route Catalog traffic through a private L7
-Load Balancer.
+All six share one `postgres:17-alpine` container with a separate logical database each.
+Replicas of the same service share that database.
 
-Lesson 7 adds a local CDN in front of that origin. Product cache hits return at
-the edge, while misses and uncached routes continue through the full topology.
+See [`Application/README.md`](Application/README.md) for details.
 
-A bonus Lesson 8 sits outside this sequence: optional, advanced-reading
-material with no Docker lab, covering how a real client's request finds a CDN
-at all — DNS, anycast, and BGP routing — before rejoining the Lesson 6/7
-topology.
+## Service Lab
 
-See [`Lessons/README.md`](Lessons/README.md) for the lesson sequence.
+**<http://localhost:7012/service-lab>**
+
+The Service Lab is the workshop, separate from the lesson narrative. Start and stop replicas of
+any service, watch the replica count change, pick an endpoint, edit a sample JSON body, copy
+the equivalent curl, and fire the request. The response panel shows status, duration, formatted
+JSON, and which replica served it.
+
+It's the fastest way to get a feel for the services on their own, before any proxy or load
+balancer is in front of them.
+
+## The lessons
+
+Each lesson keeps everything from the one before and introduces exactly one new idea, always
+because the previous setup hit a wall. All of them are interactive: start the infrastructure,
+send requests, read the real Nginx and service logs.
+
+| # | Lesson | Port | What it teaches |
+| --- | --- | --- | --- |
+| **1** | [Direct to service](Lessons/lesson-01-direct-service/README.md) | `6212` | The simplest possible path — browser straight to one service. Sets up every problem that follows. |
+| **2** | [Reverse Proxy](Lessons/lesson-02-reverse-proxy/README.md) | `7212` | One stable address instead of the service's own, plus a 15-second response cache. Watch hits, misses, and expiry. |
+| **3** | [L7 Load Balancer](Lessons/lesson-03-l7-load-balancer/README.md) | `7312` | Round-robin across three Catalog replicas. Kill one mid-lesson and watch traffic keep flowing. |
+| **4** | [API Gateway](Lessons/lesson-04-api-gateway/README.md) | `7412` | One entry point for six services, routed by request path. |
+| **5** | [Hybrid](Lessons/lesson-05-hybrid/README.md) | `7512` | Scale only what's busy — Catalog goes behind a load balancer while User and Order stay direct. |
+| **6** | [Advanced availability](Lessons/lesson-06-advanced/README.md) | `7612` | An L4 edge balancer in front of two stateless gateways, then a private L7 balancer. Removes the gateway as a single point of failure. |
+| **7** | [Local CDN](Lessons/lesson-07-local-cdn/README.md) | `7712` | Cache at the edge. A hit skips the entire origin chain; `X-Cache-Status` shows `HIT`, `MISS`, or `BYPASS`. |
+
+### Bonus — Lesson 8
+
+[**Request Path: DNS, Anycast & BGP**](Lessons/lesson-08-request-path/README.md) is optional
+reading with **no Docker at all**. Lessons 1–7 begin once a request reaches your containers;
+this one backs up to the open internet and answers the question Lesson 7 leaves hanging — if
+the CDN is one box, isn't that just another single point of failure? (It isn't, and the reason
+is worth knowing.)
+
+See [`Lessons/README.md`](Lessons/README.md) for the full sequence.
+
+## Repository layout
+
+```
+Application/     Six independent Express services, each with its own Dockerfile
+ControlPanel/    The local web app: home page, lessons, Service Lab, Docker orchestration
+Lessons/         Per-lesson pages, Nginx configs, and shared UI components
+Database/        Notes on the shared PostgreSQL setup
+```
+
+## Cleaning up
+
+Use **Kill all containers** on any page, or:
+
+```bash
+docker rm -f $(docker ps -aq --filter "label=com.silicon-lanes.lesson") $(docker ps -aq --filter "label=com.silicon-lanes.managed=true")
+```
+
+Both label filters are needed: application services carry the first, lesson infrastructure
+the second.
+
+Either way PostgreSQL and its named volume are left in place. To remove those too:
+
+```bash
+docker rm -f silicon-lanes-postgres && docker volume rm silicon-lanes-postgres-data
+```
