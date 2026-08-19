@@ -89,10 +89,7 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
         <a class="sim-footer-cta" href="${sim.contactUrl}" target="_blank" rel="noopener">
           Say hi on LinkedIn <span>&rarr;</span>
         </a>
-        <p class="sim-footer-note">
-          Corrections are genuinely welcome &mdash; so are pull requests on
-          <a href="${sim.repositoryUrl}" target="_blank" rel="noopener">GitHub</a>.
-        </p>
+        <p class="sim-footer-note">Corrections are genuinely welcome.</p>
       </div>
     `;
     document.body.append(footer);

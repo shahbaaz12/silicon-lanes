@@ -23,13 +23,39 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       /* Keeps the first line clear of the theme toggle, which is fixed top-right. */
       padding-right: 6rem;
     }
+    /* The label is the collapse control. Keeping it at the top left also puts it
+       nowhere near the theme toggle, which is fixed at the top right. */
     .sim-banner-tag {
-      margin: 0 0 0.6rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin: 0 0 0.6rem -0.5rem;
+      padding: 0.25rem 0.5rem;
+      border: 0;
+      border-radius: 0.35rem;
+      background: transparent;
+      color: inherit;
+      font: inherit;
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.14em;
       text-transform: uppercase;
       opacity: 0.6;
+      cursor: pointer;
+    }
+    .sim-banner-tag:hover {
+      opacity: 1;
+      background: color-mix(in srgb, currentColor 10%, transparent);
+    }
+    .sim-banner-tag:focus-visible {
+      opacity: 1;
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+    .sim-banner-tag .sim-banner-caret {
+      font-size: 0.85em;
+      /* Letter-spacing is for the label, not the arrow sitting next to it. */
+      letter-spacing: 0;
     }
     .sim-banner h2 {
       margin: 0 0 0.75rem;
@@ -119,38 +145,8 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     }
     .sim-banner-cta span { opacity: 0.7; font-weight: 600; }
 
-    /* Hide control, and the pull tab that brings the panel back. The choice is
-       remembered per browser, so the note does not reappear on every lesson. */
-    .sim-banner { position: relative; }
-    .sim-banner-hide {
-      position: absolute;
-      /* On narrow screens the button sits over the tag line, which otherwise wins
-         the hit test and makes it untappable. */
-      z-index: 1;
-      top: 0.75rem;
-      /* Tracks the theme toggle rather than guessing at a gap. The toggle is fixed
-         at right: max(20px, (100vw - 1440px) / 2) and is 88px wide, so on wide
-         screens it moves inward with the centred layout and a constant offset here
-         would collide again. 88px for the toggle, 12px of clearance. */
-      right: calc(max(20px, (100vw - 1440px) / 2) + 100px);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.3rem 0.7rem;
-      border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-      border-radius: 2rem;
-      background: transparent;
-      color: inherit;
-      font: inherit;
-      font-size: 0.75rem;
-      font-weight: 600;
-      opacity: 0.7;
-      cursor: pointer;
-    }
-    .sim-banner-hide:hover {
-      opacity: 1;
-      background: color-mix(in srgb, currentColor 10%, transparent);
-    }
+    /* The pull tab that brings the panel back. The choice is remembered per
+       browser, so the note does not reappear on every lesson. */
     .sim-banner-show {
       display: flex;
       align-items: center;
@@ -168,12 +164,14 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       padding-right: 7rem;
       cursor: pointer;
     }
+    /* An author display declaration outranks the user agent's [hidden] rule, so
+       without this the tab stays on screen next to the panel it is meant to replace. */
+    .sim-banner-show[hidden] { display: none; }
     .sim-banner-show:hover { background: color-mix(in srgb, currentColor 13%, transparent); }
     .sim-banner-show .sim-banner-show-arrow { opacity: 0.7; }
 
     @media (max-width: 760px) {
       .sim-banner { padding: 1.35rem 1.15rem 1.5rem; }
-      .sim-banner-hide { top: 0.5rem; }
       .sim-banner-show { padding-right: 4rem; }
       .sim-banner-inner { padding-right: 3.5rem; }
       .sim-banner p { font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.7rem; }
@@ -224,9 +222,10 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     const banner = document.createElement("aside");
     banner.className = "sim-banner";
     banner.innerHTML = `
-      <button type="button" class="sim-banner-hide">Hide <span aria-hidden="true">&uarr;</span></button>
       <div class="sim-banner-inner">
-        <p class="sim-banner-tag">Simulated demo</p>
+        <button type="button" class="sim-banner-tag" aria-expanded="true" title="Collapse this note">
+          Simulated demo <span class="sim-banner-caret" aria-hidden="true">&uarr;</span>
+        </button>
         <h2>Every container, request, and log line here is generated in your browser.</h2>
         <p class="sim-banner-lead">
           Nothing is installed and nothing is running. This site imitates the real project
@@ -258,19 +257,22 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
         </a>
       </div>
     `;
+    const label = banner.querySelector(".sim-banner-tag");
+
     function setHidden(hidden, { persist = true } = {}) {
       banner.hidden = hidden;
       tab.hidden = !hidden;
+      label.setAttribute("aria-expanded", String(!hidden));
       if (persist) remember(hidden);
     }
 
-    banner.querySelector(".sim-banner-hide").addEventListener("click", () => {
+    label.addEventListener("click", () => {
       setHidden(true);
       tab.focus();
     });
     tab.addEventListener("click", () => {
       setHidden(false);
-      banner.querySelector(".sim-banner-hide").focus();
+      label.focus();
     });
 
     document.body.prepend(banner);
