@@ -180,7 +180,7 @@ docker rm -f silicon-lanes-postgres && docker volume rm silicon-lanes-postgres-d
 
 Got a suggestion, spotted something wrong, or just want to talk through one of the lessons?
 
-**[Find me on LinkedIn](https://www.linkedin.com/in/shabaaz12/)** — I reply to every message.
+**[I am here on LinkedIn](https://www.linkedin.com/in/shabaaz12/)** — I reply to every message.
 
 Corrections are especially welcome. This project only works if the explanations actually land,
 and the quickest way to fix one that doesn't is for someone to tell me. No detail is too small
