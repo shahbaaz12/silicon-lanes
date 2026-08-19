@@ -1,48 +1,106 @@
-// The attribution bar shown on every page.
+// The panel shown at the top of every page.
 //
 // This build looks and behaves like the real project, so it has to say plainly
-// that nothing here is a real container, and point at the repository where the
-// Docker version lives.
+// that nothing here is a real container -- and, just as importantly, that the
+// Docker version is a short setup away and what running it actually requires.
 window.SiliconLanesSim = window.SiliconLanesSim || {};
 
 (function (sim) {
   sim.repositoryUrl = "https://github.com/shahbaaz12/silicon-lanes";
+  sim.repositoryLabel = "github.com/shahbaaz12/silicon-lanes";
 
   const styles = `
     .sim-banner {
+      /* Colours are derived from the page's own text colour, so the panel follows
+         whichever theme the site is in without hardcoding either palette. */
+      background: color-mix(in srgb, currentColor 7%, transparent);
+      border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+      padding: 2rem 1.5rem 2.25rem;
+    }
+    .sim-banner-inner {
+      max-width: 62rem;
+      margin: 0 auto;
+      /* Keeps the first line clear of the theme toggle, which is fixed top-right. */
+      padding-right: 6rem;
+    }
+    .sim-banner-tag {
+      margin: 0 0 0.6rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+    .sim-banner h2 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    .sim-banner p {
+      margin: 0 0 0.85rem;
+      max-width: 54rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      opacity: 0.85;
+    }
+    .sim-banner p.sim-banner-lead { opacity: 1; }
+    .sim-banner strong { font-weight: 700; }
+    .sim-banner code {
+      padding: 0.1em 0.4em;
+      border-radius: 0.3em;
+      font-size: 0.9em;
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+    .sim-banner-needs {
       display: flex;
       flex-wrap: wrap;
-      align-items: baseline;
-      gap: 0.35rem 0.75rem;
-      /* The shared theme toggle is position:fixed at the top right with z-index 100.
-         Without this reserved space it sits on top of the link and swallows the click. */
-      padding: 0.55rem 7.5rem 0.55rem 1.25rem;
+      gap: 0.5rem;
+      margin: 0 0 1.4rem;
+      padding: 0;
+      list-style: none;
+    }
+    .sim-banner-needs li {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+      border-radius: 2rem;
       font-size: 0.82rem;
-      line-height: 1.45;
-      background: color-mix(in srgb, currentColor 6%, transparent);
-      border-bottom: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-    }
-    .sim-banner strong { font-weight: 650; }
-    .sim-banner span { opacity: 0.75; }
-    .sim-banner a {
-      margin-left: auto;
-      font-weight: 600;
       white-space: nowrap;
-      text-decoration: underline;
-      text-underline-offset: 0.2em;
-      color: inherit;
     }
-    .sim-banner a:hover { opacity: 0.75; }
-    /* Declared before the media query: these rules have equal specificity, so
-       whichever comes last would otherwise win at every width. */
-    .sim-banner .sim-banner-short { display: none; }
-    @media (max-width: 640px) {
-      /* Three wrapped lines cost too much of a small screen, so the long
-         explanation gives way to the short one. */
-      .sim-banner { padding-right: 6rem; }
-      .sim-banner a { margin-left: 0; }
-      .sim-banner .sim-banner-long { display: none; }
-      .sim-banner .sim-banner-short { display: inline; }
+    .sim-banner-needs li b { font-weight: 700; }
+    .sim-banner-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.4rem;
+      border: 2px solid currentColor;
+      border-radius: 0.6rem;
+      font-size: clamp(0.95rem, 2.2vw, 1.15rem);
+      font-weight: 700;
+      text-decoration: none;
+      color: inherit;
+      word-break: break-all;
+    }
+    .sim-banner-cta:hover {
+      /* Deliberately not an inversion: the site's own theme toggle is independent
+         of the OS, so a system colour like Canvas can land the same shade as the
+         text. Tinting keeps the label readable in every combination. */
+      background: color-mix(in srgb, currentColor 15%, transparent);
+    }
+    .sim-banner-cta span { opacity: 0.7; font-weight: 600; }
+
+    @media (max-width: 760px) {
+      .sim-banner { padding: 1.35rem 1.15rem 1.5rem; }
+      .sim-banner-inner { padding-right: 3.5rem; }
+      .sim-banner p { font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.7rem; }
+      /* At full length this panel filled an entire phone screen, leaving no sign
+         that a lesson was below it. The heading already makes the point the lead
+         paragraph repeats, so that one goes. */
+      .sim-banner-lead { display: none; }
+      .sim-banner h2 { margin-bottom: 0.6rem; }
+      .sim-banner-needs { margin-bottom: 1.1rem; gap: 0.4rem; }
+      .sim-banner-needs li { padding: 0.3rem 0.6rem; font-size: 0.78rem; }
+      .sim-banner-cta { width: 100%; justify-content: center; text-align: center; }
     }
   `;
 
@@ -56,10 +114,35 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     const banner = document.createElement("aside");
     banner.className = "sim-banner";
     banner.innerHTML = `
-      <strong>Simulated demo.</strong>
-      <span class="sim-banner-long">Every container, request, and log line is generated in your browser, so it runs on GitHub Pages with no Docker.</span>
-      <span class="sim-banner-short">No Docker &mdash; it all runs in your browser.</span>
-      <a href="${sim.repositoryUrl}" target="_blank" rel="noopener">Try it for real &rarr;</a>
+      <div class="sim-banner-inner">
+        <p class="sim-banner-tag">Simulated demo</p>
+        <h2>Every container, request, and log line here is generated in your browser.</h2>
+        <p class="sim-banner-lead">
+          Nothing is installed and nothing is running. This site imitates the real project
+          closely enough to teach the same lessons, which is exactly why it should say so.
+        </p>
+        <p>
+          <strong>The real thing is one click away.</strong> Clone the repository, start the
+          control panel, and each lesson launches genuine Docker containers on demand &mdash;
+          Nginx reverse proxies, Layer&nbsp;4 and Layer&nbsp;7 load balancers, API gateways, a
+          local CDN, and six independent Express services backed by PostgreSQL. Kill a replica
+          and watch traffic actually fail over.
+        </p>
+        <p>
+          Every lesson hands you a <strong>copyable cURL command</strong>, so you can hit the
+          running containers yourself from <strong>Postman</strong> or a terminal and read the
+          real response headers.
+        </p>
+        <ul class="sim-banner-needs">
+          <li><b>All you need:</b></li>
+          <li>Docker Desktop</li>
+          <li>Node.js 22+</li>
+          <li><code>npm install &amp;&amp; npm start</code></li>
+        </ul>
+        <a class="sim-banner-cta" href="${sim.repositoryUrl}" target="_blank" rel="noopener">
+          ${sim.repositoryLabel} <span>&rarr;</span>
+        </a>
+      </div>
     `;
     document.body.prepend(banner);
   }
