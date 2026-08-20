@@ -18,14 +18,6 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
       border-radius: 1rem;
       background: color-mix(in srgb, currentColor 6%, transparent);
     }
-    .sim-note-tag {
-      margin: 0 0 0.6rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      opacity: 0.6;
-    }
     .sim-note h2 {
       margin: 0 0 0.75rem;
       font-size: clamp(1.25rem, 2.6vw, 1.7rem);
@@ -114,16 +106,10 @@ window.SiliconLanesSim = window.SiliconLanesSim || {};
     note.className = "sim-note";
     note.setAttribute("aria-labelledby", "sim-note-heading");
     note.innerHTML = `
-      <p class="sim-note-tag">Simulated demo</p>
-      <h2 id="sim-note-heading">Every container, request, and log line here is generated in your browser.</h2>
+      <h2 id="sim-note-heading">This is a simulation &mdash; you can learn all of it without installing anything.</h2>
       <p class="sim-note-lead">
-        Nothing is installed and nothing is running. This site imitates the real project
-        closely enough to teach the same lessons, which is exactly why it should say so.
-      </p>
-      <p>
-        Every lesson hands you a <span class="hl-do">copyable cURL command</span>, so you can hit
-        the running containers yourself from <span class="hl-do">Postman</span> or a terminal and
-        read the real response headers.
+        <span class="hl-do">I&rsquo;ve also built the hands-on version.</span> Spin up your own
+        containers, services, and load balancer, all in one click, and break them yourself.
       </p>
       <ul class="sim-note-needs">
         <li><b>All you need:</b></li>
