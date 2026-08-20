@@ -81,7 +81,7 @@ function rewrite(contents, relativePath) {
 // The lesson pages are otherwise copied verbatim; the simulation is injected here
 // rather than edited into any app.js. These are classic scripts, so they run before
 // the lessons' deferred ES modules and window.fetch is replaced in time.
-const simulationScripts = ["fixtures.js", "logs.js", "lessons.js", "lessons-advanced.js", "fetch-shim.js", "banner.js", "footer.js"];
+const simulationScripts = ["fixtures.js", "logs.js", "lessons.js", "lessons-advanced.js", "fetch-shim.js", "home-note.js", "footer.js"];
 
 function injectSimulation(contents, relativePath) {
   const prefix = prefixFor(relativePath);

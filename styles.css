@@ -1,4 +1,6 @@
 :root {
+  /* Width of this page's content column, read by shared chrome in theme.css. */
+  --page-max: 1180px;
   color-scheme: dark;
   --canvas: #080a0d;
   --panel: #11151a;

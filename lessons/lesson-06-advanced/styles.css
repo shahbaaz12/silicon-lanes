@@ -7,6 +7,8 @@
    check `Lessons/lesson-07-local-cdn/public/styles.css` and `index.html` before doing so. */
 
 :root {
+  /* Width of this page's content column, read by shared chrome in theme.css. */
+  --page-max: 1420px;
   color-scheme: dark;
   --bg: #090b0e;
   --panel: #11151a;
